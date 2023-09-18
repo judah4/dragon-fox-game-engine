@@ -4,9 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using DragonFoxGameEngine.Core;
-using NReco.Logging.File;
-using System.IO;
-using Microsoft.Extensions.Primitives;
 using System;
 
 namespace DragonFoxGameEngine
@@ -23,6 +20,7 @@ namespace DragonFoxGameEngine
                 options.SingleLine = true;
                 options.TimestampFormat = "hh:mm:ss ";
             });
+            //Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create)
             //https://github.com/nreco/logging
             builder.Logging.AddFile("app.log", fileLoggerOpts => {
                 fileLoggerOpts.Append = true;
@@ -48,9 +46,12 @@ namespace DragonFoxGameEngine
 
             IHost host = builder.Build();
 
-            var configuration = host.Services.GetRequiredService<IConfiguration>();
+            host.RunAsync();
 
-            host.Run();
+            //var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
+            //var logger = loggerFactory.CreateLogger("Engine");
+            //var app = new HelloTriangleApplication(logger);
+            //app.Run();
         }
     }
 }

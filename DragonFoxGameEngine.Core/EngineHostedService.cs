@@ -8,6 +8,7 @@ namespace DragonFoxGameEngine.Core
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
+        IHostApplicationLifetime _appLifetime;
 
         public EngineHostedService(
             IConfiguration configuration,
@@ -16,18 +17,29 @@ namespace DragonFoxGameEngine.Core
         {
             _configuration = configuration;
             _logger = logger;
+            _appLifetime = appLifetime;
 
             appLifetime.ApplicationStarted.Register(OnStarted);
             appLifetime.ApplicationStopping.Register(OnStopping);
-            appLifetime.ApplicationStopped.Register(OnStopped);
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("1. StartAsync has been called.");
-            var app = new HelloTriangleApplication();
-            app.Run();
             return Task.CompletedTask;
+        }
+
+        private void OnStarted()
+        {
+            _logger.LogInformation("2. OnStarted has been called.");
+            var app = new HelloTriangleApplication(_logger);
+            app.Run();
+            _appLifetime.StopApplication();
+        }
+
+        private void OnStopping()
+        {
+            _logger.LogInformation("3. OnStopping has been called.");
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -37,19 +49,5 @@ namespace DragonFoxGameEngine.Core
             return Task.CompletedTask;
         }
 
-        private void OnStarted()
-        {
-            _logger.LogInformation("2. OnStarted has been called.");
-        }
-
-        private void OnStopping()
-        {
-            _logger.LogInformation("3. OnStopping has been called.");
-        }
-
-        private void OnStopped()
-        {
-            _logger.LogInformation("5. OnStopped has been called.");
-        }
     }
 }

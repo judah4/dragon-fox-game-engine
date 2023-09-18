@@ -18,4 +18,10 @@
     <ProjectReference Include="..\DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<Content
+		  Include="..\Assets\**\*.*"
+		  CopyToOutputDirectory="Always"
+        />
+	</ItemGroup>
 </Project>
