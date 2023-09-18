@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Hardware.Info;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -6,9 +7,12 @@ namespace DragonFoxGameEngine.Core
 {
     public class EngineHostedService : IHostedService
     {
+        static readonly IHardwareInfo s_hardwareInfo = new HardwareInfo();
+
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
         IHostApplicationLifetime _appLifetime;
+
 
         public EngineHostedService(
             IConfiguration configuration,
@@ -26,6 +30,42 @@ namespace DragonFoxGameEngine.Core
         public Task StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("1. StartAsync has been called.");
+
+            var version = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version?.ToString() ?? "1.0.0";
+            _logger.LogInformation($"Dragon Fox Game Engine {version}");
+
+            s_hardwareInfo.RefreshAll();
+
+            _logger.LogInformation(s_hardwareInfo.OperatingSystem.ToString());
+
+            _logger.LogInformation(s_hardwareInfo.MemoryStatus.ToString());
+
+            foreach (var hardware in s_hardwareInfo.BiosList)
+                _logger.LogInformation(hardware.ToString());
+
+            foreach (var cpu in s_hardwareInfo.CpuList)
+            {
+                _logger.LogInformation(cpu.ToString());
+
+                foreach (var cpuCore in cpu.CpuCoreList)
+                    _logger.LogInformation(cpuCore.ToString());
+            }
+
+            foreach (var hardware in s_hardwareInfo.KeyboardList)
+                _logger.LogInformation(hardware.ToString());
+
+            foreach (var hardware in s_hardwareInfo.MemoryList)
+                _logger.LogInformation(hardware.ToString());
+
+            foreach (var hardware in s_hardwareInfo.MonitorList)
+                _logger.LogInformation(hardware.ToString());
+
+            foreach (var hardware in s_hardwareInfo.MotherboardList)
+                _logger.LogInformation(hardware.ToString());
+
+            foreach (var hardware in s_hardwareInfo.VideoControllerList)
+                _logger.LogInformation(hardware.ToString());
+
             return Task.CompletedTask;
         }
 

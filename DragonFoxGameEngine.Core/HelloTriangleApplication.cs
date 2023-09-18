@@ -11,6 +11,7 @@ using Semaphore = Silk.NET.Vulkan.Semaphore;
 using Buffer = Silk.NET.Vulkan.Buffer;
 using Image = Silk.NET.Vulkan.Image;
 using Microsoft.Extensions.Logging;
+using System.Text;
 
 namespace DragonFoxGameEngine.Core
 {
@@ -409,14 +410,14 @@ namespace DragonFoxGameEngine.Core
             {
                 throw new Exception("validation layers requested, but not available!");
             }
-
+            var version = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version!;
             ApplicationInfo appInfo = new()
             {
                 SType = StructureType.ApplicationInfo,
                 PApplicationName = (byte*)Marshal.StringToHGlobalAnsi(DEFAULT_WINDOW_TITLE),
-                ApplicationVersion = new Version32(1, 0, 0),
+                ApplicationVersion = new Version32((uint)version.Major, (uint)version.Minor, (uint)version.Revision),
                 PEngineName = (byte*)Marshal.StringToHGlobalAnsi(GAME_ENGINE_NAME),
-                EngineVersion = new Version32(1, 0, 0),
+                EngineVersion = new Version32((uint)version.Major, (uint)version.Minor, (uint)version.Revision),
                 ApiVersion = Vk.Version12
             };
 
@@ -527,6 +528,9 @@ namespace DragonFoxGameEngine.Core
             {
                 throw new Exception("failed to find a suitable GPU!");
             }
+
+            var properties = vk!.GetPhysicalDeviceProperties(physicalDevice);
+            _logger.LogInformation($"Device Type: {properties.DeviceType.ToString()}");
         }
 
         private void CreateLogicalDevice()

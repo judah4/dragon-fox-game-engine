@@ -23,7 +23,8 @@ namespace DragonFoxGameEngine
             //Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData, Environment.SpecialFolderOption.Create)
             //https://github.com/nreco/logging
             builder.Logging.AddFile("app.log", fileLoggerOpts => {
-                fileLoggerOpts.Append = true;
+                fileLoggerOpts.Append = false;
+                //fileLoggerOpts.MinLevel = LogLevel.Information;
                 fileLoggerOpts.FormatLogEntry = (msg) => {
                     var sb = new System.Text.StringBuilder();
                     sb.Append(DateTime.Now.ToString("o"));
