@@ -4,17 +4,17 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	  <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 
-	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Silk.NET" Version="2.17.1" />
-    <PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.17.1" />
-	<PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj" />
   </ItemGroup>
 
 </Project>
