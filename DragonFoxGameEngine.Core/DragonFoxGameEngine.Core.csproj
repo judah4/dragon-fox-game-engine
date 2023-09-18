@@ -12,7 +12,8 @@
 	  <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
 	  <PackageReference Include="Silk.NET" Version="2.17.1" />
 	  <PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.17.1" />
-	  <PackageReference Include="SixLabors.ImageSharp" Version="3.0.1" />
+	  <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
+	  <PackageReference Include="Svelto.ECS" Version="3.4.6" />
   </ItemGroup>
 
 </Project>
