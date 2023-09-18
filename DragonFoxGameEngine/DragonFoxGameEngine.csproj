@@ -20,8 +20,9 @@
 
 	<ItemGroup>
 		<Content
-		  Include="..\Assets\**\*.*"
+		  Include="..\Assets\**"
 		  CopyToOutputDirectory="Always"
+		  LinkBase="Assets"
         />
 	</ItemGroup>
 </Project>

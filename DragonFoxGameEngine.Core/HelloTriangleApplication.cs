@@ -801,8 +801,8 @@ namespace DragonFoxGameEngine.Core
 
         private void CreateGraphicsPipeline()
         {
-            var vertShaderCode = File.ReadAllBytes("shaders/vert.spv");
-            var fragShaderCode = File.ReadAllBytes("shaders/frag.spv");
+            var vertShaderCode = File.ReadAllBytes("Assets/shaders/vert.spv");
+            var fragShaderCode = File.ReadAllBytes("Assets/shaders/frag.spv");
 
             var vertShaderModule = CreateShaderModule(vertShaderCode);
             var fragShaderModule = CreateShaderModule(fragShaderCode);
@@ -1049,7 +1049,7 @@ namespace DragonFoxGameEngine.Core
 
         private void CreateTextureImage()
         {
-            using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>("textures/texture.jpg");
+            using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>("Assets/Textures/texture.jpg");
 
             ulong imageSize = (ulong)(img.Width * img.Height * img.PixelType.BitsPerPixel / 8);
 
@@ -1676,7 +1676,7 @@ namespace DragonFoxGameEngine.Core
 
             UniformBufferObject ubo = new()
             {
-                model = Matrix4X4<float>.Identity * Matrix4X4.CreateFromAxisAngle<float>(new Vector3D<float>(0, 0, 1), 0),// time * Scalar.DegreesToRadians(90.0f)),
+                model = Matrix4X4<float>.Identity * Matrix4X4.CreateFromAxisAngle<float>(new Vector3D<float>(0, 0, 1), time * Scalar.DegreesToRadians(90.0f)),
                 view = Matrix4X4.CreateLookAt(new Vector3D<float>(2, 2, 2), new Vector3D<float>(0, 0, 0), new Vector3D<float>(0, 0, 1)),
                 proj = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45.0f), (float)swapChainExtent.Width / swapChainExtent.Height, 0.1f, 10.0f),
             };
