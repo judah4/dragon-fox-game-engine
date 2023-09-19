@@ -11,7 +11,8 @@ using Semaphore = Silk.NET.Vulkan.Semaphore;
 using Buffer = Silk.NET.Vulkan.Buffer;
 using Image = Silk.NET.Vulkan.Image;
 using Microsoft.Extensions.Logging;
-using System.Text;
+using DragonFoxGameEngine.Core.Systems;
+using Svelto.ECS.Schedulers;
 
 namespace DragonFoxGameEngine.Core
 {
@@ -102,6 +103,8 @@ namespace DragonFoxGameEngine.Core
         const string DEFAULT_WINDOW_TITLE = "Project Dragon Fox Game Engine";
 
         private ILogger _logger;
+        private readonly SystemEnginesGroup _ecsSystemEnginesGroup;
+        private readonly SimpleEntitiesSubmissionScheduler _entitiesSubmissionScheduler;
 
 
 #if DEBUG
@@ -119,6 +122,18 @@ namespace DragonFoxGameEngine.Core
         {
             KhrSwapchain.ExtensionName
         };
+
+        //Setup the camera's location, directions, and movement speed
+        private Vector3D<float> CameraPosition = new Vector3D<float>(0.0f, 1.0f, 3.0f);
+        private Vector3D<float> CameraFront = new Vector3D<float>(0.0f, 0.0f, -1.0f);
+        private Vector3D<float> CameraUp = Vector3D<float>.UnitY;
+        private Vector3D<float> CameraDirection = Vector3D<float>.Zero;
+        private float CameraYaw = -90f;
+        private float CameraPitch = 0f;
+        private float CameraZoom = 45f;
+
+        //Used to track change in mouse movement to allow for moving of the Camera
+        private Vector2D<float> LastMousePosition;
 
         private IWindow? window;
         private Vk? vk;
@@ -224,9 +239,11 @@ namespace DragonFoxGameEngine.Core
             20, 23, 22, 22, 21, 20,
         };
 
-        public HelloTriangleApplication(ILogger logger)
+        public HelloTriangleApplication(ILogger logger, SystemEnginesGroup ecsSystemEnginesGroup, Svelto.ECS.Schedulers.SimpleEntitiesSubmissionScheduler entitiesSubmissionScheduler)
         {
             _logger = logger;
+            _ecsSystemEnginesGroup = ecsSystemEnginesGroup;
+            _entitiesSubmissionScheduler = entitiesSubmissionScheduler;
         }
 
         public void Run()
@@ -257,6 +274,9 @@ namespace DragonFoxGameEngine.Core
             }
 
             window.Resize += FramebufferResizeCallback;
+
+            window!.Update += OnUpdate;
+            window!.Render += DrawFrame;
         }
 
         private void FramebufferResizeCallback(Vector2D<int> obj)
@@ -293,9 +313,16 @@ namespace DragonFoxGameEngine.Core
 
         private void MainLoop()
         {
-            window!.Render += DrawFrame;
             window!.Run();
-            var result = vk!.DeviceWaitIdle(device);
+            vk!.DeviceWaitIdle(device);
+        }
+
+        private void OnUpdate(double deltaTime)
+        {
+            _entitiesSubmissionScheduler.SubmitEntities();
+            _ecsSystemEnginesGroup.Step(deltaTime);
+        }
+        }
         }
 
         private void CleanUpSwapChain()
@@ -1699,7 +1726,8 @@ namespace DragonFoxGameEngine.Core
 
         private void DrawFrame(double delta)
         {
-            window!.Title = $"{DEFAULT_WINDOW_TITLE} ({(int)(1000.0/delta)}) - ({delta})";
+            var fps = (int)(1000.0 / delta);
+            window!.Title = $"{DEFAULT_WINDOW_TITLE} ({fps}) - ({delta})";
             vk!.WaitForFences(device, 1, inFlightFences![currentFrame], true, ulong.MaxValue);
 
             uint imageIndex = 0;
