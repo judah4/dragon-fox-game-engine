@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
@@ -13,6 +13,7 @@ using Image = Silk.NET.Vulkan.Image;
 using Microsoft.Extensions.Logging;
 using DragonFoxGameEngine.Core.Systems;
 using Svelto.ECS.Schedulers;
+using Silk.NET.Input;
 
 namespace DragonFoxGameEngine.Core
 {
@@ -102,9 +103,10 @@ namespace DragonFoxGameEngine.Core
         const string GAME_ENGINE_NAME = "Dragon Fox Game Engine";
         const string DEFAULT_WINDOW_TITLE = "Project Dragon Fox Game Engine";
 
-        private ILogger _logger;
+        private readonly ILogger _logger;
         private readonly SystemEnginesGroup _ecsSystemEnginesGroup;
         private readonly SimpleEntitiesSubmissionScheduler _entitiesSubmissionScheduler;
+        private IKeyboard? _primaryKeyboard;
 
 
 #if DEBUG
@@ -198,41 +200,41 @@ namespace DragonFoxGameEngine.Core
 
         private Vertex[] vertices = new Vertex[]
         {
-            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, 0.0f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, 0.0f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, 0.0f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
-            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, 0.0f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, 0.5f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, 0.5f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, 0.5f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, 0.5f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
 
-            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, -1f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, -1f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, -1f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
-            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, -1f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, -0.5f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, -0.5f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, -0.5f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, -0.5f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
 
-            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, -1f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, 0f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, 0f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
-            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, -1f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, -0.5f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, 0.5f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, 0.5f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, -0.5f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
 
-            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, -1f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, 0f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, 0f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, -1f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, -0.5f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, 0.5f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, 0.5f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, -0.5f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
 
-            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, -1.0f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, -1.0f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, 0.0f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
-            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, 0.0f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, -0.5f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, -0.5f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,-0.5f, 0.5f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,-0.5f, 0.5f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
 
-            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, -1.0f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, -1.0f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
-            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, 0.0f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
-            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, 0.0f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, -0.5f), color = new Vector3D<float>(1.0f, 0.0f, 0.0f), textCoord = new Vector2D<float>(1.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, -0.5f), color = new Vector3D<float>(0.0f, 1.0f, 0.0f), textCoord = new Vector2D<float>(0.0f, 0.0f) },
+            new Vertex { pos = new Vector3D<float>(0.5f,0.5f, 0.5f), color = new Vector3D<float>(0.0f, 0.0f, 1.0f), textCoord = new Vector2D<float>(0.0f, 1.0f) },
+            new Vertex { pos = new Vector3D<float>(-0.5f,0.5f, 0.5f), color = new Vector3D<float>(1.0f, 1.0f, 1.0f), textCoord = new Vector2D<float>(1.0f, 1.0f) },
         };
 
         private ushort[] indices = new ushort[]
         {
             0, 1, 2, 2, 3, 0,
-            4, 5, 6, 6, 7, 4,
+            4, 7, 6, 6, 5, 4,
             8, 9, 10, 10, 11, 8,
             12, 15, 14, 14, 13, 12,
             16, 17, 18, 18, 19, 16,
@@ -266,6 +268,7 @@ namespace DragonFoxGameEngine.Core
             };
 
             window = Window.Create(options);
+            window.Load += OnLoad;
             window.Initialize();
 
             if (window.VkSurface is null)
@@ -278,6 +281,23 @@ namespace DragonFoxGameEngine.Core
             window!.Update += OnUpdate;
             window!.Render += DrawFrame;
         }
+
+        private void OnLoad()
+        {
+            IInputContext input = window!.CreateInput();
+            _primaryKeyboard = input.Keyboards.First();
+            if (_primaryKeyboard != null)
+            {
+                _primaryKeyboard.KeyDown += KeyDown;
+            }
+            for (int i = 0; i < input.Mice.Count; i++)
+            {
+                input.Mice[i].Cursor.CursorMode = CursorMode.Raw;
+                input.Mice[i].MouseMove += OnMouseMove;
+                input.Mice[i].Scroll += OnMouseWheel;
+            }
+        }
+
 
         private void FramebufferResizeCallback(Vector2D<int> obj)
         {
@@ -321,8 +341,71 @@ namespace DragonFoxGameEngine.Core
         {
             _entitiesSubmissionScheduler.SubmitEntities();
             _ecsSystemEnginesGroup.Step(deltaTime);
+
+            var moveSpeed = 2.5f * (float)deltaTime;
+
+            if (_primaryKeyboard.IsKeyPressed(Key.W))
+            {
+                //Move forwards
+                CameraPosition += moveSpeed * CameraFront;
+            }
+            if (_primaryKeyboard.IsKeyPressed(Key.S))
+            {
+                //Move backwards
+                CameraPosition -= moveSpeed * CameraFront;
+            }
+            if (_primaryKeyboard.IsKeyPressed(Key.A))
+            {
+                //Move left
+                CameraPosition -= Vector3D.Normalize(Vector3D.Cross(CameraFront, CameraUp)) * moveSpeed;
+            }
+            if (_primaryKeyboard.IsKeyPressed(Key.D))
+            {
+                //Move right
+                CameraPosition += Vector3D.Normalize(Vector3D.Cross(CameraFront, CameraUp)) * moveSpeed;
+            }
         }
+
+        private void OnMouseMove(IMouse mouse, System.Numerics.Vector2 position)
+        {
+            var mousePos = new Vector2D<float>(position.X, position.Y);
+            var lookSensitivity = 0.1f;
+            if (LastMousePosition == default) 
+            { 
+                LastMousePosition = mousePos;
+            }
+            else
+            {
+                var xOffset = (position.X - LastMousePosition.X) * lookSensitivity;
+                var yOffset = (position.Y - LastMousePosition.Y) * lookSensitivity;
+                LastMousePosition = mousePos;
+
+                CameraYaw += xOffset;
+                CameraPitch -= yOffset;
+
+                //We don't want to be able to look behind us by going over our head or under our feet so make sure it stays within these bounds
+                CameraPitch = Math.Clamp(CameraPitch, -89.0f, 89.0f);
+
+                CameraDirection.X = MathF.Cos(Scalar.DegreesToRadians(CameraYaw)) * MathF.Cos(Scalar.DegreesToRadians(CameraPitch));
+                CameraDirection.Y = MathF.Sin(Scalar.DegreesToRadians(CameraPitch));
+                CameraDirection.Z = MathF.Sin(Scalar.DegreesToRadians(CameraYaw)) * MathF.Cos(Scalar.DegreesToRadians(CameraPitch));
+                //_logger.LogDebug($"{CameraFront} {CameraDirection}");
+                CameraFront = Vector3D.Normalize(CameraDirection);
+            }
         }
+
+        private void OnMouseWheel(IMouse mouse, ScrollWheel scrollWheel)
+        {
+            //We don't want to be able to zoom in too close or too far away so clamp to these values
+            CameraZoom = Math.Clamp(CameraZoom - scrollWheel.Y, 1.0f, 45f);
+        }
+
+        private void KeyDown(IKeyboard keyboard, Key key, int arg3)
+        {
+            if (key == Key.Escape)
+            {
+                window!.Close();
+            }
         }
 
         private void CleanUpSwapChain()
@@ -1708,12 +1791,17 @@ namespace DragonFoxGameEngine.Core
             //Silk Window has timing information so we are skipping the time code.
             var time = (float)window!.Time;
 
+            //Use elapsed time to convert to radians to allow our cube to rotate over time
+            var model = Matrix4X4<float>.Identity * Matrix4X4.CreateFromAxisAngle<float>(new Vector3D<float>(0, 1, 0), time * Scalar.DegreesToRadians(90.0f));
+            var view = Matrix4X4.CreateLookAt(CameraPosition, CameraPosition + CameraFront, CameraUp);
+            var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(CameraZoom), (float)swapChainExtent.Width / swapChainExtent.Height, 0.1f, 1000.0f);
+
             //https://github.com/dotnet/Silk.NET/blob/main/examples/CSharp/OpenGL%20Tutorials/Tutorial%202.2%20-%20Camera/Program.cs
             UniformBufferObject ubo = new()
             {
-                model = Matrix4X4<float>.Identity * Matrix4X4.CreateFromAxisAngle<float>(new Vector3D<float>(0, 0, 1), time * Scalar.DegreesToRadians(90.0f)),
-                view = Matrix4X4.CreateLookAt(new Vector3D<float>(2, 2, 2), new Vector3D<float>(0, 0, 0), new Vector3D<float>(0, 0, 1)),
-                proj = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45.0f), (float)swapChainExtent.Width / swapChainExtent.Height, 0.1f, 1000.0f),
+                model = model,
+                view = view,
+                proj = projection,
             };
             ubo.proj.M22 *= -1;
 
