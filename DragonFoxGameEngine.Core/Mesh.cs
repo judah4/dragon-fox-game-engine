@@ -4,14 +4,15 @@ namespace DragonFoxGameEngine.Core
 {
     public readonly struct Mesh
     {
-       // private readonly Vector3D[] vertices;
+        private readonly Vector3D<float>[] _vertices;
 
-        //public Vector3D[] Vertices => vertices;
+       public Vector3D<float>[] Vertices => _vertices;
+
         public ushort[] Indices { get; }
 
-        public Mesh(float[] vertices, ushort[] indices)
+        public Mesh(Vector3D<float>[] vertices, ushort[] indices)
         {
-            //Vertices = vertices;
+            _vertices = vertices;
             Indices = indices;
         }
     }

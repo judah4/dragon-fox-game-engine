@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
@@ -239,9 +239,11 @@ namespace DragonFoxGameEngine.Core
 
         private void InitWindow()
         {
+
             //Create a window.
             var options = WindowOptions.DefaultVulkan with
             {
+                //IsVisible = false, //use IsVisible for setting up headless mode later
                 Size = new Vector2D<int>(WIDTH, HEIGHT),
                 Title = DEFAULT_WINDOW_TITLE,
             };
@@ -410,14 +412,15 @@ namespace DragonFoxGameEngine.Core
             {
                 throw new Exception("validation layers requested, but not available!");
             }
-            var version = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version!;
-            ApplicationInfo appInfo = new()
+            var gameVersion = ApplicationInfo.GameVersion;
+            var engineVersion = ApplicationInfo.EngineVersion;
+            Silk.NET.Vulkan.ApplicationInfo appInfo = new()
             {
                 SType = StructureType.ApplicationInfo,
                 PApplicationName = (byte*)Marshal.StringToHGlobalAnsi(DEFAULT_WINDOW_TITLE),
-                ApplicationVersion = new Version32((uint)version.Major, (uint)version.Minor, (uint)version.Revision),
+                ApplicationVersion = new Version32((uint)gameVersion.Major, (uint)gameVersion.Minor, (uint)gameVersion.Revision),
                 PEngineName = (byte*)Marshal.StringToHGlobalAnsi(GAME_ENGINE_NAME),
-                EngineVersion = new Version32((uint)version.Major, (uint)version.Minor, (uint)version.Revision),
+                EngineVersion = new Version32((uint)engineVersion.Major, (uint)engineVersion.Minor, (uint)engineVersion.Revision),
                 ApiVersion = Vk.Version12
             };
 
@@ -1678,11 +1681,12 @@ namespace DragonFoxGameEngine.Core
             //Silk Window has timing information so we are skipping the time code.
             var time = (float)window!.Time;
 
+            //https://github.com/dotnet/Silk.NET/blob/main/examples/CSharp/OpenGL%20Tutorials/Tutorial%202.2%20-%20Camera/Program.cs
             UniformBufferObject ubo = new()
             {
                 model = Matrix4X4<float>.Identity * Matrix4X4.CreateFromAxisAngle<float>(new Vector3D<float>(0, 0, 1), time * Scalar.DegreesToRadians(90.0f)),
                 view = Matrix4X4.CreateLookAt(new Vector3D<float>(2, 2, 2), new Vector3D<float>(0, 0, 0), new Vector3D<float>(0, 0, 1)),
-                proj = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45.0f), (float)swapChainExtent.Width / swapChainExtent.Height, 0.1f, 10.0f),
+                proj = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45.0f), (float)swapChainExtent.Width / swapChainExtent.Height, 0.1f, 1000.0f),
             };
             ubo.proj.M22 *= -1;
 
