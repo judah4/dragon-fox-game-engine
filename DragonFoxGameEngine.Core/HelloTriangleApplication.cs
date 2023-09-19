@@ -1703,17 +1703,17 @@ namespace DragonFoxGameEngine.Core
                     RenderPass = renderPass,
                     Framebuffer = swapChainFramebuffers[i],
                     RenderArea =
-                {
-                    Offset = { X = 0, Y = 0 },
-                    Extent = swapChainExtent,
-                }
+                    {
+                        Offset = { X = 0, Y = 0 },
+                        Extent = swapChainExtent,
+                    }
                 };
-
+                var color = System.Drawing.Color.CornflowerBlue;
                 var clearValues = new ClearValue[]
                 {
                 new()
                 {
-                    Color = new (){ Float32_0 = 0, Float32_1 = 0, Float32_2 = 0, Float32_3 = 1 },
+                    Color = new (){ Float32_0 = color.R/255f, Float32_1 = color.G/255f, Float32_2 = color.B/255f, Float32_3 = color.A/255f },
                 },
                 new()
                 {
