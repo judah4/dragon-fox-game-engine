@@ -160,7 +160,8 @@ namespace DragonFoxGameEngine.Core
         private Format swapChainImageFormat;
         private Extent2D swapChainExtent;
         private ImageView[]? swapChainImageViews;
-        private Framebuffer[]? swapChainFramebuffers;
+        private Framebuffer[]? _swapChainFramebuffers;
+        private Framebuffer[]? _uiFramebuffers;
 
         private RenderPass _renderPass;
         private RenderPass _uiRenderPass;
@@ -418,7 +419,11 @@ namespace DragonFoxGameEngine.Core
             vk!.DestroyImage(_device, depthImage, null);
             vk!.FreeMemory(_device, depthImageMemory, null);
 
-            foreach (var framebuffer in swapChainFramebuffers!)
+            foreach (var framebuffer in _swapChainFramebuffers!)
+            {
+                vk!.DestroyFramebuffer(_device, framebuffer, null);
+            }
+            foreach (var framebuffer in _uiFramebuffers!)
             {
                 vk!.DestroyFramebuffer(_device, framebuffer, null);
             }
@@ -1004,34 +1009,6 @@ namespace DragonFoxGameEngine.Core
         {
             _vulkanPipeline = new VulkanPipeline();
 
-            var vertShaderCode = File.ReadAllBytes("Assets/shaders/vert.spv");
-            var fragShaderCode = File.ReadAllBytes("Assets/shaders/frag.spv");
-
-            var vertShaderModule = CreateShaderModule(vertShaderCode);
-            var fragShaderModule = CreateShaderModule(fragShaderCode);
-
-            PipelineShaderStageCreateInfo vertShaderStageInfo = new()
-            {
-                SType = StructureType.PipelineShaderStageCreateInfo,
-                Stage = ShaderStageFlags.VertexBit,
-                Module = vertShaderModule,
-                PName = (byte*)SilkMarshal.StringToPtr("main")
-            };
-
-            PipelineShaderStageCreateInfo fragShaderStageInfo = new()
-            {
-                SType = StructureType.PipelineShaderStageCreateInfo,
-                Stage = ShaderStageFlags.FragmentBit,
-                Module = fragShaderModule,
-                PName = (byte*)SilkMarshal.StringToPtr("main")
-            };
-
-            var shaderStages = stackalloc[]
-            {
-                vertShaderStageInfo,
-                fragShaderStageInfo
-            };
-
             var bindingDescription = Vertex.GetBindingDescription();
             var attributeDescriptions = Vertex.GetAttributeDescriptions();
 
@@ -1078,7 +1055,8 @@ namespace DragonFoxGameEngine.Core
 
         private void CreateFramebuffers()
         {
-            swapChainFramebuffers = new Framebuffer[swapChainImageViews!.Length];
+            _swapChainFramebuffers = new Framebuffer[swapChainImageViews!.Length];
+            _uiFramebuffers = new Framebuffer[swapChainImageViews!.Length];
 
             for (int i = 0; i < swapChainImageViews.Length; i++)
             {
@@ -1097,11 +1075,33 @@ namespace DragonFoxGameEngine.Core
                         Layers = 1,
                     };
 
-                    if (vk!.CreateFramebuffer(_device, framebufferInfo, null, out swapChainFramebuffers[i]) != Result.Success)
+                    if (vk!.CreateFramebuffer(_device, framebufferInfo, null, out _swapChainFramebuffers[i]) != Result.Success)
                     {
                         throw new Exception("failed to create framebuffer!");
                     }
                 }
+
+                var attachmentsUi = new[] { swapChainImageViews[i] };
+
+                fixed (ImageView* attachmentsPtr = attachmentsUi)
+                {
+
+                    FramebufferCreateInfo framebufferInfoUi = new()
+                    {
+                        SType = StructureType.FramebufferCreateInfo,
+                        RenderPass = _uiRenderPass,
+                        AttachmentCount = (uint)attachmentsUi.Length,
+                        PAttachments = attachmentsPtr,
+                        Width = swapChainExtent.Width,
+                        Height = swapChainExtent.Height,
+                        Layers = 1,
+                    };
+
+                    if (vk!.CreateFramebuffer(_device, framebufferInfoUi, null, out _uiFramebuffers[i]) != Result.Success)
+                    {
+                        throw new Exception("failed to create framebuffer!");
+                    }
+                }         
             }
         }
 
@@ -1651,7 +1651,7 @@ namespace DragonFoxGameEngine.Core
 
         private void CreateCommandBuffers()
         {
-            _commandBuffers = new CommandBuffer[swapChainFramebuffers!.Length];
+            _commandBuffers = new CommandBuffer[_swapChainFramebuffers!.Length];
 
             CommandBufferAllocateInfo allocInfo = new()
             {
@@ -1681,56 +1681,8 @@ namespace DragonFoxGameEngine.Core
                     throw new Exception("failed to begin recording command buffer!");
                 }
 
-                RenderPassBeginInfo renderPassInfo = new()
-                {
-                    SType = StructureType.RenderPassBeginInfo,
-                    RenderPass = _renderPass,
-                    Framebuffer = swapChainFramebuffers[i],
-                    RenderArea =
-                    {
-                        Offset = { X = 0, Y = 0 },
-                        Extent = swapChainExtent,
-                    }
-                };
-                var color = System.Drawing.Color.CornflowerBlue;
-                var clearValues = new ClearValue[]
-                {
-                    new()
-                    {
-                        Color = new (){ Float32_0 = color.R/255f, Float32_1 = color.G/255f, Float32_2 = color.B/255f, Float32_3 = color.A/255f },
-                    },
-                    new()
-                    {
-                        DepthStencil = new () { Depth = 1, Stencil = 0 }
-                    }
-                };
-
-                fixed (ClearValue* clearValuesPtr = clearValues)
-                {
-                    renderPassInfo.ClearValueCount = (uint)clearValues.Length;
-                    renderPassInfo.PClearValues = clearValuesPtr;
-
-                    vk!.CmdBeginRenderPass(_commandBuffers[i], &renderPassInfo, SubpassContents.Inline);
-                }
-
-                vk!.CmdBindPipeline(_commandBuffers[i], PipelineBindPoint.Graphics, _graphicsWorldPipelineData.PipelineHandle);
-
-                var vertexBuffers = new Buffer[] { vertexBuffer };
-                var offsets = new ulong[] { 0 };
-
-                fixed (ulong* offsetsPtr = offsets)
-                fixed (Buffer* vertexBuffersPtr = vertexBuffers)
-                {
-                    vk!.CmdBindVertexBuffers(_commandBuffers[i], 0, 1, vertexBuffersPtr, offsetsPtr);
-                }
-
-                vk!.CmdBindIndexBuffer(_commandBuffers[i], indexBuffer, 0, IndexType.Uint16);
-
-                vk!.CmdBindDescriptorSets(_commandBuffers[i], PipelineBindPoint.Graphics, _graphicsWorldPipelineData.PipelineLayout, 0, 1, descriptorSets![i], 0, null);
-
-                vk!.CmdDrawIndexed(_commandBuffers[i], (uint)indices.Length, 1, 0, 0, 0);
-
-                vk!.CmdEndRenderPass(_commandBuffers[i]);
+                DoRenderPassWorld(i, _renderPass);
+                DoRenderPassUi(i, _uiRenderPass);
 
                 if (vk!.EndCommandBuffer(_commandBuffers[i]) != Result.Success)
                 {
@@ -1738,6 +1690,97 @@ namespace DragonFoxGameEngine.Core
                 }
             }
         }
+
+        void DoRenderPassWorld(int bufferIndex, RenderPass renderPass)
+        {
+            RenderPassBeginInfo renderPassInfo = new()
+            {
+                SType = StructureType.RenderPassBeginInfo,
+                RenderPass = renderPass,
+                Framebuffer = _swapChainFramebuffers![bufferIndex],
+                RenderArea =
+                {
+                    Offset = { X = 0, Y = 0 },
+                    Extent = swapChainExtent,
+                }
+            };
+            var color = System.Drawing.Color.CornflowerBlue;
+            var clearValues = new ClearValue[]
+            {
+                new()
+                {
+                    Color = new (){ Float32_0 = color.R/255f, Float32_1 = color.G/255f, Float32_2 = color.B/255f, Float32_3 = color.A/255f },
+                },
+                new()
+                {
+                    DepthStencil = new () { Depth = 1, Stencil = 0 }
+                }
+            };
+
+            fixed (ClearValue* clearValuesPtr = clearValues)
+            {
+                renderPassInfo.ClearValueCount = (uint)clearValues.Length;
+                renderPassInfo.PClearValues = clearValuesPtr;
+
+                vk!.CmdBeginRenderPass(_commandBuffers![bufferIndex], &renderPassInfo, SubpassContents.Inline);
+            }
+
+            vk!.CmdBindPipeline(_commandBuffers[bufferIndex], PipelineBindPoint.Graphics, _graphicsWorldPipelineData.PipelineHandle);
+
+            var vertexBuffers = new Buffer[] { vertexBuffer };
+            var offsets = new ulong[] { 0 };
+
+            fixed (ulong* offsetsPtr = offsets)
+            fixed (Buffer* vertexBuffersPtr = vertexBuffers)
+            {
+                vk!.CmdBindVertexBuffers(_commandBuffers[bufferIndex], 0, 1, vertexBuffersPtr, offsetsPtr);
+            }
+
+            vk!.CmdBindIndexBuffer(_commandBuffers[bufferIndex], indexBuffer, 0, IndexType.Uint16);
+
+            vk!.CmdBindDescriptorSets(_commandBuffers[bufferIndex], PipelineBindPoint.Graphics, _graphicsWorldPipelineData.PipelineLayout, 0, 1, descriptorSets![bufferIndex], 0, null);
+
+            vk!.CmdDrawIndexed(_commandBuffers[bufferIndex], (uint)indices.Length, 1, 0, 0, 0);
+
+            vk!.CmdEndRenderPass(_commandBuffers[bufferIndex]);
+        }
+
+        void DoRenderPassUi(int bufferIndex, RenderPass renderPass)
+        {
+            RenderPassBeginInfo renderPassInfo = new()
+            {
+                SType = StructureType.RenderPassBeginInfo,
+                RenderPass = renderPass,
+                Framebuffer = _uiFramebuffers![bufferIndex],
+                RenderArea =
+                {
+                    Offset = { X = 0, Y = 0 },
+                    Extent = swapChainExtent,
+                }
+            };
+
+            vk!.CmdBeginRenderPass(_commandBuffers![bufferIndex], &renderPassInfo, SubpassContents.Inline);
+
+            vk!.CmdBindPipeline(_commandBuffers[bufferIndex], PipelineBindPoint.Graphics, _graphicsWorldPipelineData.PipelineHandle);
+
+            var vertexBuffers = new Buffer[] { vertexBuffer };
+            var offsets = new ulong[] { 0 };
+
+            fixed (ulong* offsetsPtr = offsets)
+            fixed (Buffer* vertexBuffersPtr = vertexBuffers)
+            {
+                vk!.CmdBindVertexBuffers(_commandBuffers[bufferIndex], 0, 1, vertexBuffersPtr, offsetsPtr);
+            }
+
+            vk!.CmdBindIndexBuffer(_commandBuffers[bufferIndex], indexBuffer, 0, IndexType.Uint16);
+
+            vk!.CmdBindDescriptorSets(_commandBuffers[bufferIndex], PipelineBindPoint.Graphics, _uiPipelineData.PipelineLayout, 0, 1, descriptorSets![bufferIndex], 0, null);
+
+            vk!.CmdDrawIndexed(_commandBuffers[bufferIndex], (uint)indices.Length, 1, 0, 0, 0);
+
+            vk!.CmdEndRenderPass(_commandBuffers[bufferIndex]);
+        }
+
 
         private void CreateSyncObjects()
         {
@@ -1882,30 +1925,6 @@ namespace DragonFoxGameEngine.Core
             }
 
             currentFrame = (currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
-
-        }
-
-        private ShaderModule CreateShaderModule(byte[] code)
-        {
-            ShaderModuleCreateInfo createInfo = new()
-            {
-                SType = StructureType.ShaderModuleCreateInfo,
-                CodeSize = (nuint)code.Length,
-            };
-
-            ShaderModule shaderModule;
-
-            fixed (byte* codePtr = code)
-            {
-                createInfo.PCode = (uint*)codePtr;
-
-                if (vk!.CreateShaderModule(_device, createInfo, null, out shaderModule) != Result.Success)
-                {
-                    throw new Exception();
-                }
-            }
-
-            return shaderModule;
 
         }
 
