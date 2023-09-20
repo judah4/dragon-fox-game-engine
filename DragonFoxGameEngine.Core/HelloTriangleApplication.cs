@@ -1682,7 +1682,7 @@ namespace DragonFoxGameEngine.Core
                 }
 
                 DoRenderPassWorld(i, _renderPass);
-                DoRenderPassUi(i, _uiRenderPass);
+                //DoRenderPassUi(i, _uiRenderPass);
 
                 if (vk!.EndCommandBuffer(_commandBuffers[i]) != Result.Success)
                 {
