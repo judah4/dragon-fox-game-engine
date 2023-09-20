@@ -13,3 +13,20 @@ This repository includes the same assets as the original tutorial assets. They a
 The following [CC0 licensed image](https://pixabay.com/en/statue-sculpture-fig-historically-1275469/) resized to 512 x 512 pixels
 
 * `Assets/texture.jpg`
+
+## Compile shaders
+
+Do this by hand for testing
+
+```SHELL
+C:\VulkanSDK\1.3.261.1\bin\glslc.exe -fshader-stage=frag "Builtin.UIShader.frag.glsl" -o "Builtin.UIShader.frag.spv"
+C:\VulkanSDK\1.3.261.1\bin\glslc.exe -fshader-stage=vert "Builtin.UIShader.vert.glsl" -o "Builtin.UIShader.vert.spv"
+```
+
+### Engine Names
+
+Bookwyrm Engine
+
+Dragon Fox Engine
+
+Kitsune Engine

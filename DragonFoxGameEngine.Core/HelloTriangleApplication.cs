@@ -147,8 +147,8 @@ namespace DragonFoxGameEngine.Core
         private KhrSurface? khrSurface;
         private SurfaceKHR surface;
 
-        private PhysicalDevice physicalDevice;
-        private Device device;
+        private PhysicalDevice _physicalDevice;
+        private Device _device;
 
         private Queue graphicsQueue;
         private Queue presentQueue;
@@ -161,10 +161,12 @@ namespace DragonFoxGameEngine.Core
         private ImageView[]? swapChainImageViews;
         private Framebuffer[]? swapChainFramebuffers;
 
-        private RenderPass renderPass;
-        private DescriptorSetLayout descriptorSetLayout;
-        private PipelineLayout pipelineLayout;
-        private Pipeline graphicsPipeline;
+        private RenderPass _renderPass;
+        private RenderPass _uiRenderPass;
+
+        private DescriptorSetLayout _descriptorSetLayout;
+        private PipelineLayout _pipelineLayout;
+        private Pipeline _graphicsPipeline;
 
         private CommandPool commandPool;
 
@@ -172,10 +174,10 @@ namespace DragonFoxGameEngine.Core
         private DeviceMemory depthImageMemory;
         private ImageView depthImageView;
 
-        private Image textureImage;
-        private DeviceMemory textureImageMemory;
-        private ImageView textureImageView;
-        private Sampler textureSampler;
+        private Image _textureImage;
+        private DeviceMemory _textureImageMemory;
+        private ImageView _textureImageView;
+        private Sampler _textureSampler;
 
         private Silk.NET.Vulkan.Buffer vertexBuffer;
         private DeviceMemory vertexBufferMemory;
@@ -298,8 +300,7 @@ namespace DragonFoxGameEngine.Core
             }
         }
 
-
-        private void FramebufferResizeCallback(Vector2D<int> obj)
+        private void FramebufferResizeCallback(Vector2D<int> size)
         {
             frameBufferResized = true;
         }
@@ -313,7 +314,7 @@ namespace DragonFoxGameEngine.Core
             CreateLogicalDevice();
             CreateSwapChain();
             CreateImageViews();
-            CreateRenderPass();
+            CreateRenderPasses();
             CreateDescriptorSetLayout();
             CreateGraphicsPipeline();
             CreateCommandPool();
@@ -334,7 +335,7 @@ namespace DragonFoxGameEngine.Core
         private void MainLoop()
         {
             window!.Run();
-            vk!.DeviceWaitIdle(device);
+            vk!.DeviceWaitIdle(_device);
         }
 
         private void OnUpdate(double deltaTime)
@@ -344,7 +345,7 @@ namespace DragonFoxGameEngine.Core
 
             var moveSpeed = 2.5f * (float)deltaTime;
 
-            if (_primaryKeyboard.IsKeyPressed(Key.W))
+            if (_primaryKeyboard!.IsKeyPressed(Key.W))
             {
                 //Move forwards
                 CameraPosition += moveSpeed * CameraFront;
@@ -410,68 +411,69 @@ namespace DragonFoxGameEngine.Core
 
         private void CleanUpSwapChain()
         {
-            vk!.DestroyImageView(device, depthImageView, null);
-            vk!.DestroyImage(device, depthImage, null);
-            vk!.FreeMemory(device, depthImageMemory, null);
+            vk!.DestroyImageView(_device, depthImageView, null);
+            vk!.DestroyImage(_device, depthImage, null);
+            vk!.FreeMemory(_device, depthImageMemory, null);
 
             foreach (var framebuffer in swapChainFramebuffers!)
             {
-                vk!.DestroyFramebuffer(device, framebuffer, null);
+                vk!.DestroyFramebuffer(_device, framebuffer, null);
             }
 
             fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
             {
-                vk!.FreeCommandBuffers(device, commandPool, (uint)commandBuffers!.Length, commandBuffersPtr);
+                vk!.FreeCommandBuffers(_device, commandPool, (uint)commandBuffers!.Length, commandBuffersPtr);
             }
 
-            vk!.DestroyPipeline(device, graphicsPipeline, null);
-            vk!.DestroyPipelineLayout(device, pipelineLayout, null);
-            vk!.DestroyRenderPass(device, renderPass, null);
+            vk!.DestroyPipeline(_device, _graphicsPipeline, null);
+            vk!.DestroyPipelineLayout(_device, _pipelineLayout, null);
+            vk!.DestroyRenderPass(_device, _renderPass, null);
+            vk!.DestroyRenderPass(_device, _uiRenderPass, null);
 
             foreach (var imageView in swapChainImageViews!)
             {
-                vk!.DestroyImageView(device, imageView, null);
+                vk!.DestroyImageView(_device, imageView, null);
             }
 
-            khrSwapChain!.DestroySwapchain(device, swapChain, null);
+            khrSwapChain!.DestroySwapchain(_device, swapChain, null);
 
             for (int i = 0; i < swapChainImages!.Length; i++)
             {
-                vk!.DestroyBuffer(device, uniformBuffers![i], null);
-                vk!.FreeMemory(device, uniformBuffersMemory![i], null);
+                vk!.DestroyBuffer(_device, uniformBuffers![i], null);
+                vk!.FreeMemory(_device, uniformBuffersMemory![i], null);
             }
 
-            vk!.DestroyDescriptorPool(device, descriptorPool, null);
+            vk!.DestroyDescriptorPool(_device, descriptorPool, null);
         }
 
         private void CleanUp()
         {
             CleanUpSwapChain();
 
-            vk!.DestroySampler(device, textureSampler, null);
-            vk!.DestroyImageView(device, textureImageView, null);
+            vk!.DestroySampler(_device, _textureSampler, null);
+            vk!.DestroyImageView(_device, _textureImageView, null);
 
-            vk!.DestroyImage(device, textureImage, null);
-            vk!.FreeMemory(device, textureImageMemory, null);
+            vk!.DestroyImage(_device, _textureImage, null);
+            vk!.FreeMemory(_device, _textureImageMemory, null);
 
-            vk!.DestroyDescriptorSetLayout(device, descriptorSetLayout, null);
+            vk!.DestroyDescriptorSetLayout(_device, _descriptorSetLayout, null);
 
-            vk!.DestroyBuffer(device, indexBuffer, null);
-            vk!.FreeMemory(device, indexBufferMemory, null);
+            vk!.DestroyBuffer(_device, indexBuffer, null);
+            vk!.FreeMemory(_device, indexBufferMemory, null);
 
-            vk!.DestroyBuffer(device, vertexBuffer, null);
-            vk!.FreeMemory(device, vertexBufferMemory, null);
+            vk!.DestroyBuffer(_device, vertexBuffer, null);
+            vk!.FreeMemory(_device, vertexBufferMemory, null);
 
             for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
             {
-                vk!.DestroySemaphore(device, renderFinishedSemaphores![i], null);
-                vk!.DestroySemaphore(device, imageAvailableSemaphores![i], null);
-                vk!.DestroyFence(device, inFlightFences![i], null);
+                vk!.DestroySemaphore(_device, renderFinishedSemaphores![i], null);
+                vk!.DestroySemaphore(_device, imageAvailableSemaphores![i], null);
+                vk!.DestroyFence(_device, inFlightFences![i], null);
             }
 
-            vk!.DestroyCommandPool(device, commandPool, null);
+            vk!.DestroyCommandPool(_device, commandPool, null);
 
-            vk!.DestroyDevice(device, null);
+            vk!.DestroyDevice(_device, null);
 
             if (EnableValidationLayers)
             {
@@ -496,13 +498,13 @@ namespace DragonFoxGameEngine.Core
                 window.DoEvents();
             }
 
-            vk!.DeviceWaitIdle(device);
+            vk!.DeviceWaitIdle(_device);
 
             CleanUpSwapChain();
 
             CreateSwapChain();
             CreateImageViews();
-            CreateRenderPass();
+            CreateRenderPasses();
             CreateGraphicsPipeline();
             CreateDepthResources();
             CreateFramebuffers();
@@ -632,23 +634,23 @@ namespace DragonFoxGameEngine.Core
             {
                 if (IsDeviceSuitable(device))
                 {
-                    physicalDevice = device;
+                    _physicalDevice = device;
                     break;
                 }
             }
 
-            if (physicalDevice.Handle == 0)
+            if (_physicalDevice.Handle == 0)
             {
                 throw new Exception("failed to find a suitable GPU!");
             }
 
-            var properties = vk!.GetPhysicalDeviceProperties(physicalDevice);
+            var properties = vk!.GetPhysicalDeviceProperties(_physicalDevice);
             _logger.LogInformation($"Device Type: {properties.DeviceType.ToString()}");
         }
 
         private void CreateLogicalDevice()
         {
-            var indices = FindQueueFamilies(physicalDevice);
+            var indices = FindQueueFamilies(_physicalDevice);
 
             var uniqueQueueFamilies = new[] { indices.GraphicsFamily!.Value, indices.PresentFamily!.Value };
             uniqueQueueFamilies = uniqueQueueFamilies.Distinct().ToArray();
@@ -696,13 +698,13 @@ namespace DragonFoxGameEngine.Core
                 createInfo.EnabledLayerCount = 0;
             }
 
-            if (vk!.CreateDevice(physicalDevice, in createInfo, null, out device) != Result.Success)
+            if (vk!.CreateDevice(_physicalDevice, in createInfo, null, out _device) != Result.Success)
             {
                 throw new Exception("failed to create logical device!");
             }
 
-            vk!.GetDeviceQueue(device, indices.GraphicsFamily!.Value, 0, out graphicsQueue);
-            vk!.GetDeviceQueue(device, indices.PresentFamily!.Value, 0, out presentQueue);
+            vk!.GetDeviceQueue(_device, indices.GraphicsFamily!.Value, 0, out graphicsQueue);
+            vk!.GetDeviceQueue(_device, indices.PresentFamily!.Value, 0, out presentQueue);
 
             if (EnableValidationLayers)
             {
@@ -715,7 +717,7 @@ namespace DragonFoxGameEngine.Core
 
         private void CreateSwapChain()
         {
-            var swapChainSupport = QuerySwapChainSupport(physicalDevice);
+            var swapChainSupport = QuerySwapChainSupport(_physicalDevice);
 
             var surfaceFormat = ChooseSwapSurfaceFormat(swapChainSupport.Formats);
             var presentMode = ChoosePresentMode(swapChainSupport.PresentModes);
@@ -740,7 +742,7 @@ namespace DragonFoxGameEngine.Core
                 ImageUsage = ImageUsageFlags.ColorAttachmentBit,
             };
 
-            var indices = FindQueueFamilies(physicalDevice);
+            var indices = FindQueueFamilies(_physicalDevice);
             var queueFamilyIndices = stackalloc[] { indices.GraphicsFamily!.Value, indices.PresentFamily!.Value };
 
             if (indices.GraphicsFamily != indices.PresentFamily)
@@ -767,22 +769,22 @@ namespace DragonFoxGameEngine.Core
 
             if (khrSwapChain is null)
             {
-                if (!vk!.TryGetDeviceExtension(instance, device, out khrSwapChain))
+                if (!vk!.TryGetDeviceExtension(instance, _device, out khrSwapChain))
                 {
                     throw new NotSupportedException("VK_KHR_swapchain extension not found.");
                 }
             }
 
-            if (khrSwapChain!.CreateSwapchain(device, creatInfo, null, out swapChain) != Result.Success)
+            if (khrSwapChain!.CreateSwapchain(_device, creatInfo, null, out swapChain) != Result.Success)
             {
                 throw new Exception("failed to create swap chain!");
             }
 
-            khrSwapChain.GetSwapchainImages(device, swapChain, ref imageCount, null);
+            khrSwapChain.GetSwapchainImages(_device, swapChain, ref imageCount, null);
             swapChainImages = new Image[imageCount];
             fixed (Image* swapChainImagesPtr = swapChainImages)
             {
-                khrSwapChain.GetSwapchainImages(device, swapChain, ref imageCount, swapChainImagesPtr);
+                khrSwapChain.GetSwapchainImages(_device, swapChain, ref imageCount, swapChainImagesPtr);
             }
 
             swapChainImageFormat = surfaceFormat.Format;
@@ -800,7 +802,13 @@ namespace DragonFoxGameEngine.Core
             }
         }
 
-        private void CreateRenderPass()
+        private void CreateRenderPasses()
+        {
+            _renderPass = CreateWorldRenderPass();
+            _uiRenderPass = CreateUiRenderPass();
+        }
+
+        private RenderPass CreateWorldRenderPass()
         {
             AttachmentDescription colorAttachment = new()
             {
@@ -824,6 +832,18 @@ namespace DragonFoxGameEngine.Core
                 InitialLayout = ImageLayout.Undefined,
                 FinalLayout = ImageLayout.DepthStencilAttachmentOptimal,
             };
+
+            //AttachmentDescription uiAttachment = new()
+            //{
+            //    Format = swapChainImageFormat, //seems to be this?
+            //    Samples = SampleCountFlags.Count1Bit,
+            //    LoadOp = AttachmentLoadOp.Load,
+            //    StoreOp = AttachmentStoreOp.DontCare,
+            //    StencilLoadOp = AttachmentLoadOp.DontCare,
+            //    StencilStoreOp = AttachmentStoreOp.DontCare,
+            //    InitialLayout = ImageLayout.ColorAttachmentOptimal,
+            //    FinalLayout = ImageLayout.ColorAttachmentOptimal,
+            //};
 
             AttachmentReference colorAttachmentRef = new()
             {
@@ -870,10 +890,70 @@ namespace DragonFoxGameEngine.Core
                     PDependencies = &dependency,
                 };
 
-                if (vk!.CreateRenderPass(device, renderPassInfo, null, out renderPass) != Result.Success)
+                if (vk!.CreateRenderPass(_device, renderPassInfo, null, out var renderPass) != Result.Success)
                 {
                     throw new Exception("failed to create render pass!");
                 }
+                return renderPass;
+            }
+        }
+
+        private RenderPass CreateUiRenderPass()
+        {
+            AttachmentDescription colorAttachment = new()
+            {
+                Format = swapChainImageFormat,
+                Samples = SampleCountFlags.Count1Bit,
+                LoadOp = AttachmentLoadOp.Load,
+                StoreOp = AttachmentStoreOp.DontCare,
+                StencilLoadOp = AttachmentLoadOp.DontCare,
+                InitialLayout = ImageLayout.ColorAttachmentOptimal,
+                FinalLayout = ImageLayout.ColorAttachmentOptimal,
+            };
+
+            AttachmentReference colorAttachmentRef = new()
+            {
+                Attachment = 0,
+                Layout = ImageLayout.ColorAttachmentOptimal,
+            };
+
+            SubpassDescription subpass = new()
+            {
+                PipelineBindPoint = PipelineBindPoint.Graphics,
+                ColorAttachmentCount = 1,
+                PColorAttachments = &colorAttachmentRef,
+            };
+
+            SubpassDependency dependency = new()
+            {
+                SrcSubpass = Vk.SubpassExternal,
+                DstSubpass = 0,
+                SrcStageMask = PipelineStageFlags.ColorAttachmentOutputBit | PipelineStageFlags.EarlyFragmentTestsBit,
+                SrcAccessMask = 0,
+                DstStageMask = PipelineStageFlags.ColorAttachmentOutputBit | PipelineStageFlags.EarlyFragmentTestsBit,
+                DstAccessMask = AccessFlags.ColorAttachmentWriteBit | AccessFlags.DepthStencilAttachmentWriteBit
+            };
+
+            var attachments = new[] { colorAttachment };
+
+            fixed (AttachmentDescription* attachmentsPtr = attachments)
+            {
+                RenderPassCreateInfo renderPassInfo = new()
+                {
+                    SType = StructureType.RenderPassCreateInfo,
+                    AttachmentCount = (uint)attachments.Length,
+                    PAttachments = attachmentsPtr,
+                    SubpassCount = 1,
+                    PSubpasses = &subpass,
+                    DependencyCount = 1,
+                    PDependencies = &dependency,
+                };
+
+                if (vk!.CreateRenderPass(_device, renderPassInfo, null, out var renderPass) != Result.Success)
+                {
+                    throw new Exception("failed to create render pass!");
+                }
+                return renderPass;
             }
         }
 
@@ -900,7 +980,7 @@ namespace DragonFoxGameEngine.Core
             var bindings = new DescriptorSetLayoutBinding[] { uboLayoutBinding, samplerLayoutBinding };
 
             fixed (DescriptorSetLayoutBinding* bindingsPtr = bindings)
-            fixed (DescriptorSetLayout* descriptorSetLayoutPtr = &descriptorSetLayout)
+            fixed (DescriptorSetLayout* descriptorSetLayoutPtr = &_descriptorSetLayout)
             {
                 DescriptorSetLayoutCreateInfo layoutInfo = new()
                 {
@@ -909,7 +989,7 @@ namespace DragonFoxGameEngine.Core
                     PBindings = bindingsPtr,
                 };
 
-                if (vk!.CreateDescriptorSetLayout(device, layoutInfo, null, descriptorSetLayoutPtr) != Result.Success)
+                if (vk!.CreateDescriptorSetLayout(_device, layoutInfo, null, descriptorSetLayoutPtr) != Result.Success)
                 {
                     throw new Exception("failed to create descriptor set layout!");
                 }
@@ -950,7 +1030,7 @@ namespace DragonFoxGameEngine.Core
             var attributeDescriptions = Vertex.GetAttributeDescriptions();
 
             fixed (VertexInputAttributeDescription* attributeDescriptionsPtr = attributeDescriptions)
-            fixed (DescriptorSetLayout* descriptorSetLayoutPtr = &descriptorSetLayout)
+            fixed (DescriptorSetLayout* descriptorSetLayoutPtr = &_descriptorSetLayout)
             {
 
                 PipelineVertexInputStateCreateInfo vertexInputInfo = new()
@@ -1051,7 +1131,7 @@ namespace DragonFoxGameEngine.Core
                     PSetLayouts = descriptorSetLayoutPtr
                 };
 
-                if (vk!.CreatePipelineLayout(device, pipelineLayoutInfo, null, out pipelineLayout) != Result.Success)
+                if (vk!.CreatePipelineLayout(_device, pipelineLayoutInfo, null, out _pipelineLayout) != Result.Success)
                 {
                     throw new Exception("failed to create pipeline layout!");
                 }
@@ -1068,20 +1148,20 @@ namespace DragonFoxGameEngine.Core
                     PMultisampleState = &multisampling,
                     PDepthStencilState = &depthStencil,
                     PColorBlendState = &colorBlending,
-                    Layout = pipelineLayout,
-                    RenderPass = renderPass,
+                    Layout = _pipelineLayout,
+                    RenderPass = _renderPass,
                     Subpass = 0,
                     BasePipelineHandle = default
                 };
 
-                if (vk!.CreateGraphicsPipelines(device, default, 1, pipelineInfo, null, out graphicsPipeline) != Result.Success)
+                if (vk!.CreateGraphicsPipelines(_device, default, 1, pipelineInfo, null, out _graphicsPipeline) != Result.Success)
                 {
                     throw new Exception("failed to create graphics pipeline!");
                 }
             }
 
-            vk!.DestroyShaderModule(device, fragShaderModule, null);
-            vk!.DestroyShaderModule(device, vertShaderModule, null);
+            vk!.DestroyShaderModule(_device, fragShaderModule, null);
+            vk!.DestroyShaderModule(_device, vertShaderModule, null);
 
             SilkMarshal.Free((nint)vertShaderStageInfo.PName);
             SilkMarshal.Free((nint)fragShaderStageInfo.PName);
@@ -1100,7 +1180,7 @@ namespace DragonFoxGameEngine.Core
                     FramebufferCreateInfo framebufferInfo = new()
                     {
                         SType = StructureType.FramebufferCreateInfo,
-                        RenderPass = renderPass,
+                        RenderPass = _renderPass,
                         AttachmentCount = (uint)attachments.Length,
                         PAttachments = attachmentsPtr,
                         Width = swapChainExtent.Width,
@@ -1108,7 +1188,7 @@ namespace DragonFoxGameEngine.Core
                         Layers = 1,
                     };
 
-                    if (vk!.CreateFramebuffer(device, framebufferInfo, null, out swapChainFramebuffers[i]) != Result.Success)
+                    if (vk!.CreateFramebuffer(_device, framebufferInfo, null, out swapChainFramebuffers[i]) != Result.Success)
                     {
                         throw new Exception("failed to create framebuffer!");
                     }
@@ -1118,7 +1198,7 @@ namespace DragonFoxGameEngine.Core
 
         private void CreateCommandPool()
         {
-            var queueFamiliyIndicies = FindQueueFamilies(physicalDevice);
+            var queueFamiliyIndicies = FindQueueFamilies(_physicalDevice);
 
             CommandPoolCreateInfo poolInfo = new()
             {
@@ -1126,7 +1206,7 @@ namespace DragonFoxGameEngine.Core
                 QueueFamilyIndex = queueFamiliyIndicies.GraphicsFamily!.Value,
             };
 
-            if (vk!.CreateCommandPool(device, poolInfo, null, out commandPool) != Result.Success)
+            if (vk!.CreateCommandPool(_device, poolInfo, null, out commandPool) != Result.Success)
             {
                 throw new Exception("failed to create command pool!");
             }
@@ -1144,7 +1224,7 @@ namespace DragonFoxGameEngine.Core
         {
             foreach (var format in candidates)
             {
-                vk!.GetPhysicalDeviceFormatProperties(physicalDevice, format, out var props);
+                vk!.GetPhysicalDeviceFormatProperties(_physicalDevice, format, out var props);
 
                 if (tiling == ImageTiling.Linear && (props.LinearTilingFeatures & features) == features)
                 {
@@ -1175,28 +1255,28 @@ namespace DragonFoxGameEngine.Core
             CreateBuffer(imageSize, BufferUsageFlags.TransferSrcBit, MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, ref stagingBuffer, ref stagingBufferMemory);
 
             void* data;
-            vk!.MapMemory(device, stagingBufferMemory, 0, imageSize, 0, &data);
+            vk!.MapMemory(_device, stagingBufferMemory, 0, imageSize, 0, &data);
             img.CopyPixelDataTo(new Span<byte>(data, (int)imageSize));
-            vk!.UnmapMemory(device, stagingBufferMemory);
+            vk!.UnmapMemory(_device, stagingBufferMemory);
 
-            CreateImage((uint)img.Width, (uint)img.Height, Format.R8G8B8A8Srgb, ImageTiling.Optimal, ImageUsageFlags.TransferDstBit | ImageUsageFlags.SampledBit, MemoryPropertyFlags.DeviceLocalBit, ref textureImage, ref textureImageMemory);
+            CreateImage((uint)img.Width, (uint)img.Height, Format.R8G8B8A8Srgb, ImageTiling.Optimal, ImageUsageFlags.TransferDstBit | ImageUsageFlags.SampledBit, MemoryPropertyFlags.DeviceLocalBit, ref _textureImage, ref _textureImageMemory);
 
-            TransitionImageLayout(textureImage, Format.R8G8B8A8Srgb, ImageLayout.Undefined, ImageLayout.TransferDstOptimal);
-            CopyBufferToImage(stagingBuffer, textureImage, (uint)img.Width, (uint)img.Height);
-            TransitionImageLayout(textureImage, Format.R8G8B8A8Srgb, ImageLayout.TransferDstOptimal, ImageLayout.ShaderReadOnlyOptimal);
+            TransitionImageLayout(_textureImage, Format.R8G8B8A8Srgb, ImageLayout.Undefined, ImageLayout.TransferDstOptimal);
+            CopyBufferToImage(stagingBuffer, _textureImage, (uint)img.Width, (uint)img.Height);
+            TransitionImageLayout(_textureImage, Format.R8G8B8A8Srgb, ImageLayout.TransferDstOptimal, ImageLayout.ShaderReadOnlyOptimal);
 
-            vk!.DestroyBuffer(device, stagingBuffer, null);
-            vk!.FreeMemory(device, stagingBufferMemory, null);
+            vk!.DestroyBuffer(_device, stagingBuffer, null);
+            vk!.FreeMemory(_device, stagingBufferMemory, null);
         }
 
         private void CreateTextureImageView()
         {
-            textureImageView = CreateImageView(textureImage, Format.R8G8B8A8Srgb, ImageAspectFlags.ColorBit);
+            _textureImageView = CreateImageView(_textureImage, Format.R8G8B8A8Srgb, ImageAspectFlags.ColorBit);
         }
 
         private void CreateTextureSampler()
         {
-            vk!.GetPhysicalDeviceProperties(physicalDevice, out PhysicalDeviceProperties properties);
+            vk!.GetPhysicalDeviceProperties(_physicalDevice, out PhysicalDeviceProperties properties);
 
             SamplerCreateInfo samplerInfo = new()
             {
@@ -1215,9 +1295,9 @@ namespace DragonFoxGameEngine.Core
                 MipmapMode = SamplerMipmapMode.Linear,
             };
 
-            fixed (Sampler* textureSamplerPtr = &textureSampler)
+            fixed (Sampler* textureSamplerPtr = &_textureSampler)
             {
-                if (vk!.CreateSampler(device, samplerInfo, null, textureSamplerPtr) != Result.Success)
+                if (vk!.CreateSampler(_device, samplerInfo, null, textureSamplerPtr) != Result.Success)
                 {
                     throw new Exception("failed to create texture sampler!");
                 }
@@ -1251,7 +1331,7 @@ namespace DragonFoxGameEngine.Core
             };
 
 
-            if (vk!.CreateImageView(device, createInfo, null, out ImageView imageView) != Result.Success)
+            if (vk!.CreateImageView(_device, createInfo, null, out ImageView imageView) != Result.Success)
             {
                 throw new Exception("failed to create image views!");
             }
@@ -1283,13 +1363,13 @@ namespace DragonFoxGameEngine.Core
 
             fixed (Image* imagePtr = &image)
             {
-                if (vk!.CreateImage(device, imageInfo, null, imagePtr) != Result.Success)
+                if (vk!.CreateImage(_device, imageInfo, null, imagePtr) != Result.Success)
                 {
                     throw new Exception("failed to create image!");
                 }
             }
 
-            vk!.GetImageMemoryRequirements(device, image, out MemoryRequirements memRequirements);
+            vk!.GetImageMemoryRequirements(_device, image, out MemoryRequirements memRequirements);
 
             MemoryAllocateInfo allocInfo = new()
             {
@@ -1300,13 +1380,13 @@ namespace DragonFoxGameEngine.Core
 
             fixed (DeviceMemory* imageMemoryPtr = &imageMemory)
             {
-                if (vk!.AllocateMemory(device, allocInfo, null, imageMemoryPtr) != Result.Success)
+                if (vk!.AllocateMemory(_device, allocInfo, null, imageMemoryPtr) != Result.Success)
                 {
                     throw new Exception("failed to allocate image memory!");
                 }
             }
 
-            vk!.BindImageMemory(device, image, imageMemory, 0);
+            vk!.BindImageMemory(_device, image, imageMemory, 0);
         }
 
         private void TransitionImageLayout(Image image, Format format, ImageLayout oldLayout, ImageLayout newLayout)
@@ -1387,8 +1467,6 @@ namespace DragonFoxGameEngine.Core
             EndSingleTimeCommands(commandBuffer);
         }
 
-
-
         private void CreateVertexBuffer()
         {
             ulong bufferSize = (ulong)(Unsafe.SizeOf<Vertex>() * vertices.Length);
@@ -1398,16 +1476,16 @@ namespace DragonFoxGameEngine.Core
             CreateBuffer(bufferSize, BufferUsageFlags.TransferSrcBit, MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, ref stagingBuffer, ref stagingBufferMemory);
 
             void* data;
-            vk!.MapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            vk!.MapMemory(_device, stagingBufferMemory, 0, bufferSize, 0, &data);
             vertices.AsSpan().CopyTo(new Span<Vertex>(data, vertices.Length));
-            vk!.UnmapMemory(device, stagingBufferMemory);
+            vk!.UnmapMemory(_device, stagingBufferMemory);
 
             CreateBuffer(bufferSize, BufferUsageFlags.TransferDstBit | BufferUsageFlags.VertexBufferBit, MemoryPropertyFlags.DeviceLocalBit, ref vertexBuffer, ref vertexBufferMemory);
 
             CopyBuffer(stagingBuffer, vertexBuffer, bufferSize);
 
-            vk!.DestroyBuffer(device, stagingBuffer, null);
-            vk!.FreeMemory(device, stagingBufferMemory, null);
+            vk!.DestroyBuffer(_device, stagingBuffer, null);
+            vk!.FreeMemory(_device, stagingBufferMemory, null);
         }
 
         private void CreateIndexBuffer()
@@ -1419,16 +1497,16 @@ namespace DragonFoxGameEngine.Core
             CreateBuffer(bufferSize, BufferUsageFlags.TransferSrcBit, MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit, ref stagingBuffer, ref stagingBufferMemory);
 
             void* data;
-            vk!.MapMemory(device, stagingBufferMemory, 0, bufferSize, 0, &data);
+            vk!.MapMemory(_device, stagingBufferMemory, 0, bufferSize, 0, &data);
             indices.AsSpan().CopyTo(new Span<ushort>(data, indices.Length));
-            vk!.UnmapMemory(device, stagingBufferMemory);
+            vk!.UnmapMemory(_device, stagingBufferMemory);
 
             CreateBuffer(bufferSize, BufferUsageFlags.TransferDstBit | BufferUsageFlags.IndexBufferBit, MemoryPropertyFlags.DeviceLocalBit, ref indexBuffer, ref indexBufferMemory);
 
             CopyBuffer(stagingBuffer, indexBuffer, bufferSize);
 
-            vk!.DestroyBuffer(device, stagingBuffer, null);
-            vk!.FreeMemory(device, stagingBufferMemory, null);
+            vk!.DestroyBuffer(_device, stagingBuffer, null);
+            vk!.FreeMemory(_device, stagingBufferMemory, null);
         }
 
         private void CreateUniformBuffers()
@@ -1473,7 +1551,7 @@ namespace DragonFoxGameEngine.Core
                     MaxSets = (uint)swapChainImages!.Length,
                 };
 
-                if (vk!.CreateDescriptorPool(device, poolInfo, null, descriptorPoolPtr) != Result.Success)
+                if (vk!.CreateDescriptorPool(_device, poolInfo, null, descriptorPoolPtr) != Result.Success)
                 {
                     throw new Exception("failed to create descriptor pool!");
                 }
@@ -1484,7 +1562,7 @@ namespace DragonFoxGameEngine.Core
         private void CreateDescriptorSets()
         {
             var layouts = new DescriptorSetLayout[swapChainImages!.Length];
-            Array.Fill(layouts, descriptorSetLayout);
+            Array.Fill(layouts, _descriptorSetLayout);
 
             fixed (DescriptorSetLayout* layoutsPtr = layouts)
             {
@@ -1499,7 +1577,7 @@ namespace DragonFoxGameEngine.Core
                 descriptorSets = new DescriptorSet[swapChainImages.Length];
                 fixed (DescriptorSet* descriptorSetsPtr = descriptorSets)
                 {
-                    if (vk!.AllocateDescriptorSets(device, allocateInfo, descriptorSetsPtr) != Result.Success)
+                    if (vk!.AllocateDescriptorSets(_device, allocateInfo, descriptorSetsPtr) != Result.Success)
                     {
                         throw new Exception("failed to allocate descriptor sets!");
                     }
@@ -1520,8 +1598,8 @@ namespace DragonFoxGameEngine.Core
                 DescriptorImageInfo imageInfo = new()
                 {
                     ImageLayout = ImageLayout.ShaderReadOnlyOptimal,
-                    ImageView = textureImageView,
-                    Sampler = textureSampler,
+                    ImageView = _textureImageView,
+                    Sampler = _textureSampler,
                 };
 
                 var descriptorWrites = new WriteDescriptorSet[]
@@ -1550,7 +1628,7 @@ namespace DragonFoxGameEngine.Core
 
                 fixed (WriteDescriptorSet* descriptorWritesPtr = descriptorWrites)
                 {
-                    vk!.UpdateDescriptorSets(device, (uint)descriptorWrites.Length, descriptorWritesPtr, 0, null);
+                    vk!.UpdateDescriptorSets(_device, (uint)descriptorWrites.Length, descriptorWritesPtr, 0, null);
                 }
             }
 
@@ -1568,14 +1646,14 @@ namespace DragonFoxGameEngine.Core
 
             fixed (Buffer* bufferPtr = &buffer)
             {
-                if (vk!.CreateBuffer(device, bufferInfo, null, bufferPtr) != Result.Success)
+                if (vk!.CreateBuffer(_device, bufferInfo, null, bufferPtr) != Result.Success)
                 {
                     throw new Exception("failed to create vertex buffer!");
                 }
             }
 
             MemoryRequirements memRequirements = new();
-            vk!.GetBufferMemoryRequirements(device, buffer, out memRequirements);
+            vk!.GetBufferMemoryRequirements(_device, buffer, out memRequirements);
 
             MemoryAllocateInfo allocateInfo = new()
             {
@@ -1586,13 +1664,13 @@ namespace DragonFoxGameEngine.Core
 
             fixed (DeviceMemory* bufferMemoryPtr = &bufferMemory)
             {
-                if (vk!.AllocateMemory(device, allocateInfo, null, bufferMemoryPtr) != Result.Success)
+                if (vk!.AllocateMemory(_device, allocateInfo, null, bufferMemoryPtr) != Result.Success)
                 {
                     throw new Exception("failed to allocate vertex buffer memory!");
                 }
             }
 
-            vk!.BindBufferMemory(device, buffer, bufferMemory, 0);
+            vk!.BindBufferMemory(_device, buffer, bufferMemory, 0);
         }
 
         private CommandBuffer BeginSingleTimeCommands()
@@ -1605,7 +1683,7 @@ namespace DragonFoxGameEngine.Core
                 CommandBufferCount = 1,
             };
 
-            vk!.AllocateCommandBuffers(device, allocateInfo, out CommandBuffer commandBuffer);
+            vk!.AllocateCommandBuffers(_device, allocateInfo, out CommandBuffer commandBuffer);
 
             CommandBufferBeginInfo beginInfo = new()
             {
@@ -1632,7 +1710,7 @@ namespace DragonFoxGameEngine.Core
             vk!.QueueSubmit(graphicsQueue, 1, submitInfo, default);
             vk!.QueueWaitIdle(graphicsQueue);
 
-            vk!.FreeCommandBuffers(device, commandPool, 1, commandBuffer);
+            vk!.FreeCommandBuffers(_device, commandPool, 1, commandBuffer);
         }
 
         private void CopyBuffer(Buffer srcBuffer, Buffer dstBuffer, ulong size)
@@ -1651,7 +1729,7 @@ namespace DragonFoxGameEngine.Core
 
         private uint FindMemoryType(uint typeFilter, MemoryPropertyFlags properties)
         {
-            vk!.GetPhysicalDeviceMemoryProperties(physicalDevice, out PhysicalDeviceMemoryProperties memProperties);
+            vk!.GetPhysicalDeviceMemoryProperties(_physicalDevice, out PhysicalDeviceMemoryProperties memProperties);
 
             for (int i = 0; i < memProperties.MemoryTypeCount; i++)
             {
@@ -1678,12 +1756,11 @@ namespace DragonFoxGameEngine.Core
 
             fixed (CommandBuffer* commandBuffersPtr = commandBuffers)
             {
-                if (vk!.AllocateCommandBuffers(device, allocInfo, commandBuffersPtr) != Result.Success)
+                if (vk!.AllocateCommandBuffers(_device, allocInfo, commandBuffersPtr) != Result.Success)
                 {
                     throw new Exception("failed to allocate command buffers!");
                 }
             }
-
 
             for (int i = 0; i < commandBuffers.Length; i++)
             {
@@ -1700,7 +1777,7 @@ namespace DragonFoxGameEngine.Core
                 RenderPassBeginInfo renderPassInfo = new()
                 {
                     SType = StructureType.RenderPassBeginInfo,
-                    RenderPass = renderPass,
+                    RenderPass = _renderPass,
                     Framebuffer = swapChainFramebuffers[i],
                     RenderArea =
                     {
@@ -1711,16 +1788,15 @@ namespace DragonFoxGameEngine.Core
                 var color = System.Drawing.Color.CornflowerBlue;
                 var clearValues = new ClearValue[]
                 {
-                new()
-                {
-                    Color = new (){ Float32_0 = color.R/255f, Float32_1 = color.G/255f, Float32_2 = color.B/255f, Float32_3 = color.A/255f },
-                },
-                new()
-                {
-                    DepthStencil = new () { Depth = 1, Stencil = 0 }
-                }
+                    new()
+                    {
+                        Color = new (){ Float32_0 = color.R/255f, Float32_1 = color.G/255f, Float32_2 = color.B/255f, Float32_3 = color.A/255f },
+                    },
+                    new()
+                    {
+                        DepthStencil = new () { Depth = 1, Stencil = 0 }
+                    }
                 };
-
 
                 fixed (ClearValue* clearValuesPtr = clearValues)
                 {
@@ -1730,7 +1806,7 @@ namespace DragonFoxGameEngine.Core
                     vk!.CmdBeginRenderPass(commandBuffers[i], &renderPassInfo, SubpassContents.Inline);
                 }
 
-                vk!.CmdBindPipeline(commandBuffers[i], PipelineBindPoint.Graphics, graphicsPipeline);
+                vk!.CmdBindPipeline(commandBuffers[i], PipelineBindPoint.Graphics, _graphicsPipeline);
 
                 var vertexBuffers = new Buffer[] { vertexBuffer };
                 var offsets = new ulong[] { 0 };
@@ -1743,7 +1819,7 @@ namespace DragonFoxGameEngine.Core
 
                 vk!.CmdBindIndexBuffer(commandBuffers[i], indexBuffer, 0, IndexType.Uint16);
 
-                vk!.CmdBindDescriptorSets(commandBuffers[i], PipelineBindPoint.Graphics, pipelineLayout, 0, 1, descriptorSets![i], 0, null);
+                vk!.CmdBindDescriptorSets(commandBuffers[i], PipelineBindPoint.Graphics, _pipelineLayout, 0, 1, descriptorSets![i], 0, null);
 
                 vk!.CmdDrawIndexed(commandBuffers[i], (uint)indices.Length, 1, 0, 0, 0);
 
@@ -1777,9 +1853,9 @@ namespace DragonFoxGameEngine.Core
 
             for (var i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
             {
-                if (vk!.CreateSemaphore(device, semaphoreInfo, null, out imageAvailableSemaphores[i]) != Result.Success ||
-                    vk!.CreateSemaphore(device, semaphoreInfo, null, out renderFinishedSemaphores[i]) != Result.Success ||
-                    vk!.CreateFence(device, fenceInfo, null, out inFlightFences[i]) != Result.Success)
+                if (vk!.CreateSemaphore(_device, semaphoreInfo, null, out imageAvailableSemaphores[i]) != Result.Success ||
+                    vk!.CreateSemaphore(_device, semaphoreInfo, null, out renderFinishedSemaphores[i]) != Result.Success ||
+                    vk!.CreateFence(_device, fenceInfo, null, out inFlightFences[i]) != Result.Success)
                 {
                     throw new Exception("failed to create synchronization objects for a frame!");
                 }
@@ -1806,9 +1882,9 @@ namespace DragonFoxGameEngine.Core
             ubo.proj.M22 *= -1;
 
             void* data;
-            vk!.MapMemory(device, uniformBuffersMemory![currentImage], 0, (ulong)Unsafe.SizeOf<UniformBufferObject>(), 0, &data);
+            vk!.MapMemory(_device, uniformBuffersMemory![currentImage], 0, (ulong)Unsafe.SizeOf<UniformBufferObject>(), 0, &data);
             new Span<UniformBufferObject>(data, 1)[0] = ubo;
-            vk!.UnmapMemory(device, uniformBuffersMemory![currentImage]);
+            vk!.UnmapMemory(_device, uniformBuffersMemory![currentImage]);
 
         }
 
@@ -1816,10 +1892,10 @@ namespace DragonFoxGameEngine.Core
         {
             var fps = (int)(1000.0 / delta);
             window!.Title = $"{DEFAULT_WINDOW_TITLE} ({fps}) - ({delta})";
-            vk!.WaitForFences(device, 1, inFlightFences![currentFrame], true, ulong.MaxValue);
+            vk!.WaitForFences(_device, 1, inFlightFences![currentFrame], true, ulong.MaxValue);
 
             uint imageIndex = 0;
-            var result = khrSwapChain!.AcquireNextImage(device, swapChain, ulong.MaxValue, imageAvailableSemaphores![currentFrame], default, ref imageIndex);
+            var result = khrSwapChain!.AcquireNextImage(_device, swapChain, ulong.MaxValue, imageAvailableSemaphores![currentFrame], default, ref imageIndex);
 
             if (result == Result.ErrorOutOfDateKhr)
             {
@@ -1835,7 +1911,7 @@ namespace DragonFoxGameEngine.Core
 
             if (imagesInFlight![imageIndex].Handle != default)
             {
-                vk!.WaitForFences(device, 1, imagesInFlight[imageIndex], true, ulong.MaxValue);
+                vk!.WaitForFences(_device, 1, imagesInFlight[imageIndex], true, ulong.MaxValue);
             }
             imagesInFlight[imageIndex] = inFlightFences[currentFrame];
 
@@ -1866,7 +1942,7 @@ namespace DragonFoxGameEngine.Core
                 PSignalSemaphores = signalSemaphores,
             };
 
-            vk!.ResetFences(device, 1, inFlightFences[currentFrame]);
+            vk!.ResetFences(_device, 1, inFlightFences[currentFrame]);
 
             if (vk!.QueueSubmit(graphicsQueue, 1, submitInfo, inFlightFences[currentFrame]) != Result.Success)
             {
@@ -1917,7 +1993,7 @@ namespace DragonFoxGameEngine.Core
             {
                 createInfo.PCode = (uint*)codePtr;
 
-                if (vk!.CreateShaderModule(device, createInfo, null, out shaderModule) != Result.Success)
+                if (vk!.CreateShaderModule(_device, createInfo, null, out shaderModule) != Result.Success)
                 {
                     throw new Exception();
                 }
