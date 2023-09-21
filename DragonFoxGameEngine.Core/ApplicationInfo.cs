@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace DragonFoxGameEngine.Core
 {
     public static class ApplicationInfo
     {
+        public const string GAME_ENGINE_NAME = "Dragon Fox Game Engine";
+
         public static readonly Version GameVersion;
 
         public static readonly Version EngineVersion;

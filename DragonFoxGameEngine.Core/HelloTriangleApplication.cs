@@ -15,6 +15,7 @@ using DragonFoxGameEngine.Core.Systems;
 using Svelto.ECS.Schedulers;
 using Silk.NET.Input;
 using DragonFoxGameEngine.Core.Vulkan;
+using SixLabors.ImageSharp.Advanced;
 
 namespace DragonFoxGameEngine.Core
 {
@@ -277,6 +278,27 @@ namespace DragonFoxGameEngine.Core
             window.Load += OnLoad;
             window.Initialize();
 
+            try
+            {
+                using var image = SixLabors.ImageSharp.Image.Load<Rgba32>("favicon.png");
+                var memoryGroup = image.GetPixelMemoryGroup();
+                Memory<byte> array = new byte[memoryGroup.TotalLength * sizeof(Rgba32)];
+                var block = MemoryMarshal.Cast<byte, Rgba32>(array.Span);
+                foreach (var memory in memoryGroup)
+                {
+                    memory.Span.CopyTo(block);
+                    block = block.Slice(memory.Length);
+                }
+
+                var icon = new RawImage(image.Width, image.Height, array);
+                window!.SetWindowIcon(ref icon);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, e.Message);
+            }
+
+
             if (window.VkSurface is null)
             {
                 throw new Exception("Windowing platform doesn't support Vulkan.");
@@ -302,6 +324,8 @@ namespace DragonFoxGameEngine.Core
                 input.Mice[i].MouseMove += OnMouseMove;
                 input.Mice[i].Scroll += OnMouseWheel;
             }
+
+            
         }
 
         private void FramebufferResizeCallback(Vector2D<int> size)
