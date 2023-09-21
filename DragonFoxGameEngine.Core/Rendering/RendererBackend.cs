@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DragonFoxGameEngine.Core.Rendering.Vulkan;
+using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
@@ -11,6 +12,8 @@ namespace DragonFoxGameEngine.Core.Rendering
         private readonly string _applicationName;
         private readonly ILogger _logger;
 
+        IRenderer _renderer;
+        VulkanContext _context;
         public RendererBackend(RendererBackendType type, string applicationName, IWindow window, ILogger logger)
         {
             _type = type;
@@ -20,7 +23,9 @@ namespace DragonFoxGameEngine.Core.Rendering
 
             if(type == RendererBackendType.Vulkan)
             {
-
+                var renderer = new VulkanBackendRenderer(logger);
+                _context = renderer.Init(_applicationName, _window);
+                _renderer = renderer;
             }
             else
             {

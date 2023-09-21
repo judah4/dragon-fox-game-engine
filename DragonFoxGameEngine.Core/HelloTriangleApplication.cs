@@ -1515,7 +1515,6 @@ namespace DragonFoxGameEngine.Core
                 }
             }
 
-
             for (int i = 0; i < swapChainImages.Length; i++)
             {
                 DescriptorBufferInfo bufferInfo = new()
