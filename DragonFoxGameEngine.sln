@@ -5,7 +5,9 @@ VisualStudioVersion = 17.7.34018.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DragonFoxGameEngine", "DragonFoxGameEngine\DragonFoxGameEngine.csproj", "{1068B710-6F9B-465F-A1C9-903F90D2D1A5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragonFoxGameEngine.Core", "DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj", "{FC06B1F3-7691-4B45-9E81-30F6AA48A076}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DragonFoxGameEngine.Core", "DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj", "{FC06B1F3-7691-4B45-9E81-30F6AA48A076}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragonFoxGameEngine.Game", "DragonFoxGameEngine.Game\DragonFoxGameEngine.Game.csproj", "{65746DD9-1701-44D8-BAD0-9F42B3586050}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{FC06B1F3-7691-4B45-9E81-30F6AA48A076}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FC06B1F3-7691-4B45-9E81-30F6AA48A076}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FC06B1F3-7691-4B45-9E81-30F6AA48A076}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65746DD9-1701-44D8-BAD0-9F42B3586050}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65746DD9-1701-44D8-BAD0-9F42B3586050}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65746DD9-1701-44D8-BAD0-9F42B3586050}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65746DD9-1701-44D8-BAD0-9F42B3586050}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
