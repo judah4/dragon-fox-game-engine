@@ -1,5 +1,9 @@
-﻿using Silk.NET.Core.Native;
+﻿using Microsoft.Extensions.Logging;
+using Silk.NET.Core.Native;
+using Silk.NET.SDL;
+using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
+using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan
@@ -16,6 +20,20 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 #endif
 
             return extensions;
+        }
+
+        public static void CreateSurface(VulkanContext context, ILogger logger)
+        {
+            if (!context.Vk.TryGetInstanceExtension<KhrSurface>(context.Instance, out var khrSurface))
+            {
+                throw new NotSupportedException("KHR_surface extension not found.");
+            }
+
+            var surface = context.Window.VkSurface!.Create<AllocationCallbacks>(context.Instance.ToHandle(), context.Allocator).ToSurface();
+
+            context.SetupSurface(khrSurface, surface);
+            logger.LogDebug("Surface setup");
+
         }
     }
 }

@@ -5,7 +5,7 @@ using Silk.NET.Windowing;
 
 namespace DragonFoxGameEngine.Core.Rendering
 {
-    public class RendererBackend : IRenderer
+    public sealed class RendererBackend : IRenderer
     {
         private readonly RendererBackendType _type;
         private readonly IWindow _window;

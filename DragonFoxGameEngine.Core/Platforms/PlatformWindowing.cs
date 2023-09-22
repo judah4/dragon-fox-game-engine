@@ -34,6 +34,9 @@ namespace DragonFoxGameEngine.Core.Platforms
                 IsVisible = !config.HeadlessMode, //use IsVisible for setting up headless mode later
                 Size = config.StartingSize,
                 Title = config.Title,
+                UpdatesPerSecond = 1400,
+                FramesPerSecond = 1400,
+                VSync = false,
             };
 
             if(config.StartingPos.X > 0 && config.StartingPos.Y > 0)

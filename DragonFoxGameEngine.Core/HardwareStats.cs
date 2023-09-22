@@ -27,7 +27,7 @@ namespace DragonFoxGameEngine.Core
             //hardwareInfo.RefreshNetworkAdapterList();
             //hardwareInfo.RefreshPrinterList();
             //hardwareInfo.RefreshSoundDeviceList();
-            s_hardwareInfo.RefreshVideoControllerList();
+            //s_hardwareInfo.RefreshVideoControllerList();
 
             //s_hardwareInfo.RefreshAll();
         }
@@ -51,10 +51,10 @@ namespace DragonFoxGameEngine.Core
 
             }
 
-            foreach (var hardware in s_hardwareInfo.VideoControllerList)
-            {
-                stringBuilder.AppendLine($"{hardware.Manufacturer} {hardware.Name} {hardware.DriverVersion}");
-            }
+            //foreach (var hardware in s_hardwareInfo.VideoControllerList)
+            //{
+            //    stringBuilder.AppendLine($"{hardware.Manufacturer} {hardware.Name} {hardware.DriverVersion}");
+            //}
 
             return stringBuilder.ToString();
         }

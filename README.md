@@ -1,6 +1,6 @@
 # Project Dragon Fox Engine
 
-Prototype game engine in C#
+Prototype game engine in C# and Vulkan. Based on Travis Roman's [Kohi Engine](https://github.com/travisvroman/kohi)
 
 ## Build requirements
 

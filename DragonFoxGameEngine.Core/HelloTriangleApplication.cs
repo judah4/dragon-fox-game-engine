@@ -708,7 +708,6 @@ namespace DragonFoxGameEngine.Core
                 SamplerAnisotropy = true,
             };
 
-
             DeviceCreateInfo createInfo = new()
             {
                 SType = StructureType.DeviceCreateInfo,

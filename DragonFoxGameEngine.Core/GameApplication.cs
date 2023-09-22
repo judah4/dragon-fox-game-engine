@@ -41,7 +41,7 @@ namespace DragonFoxGameEngine.Core
 
         private void OnUpdate(double deltaTime)
         {
-            var fps = (int)(1000.0 / deltaTime);
+            var fps = (int)(1.0 / deltaTime);
             _window!.Title = $"{_config.Title} ({fps}) - ({deltaTime})";
 
             _game.Update(deltaTime);

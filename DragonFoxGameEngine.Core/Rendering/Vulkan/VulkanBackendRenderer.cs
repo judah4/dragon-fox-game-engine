@@ -5,16 +5,18 @@ using Silk.NET.Maths;
 using Silk.NET.SDL;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
+using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 using System.Runtime.InteropServices;
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe class VulkanBackendRenderer : IRenderer
+    public sealed unsafe class VulkanBackendRenderer : IRenderer
     {
         private readonly ILogger _logger;
 
         private VulkanContext? _context;
+        private VulkanDeviceSetup _deviceSetup;
 
 
 #if DEBUG
@@ -28,10 +30,10 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             "VK_LAYER_KHRONOS_validation"
         };
 
-
         public VulkanBackendRenderer(ILogger logger)
         {
             _logger = logger;
+            _deviceSetup = new VulkanDeviceSetup(logger);
         }
 
         public VulkanContext Init(string applicationName, IWindow window)
@@ -114,6 +116,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 DebugUtilsMessengerCreateInfoEXT debugCreateInfo = new();
                 PopulateDebugMessengerCreateInfo(ref debugCreateInfo);
                 createInfo.PNext = &debugCreateInfo;
+
             }
             else
             {
@@ -126,6 +129,17 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             {
                 throw new Exception("failed to create Vulkan instance!");
             }
+            ExtDebugUtils? debugUtils = null;
+            DebugUtilsMessengerEXT debugMessenger = default;
+            if (EnableValidationLayers)
+            {
+                var debuggingUtils = SetupDebugMessenger(vk, instance);
+                if(debuggingUtils.HasValue)
+                {
+                    debugUtils = debuggingUtils.Value.Item1;
+                    debugMessenger = debuggingUtils.Value.Item2;
+                }
+            }
 
             Marshal.FreeHGlobal((IntPtr)appInfo.PApplicationName);
             Marshal.FreeHGlobal((IntPtr)appInfo.PEngineName);
@@ -136,13 +150,34 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 SilkMarshal.Free((nint)createInfo.PpEnabledLayerNames);
             }
 
-            _context = new VulkanContext(vk, window, instance, allocator);
+            _context = new VulkanContext(vk, window, instance, allocator, debugUtils, debugMessenger);
+
+            VulkanPlatform.CreateSurface(_context, _logger);
+
+            _deviceSetup.Create(_context);
+
             _logger.LogInformation($"Vulkan initialized.");
             return _context;
         }
 
         public void Shutdown()
         {
+            if(_context == null)
+                return;
+
+            _deviceSetup.Destroy(_context);
+
+            if (EnableValidationLayers)
+            {
+                //DestroyDebugUtilsMessenger equivilant to method DestroyDebugUtilsMessengerEXT from original tutorial.
+                _context!.DebugUtils?.DestroyDebugUtilsMessenger(_context.Instance, _context.DebugMessenger, null);
+            }
+
+            if(_context.Surface.HasValue)
+            {
+                _context.KhrSurface!.DestroySurface(_context.Instance, _context.Surface.Value, _context.Allocator);
+            }
+
             _context?.Vk.DestroyInstance(_context.Instance, _context.Allocator);
             _context?.Vk.Dispose();
             _context = null;
@@ -175,6 +210,43 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             createInfo.PfnUserCallback = (DebugUtilsMessengerCallbackFunctionEXT)DebugCallback;
         }
 
+        /// <summary>
+        /// Debugging messaging.
+        /// </summary>
+        /// <param name="vk"></param>
+        /// <param name="instance"></param>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
+        /// <remarks>I'm not 100% what this does -Judah</remarks>
+        private (ExtDebugUtils, DebugUtilsMessengerEXT)? SetupDebugMessenger(Vk vk, Instance instance)
+        {
+            if (!EnableValidationLayers) return null;
+
+            ExtDebugUtils debugUtils;
+            DebugUtilsMessengerEXT debugMessenger;
+
+            //TryGetInstanceExtension equivilant to method CreateDebugUtilsMessengerEXT from original tutorial.
+            if (!vk.TryGetInstanceExtension(instance, out debugUtils)) return null;
+
+            DebugUtilsMessengerCreateInfoEXT createInfo = new();
+            PopulateDebugMessengerCreateInfo(ref createInfo);
+
+            if (debugUtils!.CreateDebugUtilsMessenger(instance, in createInfo, null, out debugMessenger) != Result.Success)
+            {
+                throw new Exception("failed to set up debug messenger!");
+            }
+            _logger.LogDebug($"Debug messenger setup.");
+            return (debugUtils, debugMessenger);
+        }
+
+        /// <summary>
+        /// Send debugging info to console
+        /// </summary>
+        /// <param name="messageSeverity"></param>
+        /// <param name="messageTypes"></param>
+        /// <param name="pCallbackData"></param>
+        /// <param name="pUserData"></param>
+        /// <returns></returns>
         private uint DebugCallback(DebugUtilsMessageSeverityFlagsEXT messageSeverity, DebugUtilsMessageTypeFlagsEXT messageTypes, DebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
         {
             _logger.LogDebug($"validation layer:" + Marshal.PtrToStringAnsi((nint)pCallbackData->PMessage));
