@@ -1,4 +1,5 @@
-﻿using Silk.NET.Vulkan;
+﻿using Silk.NET.Maths;
+using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
@@ -7,6 +8,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanContext
     {
+
         public Vk Vk { get;}
 
         public IWindow Window { get; }
@@ -22,6 +24,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         public SurfaceKHR? Surface { get; private set; }
 
         public VulkanDevice Device { get; private set; }
+
+        public Vector2D<int> FramebufferSize { get; private set; }
 
         public VulkanContext(
             Vk vk, 

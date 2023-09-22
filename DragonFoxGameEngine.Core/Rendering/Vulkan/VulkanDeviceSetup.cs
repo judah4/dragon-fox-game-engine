@@ -111,10 +111,11 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                     QueueCount = 1,
                     PQueuePriorities = queuePriority,
                 };
-                if (indices[i] == context.Device.QueueFamilyIndices.GraphicsFamilyIndex)
-                {
-                    queueCreateInfos[i].QueueCount = 2; //more passes?
-                }
+                //TODO: Enable for future enhancement
+                //if (indices[i] == context.Device.QueueFamilyIndices.GraphicsFamilyIndex)
+                //{
+                //    queueCreateInfos[i].QueueCount = 2; //more passes?
+                //}
             }
 
             PhysicalDeviceFeatures deviceFeatures = new()
