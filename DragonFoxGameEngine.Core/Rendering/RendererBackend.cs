@@ -36,7 +36,7 @@ namespace DragonFoxGameEngine.Core.Rendering
 
         public void Destroy()
         {
-
+            _renderer.Shutdown();
         }
 
         public void Resized(Vector2D<int> size)

@@ -38,7 +38,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             Instance instance, 
             AllocationCallbacks* allocator, 
             ExtDebugUtils? debugUtils, 
-            DebugUtilsMessengerEXT debugMessenger)
+            DebugUtilsMessengerEXT debugMessenger,
+            Vector2D<uint> framebufferSize)
         {
             Vk = vk;
             Window = window;
@@ -46,6 +47,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             Allocator = allocator;
             DebugUtils = debugUtils;
             DebugMessenger = debugMessenger;
+            FramebufferSize = framebufferSize;
         }
 
         /// <summary>

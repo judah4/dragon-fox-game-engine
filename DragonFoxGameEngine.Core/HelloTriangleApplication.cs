@@ -1276,11 +1276,11 @@ namespace DragonFoxGameEngine.Core
                 SType = StructureType.ImageCreateInfo,
                 ImageType = ImageType.Type2D,
                 Extent =
-            {
-                Width = width,
-                Height = height,
-                Depth = 1,
-            },
+                {
+                    Width = width,
+                    Height = height,
+                    Depth = 1,
+                },
                 MipLevels = 1,
                 ArrayLayers = 1,
                 Format = format,

@@ -1,5 +1,4 @@
 ﻿using Silk.NET.Maths;
-using Silk.NET.Windowing;
 
 namespace DragonFoxGameEngine.Core.Rendering
 {

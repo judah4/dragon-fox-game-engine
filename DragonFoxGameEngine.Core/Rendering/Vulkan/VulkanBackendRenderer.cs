@@ -5,7 +5,6 @@ using Silk.NET.Maths;
 using Silk.NET.SDL;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
-using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 using System.Runtime.InteropServices;
 
@@ -17,6 +16,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         private VulkanContext? _context;
         private VulkanDeviceSetup _deviceSetup;
+        private VulkanSwapchainSetup _swapchainSetup;
+        private VulkanImageSetup _imageSetup;
 
 
 #if DEBUG
@@ -34,6 +35,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         {
             _logger = logger;
             _deviceSetup = new VulkanDeviceSetup(logger);
+            _imageSetup = new VulkanImageSetup(logger);
+            _swapchainSetup = new VulkanSwapchainSetup(logger, _deviceSetup, _imageSetup);
         }
 
         public VulkanContext Init(string applicationName, IWindow window)
@@ -150,11 +153,16 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 SilkMarshal.Free((nint)createInfo.PpEnabledLayerNames);
             }
 
-            _context = new VulkanContext(vk, window, instance, allocator, debugUtils, debugMessenger);
+            var framebufferSize = new Vector2D<uint>((uint)window.Size.X, (uint)window.Size.Y);
+            _context = new VulkanContext(vk, window, instance, allocator, debugUtils, debugMessenger, framebufferSize);
 
             VulkanPlatform.CreateSurface(_context, _logger);
 
+            //Device creation
             _deviceSetup.Create(_context);
+
+            //Swapchain
+            _swapchainSetup.Create(_context, _context.FramebufferSize);
 
             _logger.LogInformation($"Vulkan initialized.");
             return _context;
@@ -164,6 +172,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         {
             if(_context == null)
                 return;
+
+            _swapchainSetup.Destroy(_context, _context.Swapchain);
 
             _deviceSetup.Destroy(_context);
 
@@ -181,6 +191,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _context?.Vk.DestroyInstance(_context.Instance, _context.Allocator);
             _context?.Vk.Dispose();
             _context = null;
+            _logger.LogInformation("Vulkan is shutdown.");
         }
 
         public void Resized(Vector2D<int> size)

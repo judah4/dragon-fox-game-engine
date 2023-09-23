@@ -17,5 +17,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         public Queue PresentQueue;
         public Queue TransferQueue;
         public Queue? ComputeQueue;
+
+        public Format DepthFormat;
     }
 }

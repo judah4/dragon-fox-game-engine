@@ -172,6 +172,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             context.Vk.DestroyDevice(context.Device.LogicalDevice, context.Allocator);
 
             context.SetupDevice(default); //clears out some arrays and stuff
+
+            _logger.LogDebug("Logical device destroyed.");
         }
 
         /// <summary>
@@ -217,6 +219,40 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             }
 
             return details;
+        }
+
+        /// <summary>
+        /// Detect depth format and set it in device context.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <returns></returns>
+        /// <remarks>Impure, sets device depth format in context.</remarks>
+        public Format DetectDepthFormat(VulkanContext context)
+        {
+            var depthFormat = FindSupportedFormat(context, new[] { Format.D32Sfloat, Format.D32SfloatS8Uint, Format.D24UnormS8Uint }, ImageTiling.Optimal, FormatFeatureFlags.DepthStencilAttachmentBit);
+            var device = context.Device;
+            device.DepthFormat = depthFormat;
+            context.SetupDevice(device);
+            return depthFormat;
+        }
+
+        private Format FindSupportedFormat(VulkanContext context, IEnumerable<Format> candidates, ImageTiling tiling, FormatFeatureFlags features)
+        {
+            foreach (var format in candidates)
+            {
+                context.Vk!.GetPhysicalDeviceFormatProperties(context.Device.PhysicalDevice, format, out var props);
+
+                if (tiling == ImageTiling.Linear && (props.LinearTilingFeatures & features) == features)
+                {
+                    return format;
+                }
+                else if (tiling == ImageTiling.Optimal && (props.OptimalTilingFeatures & features) == features)
+                {
+                    return format;
+                }
+            }
+
+            throw new Exception("failed to find supported format!");
         }
 
         private void SelectPhysicalDevice(VulkanContext context, PhysicalDeviceRequirements requirements)

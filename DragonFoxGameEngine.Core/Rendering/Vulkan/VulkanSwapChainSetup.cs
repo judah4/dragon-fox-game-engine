@@ -1,24 +1,22 @@
 ﻿using Microsoft.Extensions.Logging;
-using Silk.NET.Core.Native;
 using Silk.NET.Maths;
-using Silk.NET.OpenAL;
-using Silk.NET.SDL;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
-using System.Xml.Linq;
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe class VulkanSwapChainSetup
+    public unsafe class VulkanSwapchainSetup
     {
 
         private readonly ILogger _logger;
         private readonly VulkanDeviceSetup _vulkanDeviceSetup;
+        private readonly VulkanImageSetup _vulkanImageSetup;
 
-        public VulkanSwapChainSetup(ILogger logger, VulkanDeviceSetup vulkanDeviceSetup)
+        public VulkanSwapchainSetup(ILogger logger, VulkanDeviceSetup vulkanDeviceSetup, VulkanImageSetup vulkanImageSetup)
         {
             _logger = logger;
             _vulkanDeviceSetup = vulkanDeviceSetup;
+            _vulkanImageSetup = vulkanImageSetup;
         }
 
         public VulkanSwapchain Create(VulkanContext context, Vector2D<uint> size)
@@ -162,8 +160,6 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             }
 
             swapchain.Swapchain = swapchainKhr;
-            //Start with a zero frame index
-            uint currentFrame = 0;
 
             //Images
             uint swapImageCount = 0;
@@ -188,29 +184,54 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 ImageViewCreateInfo createInfo = new()
                 {
                     SType = StructureType.ImageViewCreateInfo,
-                    Image = image,
+                    Image = swapchain.SwapchainImages[cnt],
                     ViewType = ImageViewType.Type2D,
-                    Format = format,
+                    Format = swapchain.ImageFormat.Format,
                     SubresourceRange =
-                {
-                    AspectMask = aspectFlags,
-                    BaseMipLevel = 0,
-                    LevelCount = 1,
-                    BaseArrayLayer = 0,
-                    LayerCount = 1,
-                }
+                    {
+                        AspectMask = ImageAspectFlags.ColorBit,
+                        BaseMipLevel = 0,
+                        LevelCount = 1,
+                        BaseArrayLayer = 0,
+                        LayerCount = 1,
+                    }
                 };
 
-                if (vk!.CreateImageView(_device, createInfo, null, out ImageView imageView) != Result.Success)
+                if (context.Vk!.CreateImageView(context.Device.LogicalDevice, createInfo, context.Allocator, out ImageView imageView) != Result.Success)
                 {
-                    throw new Exception("failed to create image views!");
+                    throw new Exception("Failed to create image views!");
                 }
+                swapchain.ImageViews[cnt] = imageView;
             }
 
-            //swapChainImageFormat = surfaceFormat.Format;
-            //swapChainExtent = extent;
+            //Depth resources
+            _vulkanDeviceSetup.DetectDepthFormat(context);
 
-            throw new NotImplementedException();
+            //create depth image and its view
+            swapchain.DepthAttachment = _vulkanImageSetup.ImageCreate(context, ImageType.Type2D, size, context.Device.DepthFormat, ImageTiling.Optimal, 
+                ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, true, ImageAspectFlags.DepthBit);
+
+            _logger.LogDebug("Swapchain created successfully!");
+            context.SetupSwapchain(swapchain);
+            return swapchain;
+        }
+
+        private void InnerDestroy(VulkanContext context, VulkanSwapchain swapchain)
+        {
+            _vulkanImageSetup.ImageDestroy(context, swapchain.DepthAttachment);
+
+            if (swapchain.ImageViews != null)
+            {
+                //only destroy the views, not the images, since those aer owned by the swapchain and are this destroyed when it is.
+                for (int cnt = 0; cnt < swapchain.ImageViews.Length; cnt++)
+                {
+                    context.Vk.DestroyImageView(context.Device.LogicalDevice, swapchain.ImageViews[cnt], context.Allocator);
+                }
+                swapchain.ImageViews = null;
+            }
+
+            swapchain.KhrSwapchain.DestroySwapchain(context.Device.LogicalDevice, swapchain.Swapchain, context.Allocator);
+            _logger.LogDebug("Swapchain destroyed.");
         }
 
         /// <summary>
@@ -249,11 +270,5 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             return PresentModeKHR.FifoKhr;
         }
-
-        private void InnerDestroy(VulkanContext context, VulkanSwapchain swapchain)
-        {
-            throw new NotImplementedException();
-        }
-
     }
 }

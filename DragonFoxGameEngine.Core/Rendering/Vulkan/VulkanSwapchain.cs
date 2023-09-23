@@ -1,4 +1,5 @@
 ﻿
+using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 
@@ -12,6 +13,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         public byte MaxFramesInFlight;
         public Silk.NET.Vulkan.Image[] SwapchainImages;
         public ImageView[]? ImageViews;
+        internal VulkanImage DepthAttachment;
 
         //public Format swapChainImageFormat;
         //public Extent2D swapChainExtent;
