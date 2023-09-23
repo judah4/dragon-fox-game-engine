@@ -10,8 +10,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         public KhrSwapchain KhrSwapchain;
         public SwapchainKHR Swapchain;
         public byte MaxFramesInFlight;
-        public Silk.NET.Vulkan.Image[] SwapChainImages;
-        public ImageView[]? swapChainImageViews;
+        public Silk.NET.Vulkan.Image[] SwapchainImages;
+        public ImageView[]? ImageViews;
 
         //public Format swapChainImageFormat;
         //public Extent2D swapChainExtent;

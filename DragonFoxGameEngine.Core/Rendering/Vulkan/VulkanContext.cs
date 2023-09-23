@@ -25,7 +25,12 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public VulkanDevice Device { get; private set; }
 
-        public Vector2D<int> FramebufferSize { get; private set; }
+        public Vector2D<uint> FramebufferSize { get; private set; }
+
+        public VulkanSwapchain Swapchain { get; private set; }
+        public uint ImageIndex { get; private set; }
+        public uint CurrentFrame { get; private set; }
+        public bool RecreatingSwapchain { get; private set; }
 
         public VulkanContext(
             Vk vk, 
@@ -62,6 +67,16 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         public void SetupDevice(VulkanDevice device)
         {
             Device = device;
+        }
+
+        /// <summary>
+        /// For Swapchain setup
+        /// </summary>
+        /// <param name="khrSurface"></param>
+        /// <param name="surface"></param>
+        public void SetupSwapchain(VulkanSwapchain swapchain)
+        {
+            Swapchain = swapchain;
         }
     }
 }
