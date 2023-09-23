@@ -1,4 +1,4 @@
-﻿using DragonFoxGameEngine.Core.Components;
+﻿using DragonFoxGameEngine.Core.Ecs.Components;
 using Microsoft.Extensions.Logging;
 using Svelto.ECS;
 using System;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DragonFoxGameEngine.Core.Systems
+namespace DragonFoxGameEngine.Core.Ecs.Systems
 {
     public class AddCounterSystemEngine : IUpdateEngine
     {
@@ -35,7 +35,7 @@ namespace DragonFoxGameEngine.Core.Systems
         public void Step(in double deltaTime)
         {
             _timer += (float)deltaTime;
-            if(_timer < 1)
+            if (_timer < 1)
                 return;
 
             _timer -= 1;

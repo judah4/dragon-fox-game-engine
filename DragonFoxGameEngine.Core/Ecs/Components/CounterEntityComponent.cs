@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DragonFoxGameEngine.Core.Components
+namespace DragonFoxGameEngine.Core.Ecs.Components
 {
     public struct CounterEntityComponent : IEntityComponent
     {
@@ -13,7 +13,7 @@ namespace DragonFoxGameEngine.Core.Components
     }
 
     public class SimpleEntityDescriptor : GenericEntityDescriptor<CounterEntityComponent>
-    { 
+    {
 
     }
 }

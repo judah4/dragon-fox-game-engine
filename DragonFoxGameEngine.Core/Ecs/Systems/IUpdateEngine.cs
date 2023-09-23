@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DragonFoxGameEngine.Core.Systems
+namespace DragonFoxGameEngine.Core.Ecs.Systems
 {
     public interface IUpdateEngine : IStepEngine<double>
     {

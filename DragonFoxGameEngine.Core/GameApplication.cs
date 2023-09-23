@@ -8,12 +8,12 @@ namespace DragonFoxGameEngine.Core
     public class GameApplication
     {
         private readonly ApplicationConfig _config;
-        private readonly IGame _game;
+        private readonly IGameEntry _game;
         private readonly IWindow _window;
         private readonly RendererFrontend _renderer;
         private readonly ILogger _logger;
 
-        public GameApplication(ApplicationConfig config, IGame game, IWindow window, ILogger logger)
+        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger)
         {
             _config = config;
             _game = game;

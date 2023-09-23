@@ -11,13 +11,13 @@ using Semaphore = Silk.NET.Vulkan.Semaphore;
 using Buffer = Silk.NET.Vulkan.Buffer;
 using Image = Silk.NET.Vulkan.Image;
 using Microsoft.Extensions.Logging;
-using DragonFoxGameEngine.Core.Systems;
 using Svelto.ECS.Schedulers;
 using Silk.NET.Input;
-using DragonFoxGameEngine.Core.Vulkan;
 using SixLabors.ImageSharp.Advanced;
+using DragonFoxGameEngine.Core.InitialPrototype.Vulkan;
+using DragonFoxGameEngine.Core.Ecs.Systems;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonFoxGameEngine.Core.InitialPrototype
 {
 
     struct QueueFamilyIndices
@@ -184,7 +184,7 @@ namespace DragonFoxGameEngine.Core
         private ImageView _textureImageView;
         private Sampler _textureSampler;
 
-        private Silk.NET.Vulkan.Buffer vertexBuffer;
+        private Buffer vertexBuffer;
         private DeviceMemory vertexBufferMemory;
         private Buffer indexBuffer;
         private DeviceMemory indexBufferMemory;
@@ -248,7 +248,7 @@ namespace DragonFoxGameEngine.Core
             20, 23, 22, 22, 21, 20,
         };
 
-        public HelloTriangleApplication(ILogger logger, SystemEnginesGroup ecsSystemEnginesGroup, Svelto.ECS.Schedulers.SimpleEntitiesSubmissionScheduler entitiesSubmissionScheduler)
+        public HelloTriangleApplication(ILogger logger, SystemEnginesGroup ecsSystemEnginesGroup, SimpleEntitiesSubmissionScheduler entitiesSubmissionScheduler)
         {
             _logger = logger;
             _ecsSystemEnginesGroup = ecsSystemEnginesGroup;
@@ -325,7 +325,7 @@ namespace DragonFoxGameEngine.Core
                 input.Mice[i].Scroll += OnMouseWheel;
             }
 
-            
+
         }
 
         private void FramebufferResizeCallback(Vector2D<int> size)
@@ -399,8 +399,8 @@ namespace DragonFoxGameEngine.Core
         {
             var mousePos = new Vector2D<float>(position.X, position.Y);
             var lookSensitivity = 0.1f;
-            if (LastMousePosition == default) 
-            { 
+            if (LastMousePosition == default)
+            {
                 LastMousePosition = mousePos;
             }
             else
@@ -599,8 +599,8 @@ namespace DragonFoxGameEngine.Core
                 throw new Exception("failed to create instance!");
             }
 
-            Marshal.FreeHGlobal((IntPtr)appInfo.PApplicationName);
-            Marshal.FreeHGlobal((IntPtr)appInfo.PEngineName);
+            Marshal.FreeHGlobal((nint)appInfo.PApplicationName);
+            Marshal.FreeHGlobal((nint)appInfo.PEngineName);
             SilkMarshal.Free((nint)createInfo.PpEnabledExtensionNames);
 
             if (EnableValidationLayers)
@@ -1071,7 +1071,7 @@ namespace DragonFoxGameEngine.Core
                     Extent = swapChainExtent,
                 };
 
-                 _graphicsWorldPipelineData = _vulkanPipeline.CreateGraphicsWorldPipeline(vk!, _device, _renderPass, _descriptorSetLayout, viewport, scissor);
+                _graphicsWorldPipelineData = _vulkanPipeline.CreateGraphicsWorldPipeline(vk!, _device, _renderPass, _descriptorSetLayout, viewport, scissor);
                 _uiPipelineData = _vulkanPipeline.CreateGraphicsWorldPipeline(vk!, _device, _renderPass, _descriptorSetLayout, viewport, scissor);
             }
         }
@@ -1124,7 +1124,7 @@ namespace DragonFoxGameEngine.Core
                     {
                         throw new Exception("failed to create framebuffer!");
                     }
-                }         
+                }
             }
         }
 
@@ -1178,7 +1178,7 @@ namespace DragonFoxGameEngine.Core
 
         private void CreateTextureImage()
         {
-            using var img = SixLabors.ImageSharp.Image.Load<SixLabors.ImageSharp.PixelFormats.Rgba32>("Assets/Textures/texture.jpg");
+            using var img = SixLabors.ImageSharp.Image.Load<Rgba32>("Assets/Textures/texture.jpg");
 
             ulong imageSize = (ulong)(img.Width * img.Height * img.PixelType.BitsPerPixel / 8);
 
@@ -1662,7 +1662,7 @@ namespace DragonFoxGameEngine.Core
 
             for (int i = 0; i < memProperties.MemoryTypeCount; i++)
             {
-                if ((typeFilter & (1 << i)) != 0 && (memProperties.MemoryTypes[i].PropertyFlags & properties) == properties)
+                if ((typeFilter & 1 << i) != 0 && (memProperties.MemoryTypes[i].PropertyFlags & properties) == properties)
                 {
                     return (uint)i;
                 }
@@ -1839,7 +1839,7 @@ namespace DragonFoxGameEngine.Core
             var time = (float)window!.Time;
 
             //Use elapsed time to convert to radians to allow our cube to rotate over time
-            var model = Matrix4X4<float>.Identity * Matrix4X4.CreateFromAxisAngle<float>(new Vector3D<float>(0, 1, 0), time * Scalar.DegreesToRadians(90.0f));
+            var model = Matrix4X4<float>.Identity * Matrix4X4.CreateFromAxisAngle(new Vector3D<float>(0, 1, 0), time * Scalar.DegreesToRadians(90.0f));
             var view = Matrix4X4.CreateLookAt(CameraPosition, CameraPosition + CameraFront, CameraUp);
             var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(CameraZoom), (float)swapChainExtent.Width / swapChainExtent.Height, 0.1f, 1000.0f);
 
@@ -2070,7 +2070,7 @@ namespace DragonFoxGameEngine.Core
                 vk!.EnumerateDeviceExtensionProperties(device, (byte*)null, ref extentionsCount, availableExtensionsPtr);
             }
 
-            var availableExtensionNames = availableExtensions.Select(extension => Marshal.PtrToStringAnsi((IntPtr)extension.ExtensionName)).ToHashSet();
+            var availableExtensionNames = availableExtensions.Select(extension => Marshal.PtrToStringAnsi((nint)extension.ExtensionName)).ToHashSet();
 
             return deviceExtensions.All(availableExtensionNames.Contains);
 
@@ -2139,7 +2139,7 @@ namespace DragonFoxGameEngine.Core
                 vk!.EnumerateInstanceLayerProperties(ref layerCount, availableLayersPtr);
             }
 
-            var availableLayerNames = availableLayers.Select(layer => Marshal.PtrToStringAnsi((IntPtr)layer.LayerName)).ToHashSet();
+            var availableLayerNames = availableLayers.Select(layer => Marshal.PtrToStringAnsi((nint)layer.LayerName)).ToHashSet();
 
             return validationLayers.All(availableLayerNames.Contains);
         }

@@ -24,12 +24,12 @@ namespace DragonFoxGameEngine
             var window = platform.InitWindow(config, null);
 
             //Initialize game logic here
-            IGame game = new Game.GameEntry();
+            IGameEntry game = new Game.GameEntry();
 
             ApplicationRun(config, platform, window, game, logger);
         }
 
-        static void ApplicationRun(ApplicationConfig config, PlatformWindowing platform, IWindow window, IGame game, ILogger logger)
+        static void ApplicationRun(ApplicationConfig config, PlatformWindowing platform, IWindow window, IGameEntry game, ILogger logger)
         {
             var application = new GameApplication(config, game, window, logger);
 

@@ -1,12 +1,12 @@
 ﻿using Silk.NET.Maths;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonFoxGameEngine.Core.InitialPrototype
 {
     public readonly struct Mesh
     {
         private readonly Vector3D<float>[] _vertices;
 
-       public Vector3D<float>[] Vertices => _vertices;
+        public Vector3D<float>[] Vertices => _vertices;
 
         public ushort[] Indices { get; }
 

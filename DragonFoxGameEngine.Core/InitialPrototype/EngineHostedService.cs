@@ -1,12 +1,12 @@
-﻿using DragonFoxGameEngine.Core.Components;
-using DragonFoxGameEngine.Core.Systems;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Svelto.ECS.Schedulers;
 using Svelto.ECS;
+using DragonFoxGameEngine.Core.Ecs.Components;
+using DragonFoxGameEngine.Core.Ecs.Systems;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonFoxGameEngine.Core.InitialPrototype
 {
     public class EngineHostedService : IHostedService
     {

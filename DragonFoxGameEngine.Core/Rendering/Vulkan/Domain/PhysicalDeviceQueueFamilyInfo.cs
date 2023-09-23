@@ -1,5 +1,4 @@
-﻿
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+﻿namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 {
     public struct PhysicalDeviceQueueFamilyInfoBuilder
     {
@@ -14,7 +13,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public PhysicalDeviceQueueFamilyInfo Build()
         {
-            return new PhysicalDeviceQueueFamilyInfo() {
+            return new PhysicalDeviceQueueFamilyInfo()
+            {
 
             };
         }

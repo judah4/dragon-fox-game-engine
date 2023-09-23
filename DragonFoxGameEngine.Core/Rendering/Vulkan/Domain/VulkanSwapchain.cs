@@ -1,9 +1,7 @@
-﻿
-using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
-using Silk.NET.Vulkan;
+﻿using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 {
     public struct VulkanSwapchain
     {

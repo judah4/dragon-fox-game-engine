@@ -4,7 +4,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 
-namespace DragonFoxGameEngine.Core.Vulkan
+namespace DragonFoxGameEngine.Core.InitialPrototype.Vulkan
 {
     public struct Vertex
     {
@@ -58,7 +58,7 @@ namespace DragonFoxGameEngine.Core.Vulkan
     /// <summary>
     /// Vulkan graphics pipeline data
     /// </summary>
-    public readonly struct VulkanPipelineData 
+    public readonly struct VulkanPipelineData
     {
         /// <summary>
         /// The internal pipeline handle.

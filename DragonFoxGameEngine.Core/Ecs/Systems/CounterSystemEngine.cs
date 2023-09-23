@@ -1,4 +1,4 @@
-﻿using DragonFoxGameEngine.Core.Components;
+﻿using DragonFoxGameEngine.Core.Ecs.Components;
 using Microsoft.Extensions.Logging;
 using Svelto.ECS;
 using System;
@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DragonFoxGameEngine.Core.Systems
+namespace DragonFoxGameEngine.Core.Ecs.Systems
 {
     /// <summary>
     ///     This is the common pattern to declare Svelto Exclusive Groups (usually split by composition root)

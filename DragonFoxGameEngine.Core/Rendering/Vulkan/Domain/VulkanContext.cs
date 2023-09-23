@@ -4,12 +4,11 @@ using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 {
     public unsafe class VulkanContext
     {
-
-        public Vk Vk { get;}
+        public Vk Vk { get; }
 
         public IWindow Window { get; }
 
@@ -18,7 +17,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         //debugging
         public ExtDebugUtils? DebugUtils { get; }
-        public DebugUtilsMessengerEXT DebugMessenger { get;}
+        public DebugUtilsMessengerEXT DebugMessenger { get; }
 
         public KhrSurface? KhrSurface { get; private set; }
         public SurfaceKHR? Surface { get; private set; }
@@ -33,11 +32,11 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         public bool RecreatingSwapchain { get; private set; }
 
         public VulkanContext(
-            Vk vk, 
-            IWindow window, 
-            Instance instance, 
-            AllocationCallbacks* allocator, 
-            ExtDebugUtils? debugUtils, 
+            Vk vk,
+            IWindow window,
+            Instance instance,
+            AllocationCallbacks* allocator,
+            ExtDebugUtils? debugUtils,
             DebugUtilsMessengerEXT debugMessenger,
             Vector2D<uint> framebufferSize)
         {

@@ -4,9 +4,9 @@ using Silk.NET.Windowing;
 namespace DragonFoxGameEngine.Core
 {
     /// <summary>
-    /// The basic game state
+    /// The base game entry
     /// </summary>
-    public interface IGame
+    public interface IGameEntry
     {
         void Initialize(IWindow window);
         void Update(double deltaTime);

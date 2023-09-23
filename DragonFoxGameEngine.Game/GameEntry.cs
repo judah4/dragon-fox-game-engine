@@ -4,7 +4,7 @@ using Silk.NET.Windowing;
 
 namespace DragonFoxGameEngine.Game
 {
-    public class GameEntry : IGame
+    public class GameEntry : IGameEntry
     {
         public void Initialize(IWindow window)
         {

@@ -1,4 +1,5 @@
 ﻿using DragonFoxGameEngine.Core.Rendering.Vulkan;
+using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
