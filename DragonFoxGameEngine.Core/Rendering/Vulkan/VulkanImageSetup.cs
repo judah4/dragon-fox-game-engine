@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.OpenAL;
 using Silk.NET.Vulkan;
+using System;
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 {

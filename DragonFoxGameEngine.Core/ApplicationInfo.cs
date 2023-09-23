@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace DragonFoxGameEngine.Core
 {
     public static class ApplicationInfo

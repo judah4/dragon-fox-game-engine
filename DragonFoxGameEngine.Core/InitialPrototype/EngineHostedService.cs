@@ -5,6 +5,8 @@ using Svelto.ECS.Schedulers;
 using Svelto.ECS;
 using DragonFoxGameEngine.Core.Ecs.Components;
 using DragonFoxGameEngine.Core.Ecs.Systems;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DragonFoxGameEngine.Core.InitialPrototype
 {
