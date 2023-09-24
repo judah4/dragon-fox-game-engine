@@ -1,7 +1,10 @@
 ﻿using DragonFoxGameEngine.Core.Platforms;
 using DragonFoxGameEngine.Core.Rendering;
 using Microsoft.Extensions.Logging;
+using Silk.NET.Maths;
+using Silk.NET.SDL;
 using Silk.NET.Windowing;
+using System;
 
 namespace DragonFoxGameEngine.Core
 {
@@ -20,13 +23,19 @@ namespace DragonFoxGameEngine.Core
             _window = window;
             _logger = logger;
 
-            game.Initialize(window);
-
             _window.Update += OnUpdate;
             _window.Render += OnDrawFrame;
-            _window.Resize += _game.OnResize;
+            _window.Resize += OnResize;
 
             _renderer = new RendererFrontend(config.Title, window, _logger);
+
+            game.Initialize(window);
+        }
+
+        private void OnResize(Vector2D<int> size)
+        {
+            _renderer.Resized(size);
+            _game.OnResize(size);
         }
 
         public void Run()

@@ -28,7 +28,7 @@ namespace DragonFoxGameEngine.Core.Rendering
 
         public void Resized(Vector2D<int> size)
         {
-
+            _logger.LogDebug($"Resized {size}");
         }
 
         public void DrawFrame(RenderPacket packet)

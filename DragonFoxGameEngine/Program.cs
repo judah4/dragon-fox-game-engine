@@ -23,8 +23,9 @@ namespace DragonFoxGameEngine
             var platform = new PlatformWindowing(logger);
             var window = platform.InitWindow(config, null);
 
+            var gameLogger = loggerFactory.CreateLogger("Game");
             //Initialize game logic here
-            IGameEntry game = new Game.GameEntry();
+            IGameEntry game = new Game.GameEntry(gameLogger);
 
             ApplicationRun(config, platform, window, game, logger);
         }
