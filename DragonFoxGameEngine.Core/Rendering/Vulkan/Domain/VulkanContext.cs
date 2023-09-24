@@ -3,6 +3,7 @@ using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
+using System;
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 {
@@ -30,6 +31,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public uint ImageIndex { get; private set; }
         public uint CurrentFrame { get; private set; }
         public bool RecreatingSwapchain { get; private set; }
+        public VulkanRenderpass MainRenderPass { get; private set; }
 
         public VulkanContext(
             Vk vk,
@@ -78,6 +80,11 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public void SetupSwapchain(VulkanSwapchain swapchain)
         {
             Swapchain = swapchain;
+        }
+
+        public void SetupMainRenderpass(VulkanRenderpass vulkanRenderpass)
+        {
+            MainRenderPass = vulkanRenderpass;
         }
     }
 }

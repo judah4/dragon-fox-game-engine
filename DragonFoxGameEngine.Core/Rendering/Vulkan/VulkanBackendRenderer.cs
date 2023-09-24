@@ -7,6 +7,7 @@ using Silk.NET.SDL;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Windowing;
+using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Runtime.InteropServices;
 
@@ -20,7 +21,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         private VulkanDeviceSetup _deviceSetup;
         private VulkanSwapchainSetup _swapchainSetup;
         private VulkanImageSetup _imageSetup;
-
+        private VulkanRenderpassSetup _renderpassSetup;
 
 #if DEBUG
         private readonly bool EnableValidationLayers = true; //enable when tools are installed. Add to config
@@ -39,6 +40,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _deviceSetup = new VulkanDeviceSetup(logger);
             _imageSetup = new VulkanImageSetup(logger);
             _swapchainSetup = new VulkanSwapchainSetup(logger, _deviceSetup, _imageSetup);
+            _renderpassSetup = new VulkanRenderpassSetup(logger);
         }
 
         public VulkanContext Init(string applicationName, IWindow window)
@@ -166,6 +168,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             //Swapchain
             _swapchainSetup.Create(_context, _context.FramebufferSize);
 
+            _renderpassSetup.Create(_context, new Rect2D(new Offset2D(0, 0), new Extent2D(_context.FramebufferSize.X, _context.FramebufferSize.Y)),
+                System.Drawing.Color.CornflowerBlue, 1.0f, 0);
+
             _logger.LogInformation($"Vulkan initialized.");
             return _context;
         }
@@ -174,6 +179,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         {
             if(_context == null)
                 return;
+
+            _renderpassSetup.Destory(_context, _context.MainRenderPass);
 
             _swapchainSetup.Destroy(_context, _context.Swapchain);
 
