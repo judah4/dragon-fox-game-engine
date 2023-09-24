@@ -33,6 +33,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public bool RecreatingSwapchain { get; private set; }
         public VulkanRenderpass MainRenderPass { get; private set; }
 
+        public VulkanCommandBuffer[]? GraphicsCommandBuffers { get; private set; }
+
         public VulkanContext(
             Vk vk,
             IWindow window,
@@ -85,6 +87,11 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public void SetupMainRenderpass(VulkanRenderpass vulkanRenderpass)
         {
             MainRenderPass = vulkanRenderpass;
+        }
+
+        public void SetupGraphicsCommandBuffers(VulkanCommandBuffer[] commandBuffers)
+        {
+            GraphicsCommandBuffers = commandBuffers;
         }
     }
 }

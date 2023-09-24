@@ -43,17 +43,17 @@ namespace DragonFoxGameEngine.Core.Rendering
 
         public void Resized(Vector2D<int> size)
         {
-
+            _renderer.Resized(size);
         }
 
         public void BeginFrame(double deltaTime)
         {
-
+            _renderer.BeginFrame(deltaTime);
         }
 
         public void EndFrame(double deltaTime)
         {
-
+            _renderer.EndFrame(deltaTime);
         }
     }
 }

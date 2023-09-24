@@ -9,15 +9,18 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public PhysicalDeviceQueueFamilyInfo QueueFamilyIndices;
         public VulkanSwapchainSupportInfo SwapchainSupport;
 
-        public PhysicalDeviceProperties Properties;
-        public PhysicalDeviceFeatures Features;
-        public PhysicalDeviceMemoryProperties Memory;
-
         public Queue GraphicsQueue;
         public Queue PresentQueue;
         public Queue TransferQueue;
         public Queue? ComputeQueue;
 
+        public CommandPool GraphicsCommandPool;
+
+        public PhysicalDeviceProperties Properties;
+        public PhysicalDeviceFeatures Features;
+        public PhysicalDeviceMemoryProperties Memory;
+
         public Format DepthFormat;
+
     }
 }

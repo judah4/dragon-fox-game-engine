@@ -164,6 +164,20 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 vDevice.ComputeQueue = computeQueue;
             }
 
+            //Create command pool for graphics queue.
+            CommandPoolCreateInfo poolInfo = new()
+            {
+                SType = StructureType.CommandPoolCreateInfo,
+                QueueFamilyIndex = vDevice.QueueFamilyIndices.GraphicsFamilyIndex,
+                Flags = CommandPoolCreateFlags.ResetCommandBufferBit,
+            };
+
+            if (context.Vk.CreateCommandPool(vDevice.LogicalDevice, poolInfo, context.Allocator, out var commandPool) != Result.Success)
+            {
+                throw new Exception("failed to create command pool!");
+            }
+            vDevice.GraphicsCommandPool = commandPool;
+
             context.SetupDevice(vDevice);
         }
 
@@ -173,6 +187,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         /// <param name="context"></param>
         public void Destroy(VulkanContext context)
         {
+            context.Vk.DestroyCommandPool(context.Device.LogicalDevice, context.Device.GraphicsCommandPool, context.Allocator);
+
             context.Vk.DestroyDevice(context.Device.LogicalDevice, context.Allocator);
 
             context.SetupDevice(default); //clears out some arrays and stuff

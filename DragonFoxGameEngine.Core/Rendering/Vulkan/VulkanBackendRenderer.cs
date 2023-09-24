@@ -7,7 +7,6 @@ using Silk.NET.SDL;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Windowing;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Runtime.InteropServices;
 
@@ -18,10 +17,11 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         private readonly ILogger _logger;
 
         private VulkanContext? _context;
-        private VulkanDeviceSetup _deviceSetup;
-        private VulkanSwapchainSetup _swapchainSetup;
-        private VulkanImageSetup _imageSetup;
-        private VulkanRenderpassSetup _renderpassSetup;
+        private readonly VulkanDeviceSetup _deviceSetup;
+        private readonly VulkanSwapchainSetup _swapchainSetup;
+        private readonly VulkanImageSetup _imageSetup;
+        private readonly VulkanRenderpassSetup _renderpassSetup;
+        private readonly VulkanCommandBufferSetup _commandBufferSetup;
 
 #if DEBUG
         private readonly bool EnableValidationLayers = true; //enable when tools are installed. Add to config
@@ -41,6 +41,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _imageSetup = new VulkanImageSetup(logger);
             _swapchainSetup = new VulkanSwapchainSetup(logger, _deviceSetup, _imageSetup);
             _renderpassSetup = new VulkanRenderpassSetup(logger);
+            _commandBufferSetup = new VulkanCommandBufferSetup(logger);
         }
 
         public VulkanContext Init(string applicationName, IWindow window)
@@ -171,6 +172,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _renderpassSetup.Create(_context, new Rect2D(new Offset2D(0, 0), new Extent2D(_context.FramebufferSize.X, _context.FramebufferSize.Y)),
                 System.Drawing.Color.CornflowerBlue, 1.0f, 0);
 
+            CreateCommandBuffers();
+
             _logger.LogInformation($"Vulkan initialized.");
             return _context;
         }
@@ -179,6 +182,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         {
             if(_context == null)
                 return;
+
+            CleanUpCommandBuffers();
 
             _renderpassSetup.Destory(_context, _context.MainRenderPass);
 
@@ -205,7 +210,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public void Resized(Vector2D<int> size)
         {
-
+            _logger.LogDebug($"Vulkan Backend Renderer resized {size}");
         }
 
         public void BeginFrame(double deltaTime)
@@ -274,5 +279,51 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return Vk.False;
         }
 
+        /// <summary>
+        /// Create our primary command buffers
+        /// </summary>
+        void CreateCommandBuffers()
+        {
+            var commandBuffers = _context!.GraphicsCommandBuffers;
+            if (commandBuffers == null || commandBuffers.Length != _context.Swapchain.SwapchainImages.Length)
+            {
+                //destroy previous if needed?
+                commandBuffers = new VulkanCommandBuffer[_context.Swapchain.SwapchainImages.Length];
+            }
+
+            for(int cnt = 0; cnt < commandBuffers.Length; cnt++)
+            {
+                if (commandBuffers[cnt].Handle.Handle != 0)
+                {
+                    commandBuffers[cnt] = _commandBufferSetup.CommandBufferFree(_context, _context.Device.GraphicsCommandPool, commandBuffers[cnt]);
+                }
+
+                commandBuffers[cnt] = _commandBufferSetup.CommandBufferAllocate(_context, _context.Device.GraphicsCommandPool, true);
+            }
+
+            _context.SetupGraphicsCommandBuffers(commandBuffers);
+            _logger.LogDebug("Graphics command buffers created.");
+        }
+
+        /// <summary>
+        /// Free our primary command buffers
+        /// </summary>
+        void CleanUpCommandBuffers()
+        {
+            var commandBuffers = _context!.GraphicsCommandBuffers;
+            if (commandBuffers == null)
+                return;
+
+            for (int cnt = 0; cnt < commandBuffers.Length; cnt++)
+            {
+                if (commandBuffers[cnt].Handle.Handle != 0)
+                {
+                    commandBuffers[cnt] = _commandBufferSetup.CommandBufferFree(_context, _context.Device.GraphicsCommandPool, commandBuffers[cnt]);
+                }
+            }
+
+            _context.SetupGraphicsCommandBuffers(commandBuffers);
+            _logger.LogDebug("Graphics command buffers cleaned up.");
+        }
     }
 }
