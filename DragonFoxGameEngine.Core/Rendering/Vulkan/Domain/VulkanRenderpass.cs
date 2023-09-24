@@ -1,7 +1,4 @@
 ﻿using Silk.NET.Vulkan;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
-
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 {

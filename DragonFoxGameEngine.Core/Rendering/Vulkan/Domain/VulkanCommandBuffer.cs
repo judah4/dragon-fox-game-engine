@@ -1,5 +1,4 @@
-﻿
-using Silk.NET.Vulkan;
+﻿using Silk.NET.Vulkan;
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 {

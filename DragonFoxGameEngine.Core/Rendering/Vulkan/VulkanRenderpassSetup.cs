@@ -114,6 +114,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                     throw new Exception("Failed to create render pass!");
                 }
                 vulkanRenderpass.Handle = renderPass;
+                vulkanRenderpass.State = RenderpassState.Ready;
             }
 
             context.SetupMainRenderpass(vulkanRenderpass);
