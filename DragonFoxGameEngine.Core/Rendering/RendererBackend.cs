@@ -41,7 +41,7 @@ namespace DragonFoxGameEngine.Core.Rendering
             _renderer.Shutdown();
         }
 
-        public void Resized(Vector2D<int> size)
+        public void Resized(Vector2D<uint> size)
         {
             _renderer.Resized(size);
         }

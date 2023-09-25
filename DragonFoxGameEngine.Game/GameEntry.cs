@@ -27,7 +27,7 @@ namespace DragonFoxGameEngine.Game
         {
         }
 
-        public void OnResize(Vector2D<int> size)
+        public void OnResize(Vector2D<uint> size)
         {
             _logger.LogDebug("Game resized!");
 

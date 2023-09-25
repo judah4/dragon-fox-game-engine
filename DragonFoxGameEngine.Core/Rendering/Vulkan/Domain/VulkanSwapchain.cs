@@ -13,9 +13,10 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public ImageView[]? ImageViews;
         internal VulkanImage DepthAttachment;
 
+        public VulkanFramebuffer[] Framebuffers;
+
         //public Format swapChainImageFormat;
         //public Extent2D swapChainExtent;
-        //public Framebuffer[]? _swapChainFramebuffers;
         //public Framebuffer[]? _uiFramebuffers;
     }
 }

@@ -34,8 +34,9 @@ namespace DragonFoxGameEngine.Core
 
         private void OnResize(Vector2D<int> size)
         {
-            _renderer.Resized(size);
-            _game.OnResize(size);
+            var unsignedSize = new Vector2D<uint>((uint)size.X, (uint)size.Y);
+            _renderer.Resized(unsignedSize);
+            _game.OnResize(unsignedSize);
         }
 
         public void Run()
