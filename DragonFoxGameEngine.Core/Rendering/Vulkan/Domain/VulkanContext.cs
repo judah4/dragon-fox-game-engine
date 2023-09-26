@@ -28,12 +28,23 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public Vector2D<uint> FramebufferSize { get; private set; }
 
         public VulkanSwapchain Swapchain { get; private set; }
-        public uint ImageIndex { get; private set; }
-        public uint CurrentFrame { get; private set; }
-        public bool RecreatingSwapchain { get; private set; }
         public VulkanRenderpass MainRenderPass { get; private set; }
 
         public VulkanCommandBuffer[]? GraphicsCommandBuffers { get; private set; }
+
+        public Semaphore[]? ImageAvailableSemaphores { get; private set; }
+        public Semaphore[]? QueueCompleteSemaphores { get; private set; }
+
+        public VulkanFence[]? InFlightFences { get; private set; }
+
+        /// <summary>
+        /// Holds refs to fences which exist and are owned elsewhere.
+        /// </summary>
+        public VulkanFence[]? ImagesInFlight { get; private set; }
+
+        public uint ImageIndex { get; private set; }
+        public uint CurrentFrame { get; private set; }
+        public bool RecreatingSwapchain { get; private set; }
 
         public VulkanContext(
             Vk vk,
@@ -92,6 +103,23 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public void SetupGraphicsCommandBuffers(VulkanCommandBuffer[] commandBuffers)
         {
             GraphicsCommandBuffers = commandBuffers;
+        }
+
+        public void SetupSemaphores(Semaphore[] imageAvailableSemaphores, Semaphore[] queueCompleteSemaphores)
+        {
+            ImageAvailableSemaphores = imageAvailableSemaphores;
+            QueueCompleteSemaphores = queueCompleteSemaphores;
+        }
+
+        public void SetupFences(VulkanFence[] inFlightFences, VulkanFence[] imagesInFlight)
+        {
+            InFlightFences = inFlightFences;
+            ImagesInFlight = imagesInFlight;
+        }
+
+        public void SetCurrentFrame(uint currentFrame)
+        {
+            CurrentFrame = currentFrame;
         }
     }
 }
