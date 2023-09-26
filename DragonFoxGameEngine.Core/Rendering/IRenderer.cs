@@ -9,7 +9,7 @@ namespace DragonFoxGameEngine.Core.Rendering
 
         }
 
-        public void Resized(Vector2D<int> size)
+        public void Resized(Vector2D<uint> size)
         {
 
         }

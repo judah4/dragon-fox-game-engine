@@ -7,6 +7,7 @@ using Silk.NET.SDL;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Windowing;
+using Svelto.Common;
 using System;
 using System.Runtime.InteropServices;
 
@@ -22,6 +23,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         private readonly VulkanImageSetup _imageSetup;
         private readonly VulkanRenderpassSetup _renderpassSetup;
         private readonly VulkanCommandBufferSetup _commandBufferSetup;
+        private readonly VulkanFramebufferSetup _framebufferSetup;
+        private readonly VulkanFenceSetup _fenceSetup;
 
 #if DEBUG
         private readonly bool EnableValidationLayers = true; //enable when tools are installed. Add to config
@@ -42,6 +45,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _swapchainSetup = new VulkanSwapchainSetup(logger, _deviceSetup, _imageSetup);
             _renderpassSetup = new VulkanRenderpassSetup(logger);
             _commandBufferSetup = new VulkanCommandBufferSetup(logger);
+            _framebufferSetup = new VulkanFramebufferSetup(logger);
+            _fenceSetup = new VulkanFenceSetup(logger);
         }
 
         public VulkanContext Init(string applicationName, IWindow window)
@@ -172,7 +177,17 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _renderpassSetup.Create(_context, new Rect2D(new Offset2D(0, 0), new Extent2D(_context.FramebufferSize.X, _context.FramebufferSize.Y)),
                 System.Drawing.Color.CornflowerBlue, 1.0f, 0);
 
+            //Create frame buffers.
+            var swapchain = _context.Swapchain;
+            swapchain.Framebuffers = new VulkanFramebuffer[_context.Swapchain.SwapchainImages.Length];
+            _context.SetupSwapchain(swapchain);
+            swapchain = RegenerateFramebuffers(swapchain, _context.MainRenderPass);
+            _context.SetupSwapchain(swapchain); //this all feels real nasty but it works I guess
+
+            //Create command buffers
             CreateCommandBuffers();
+
+            CreateSemaphoresAndFences();
 
             _logger.LogInformation($"Vulkan initialized.");
             return _context;
@@ -183,7 +198,15 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             if(_context == null)
                 return;
 
+            //wait until the device is idle again
+            _context.Vk.DeviceWaitIdle(_context.Device.LogicalDevice);
+
+            DestroySemaphoresAndFences();
+
             CleanUpCommandBuffers();
+
+            var swapchain = DestroyFramebuffers(_context.Swapchain);
+            _context.SetupSwapchain(swapchain); //this all feels real nasty but it works I guess
 
             _renderpassSetup.Destory(_context, _context.MainRenderPass);
 
@@ -208,9 +231,13 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _logger.LogInformation("Vulkan is shutdown.");
         }
 
-        public void Resized(Vector2D<int> size)
+        public void Resized(Vector2D<uint> size)
         {
+            if(_context == null)
+                return;
+            //_context.SetFramebufferSize(size);
             _logger.LogDebug($"Vulkan Backend Renderer resized {size}");
+            //do resizing
         }
 
         public void BeginFrame(double deltaTime)
@@ -325,5 +352,89 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _context.SetupGraphicsCommandBuffers(commandBuffers);
             _logger.LogDebug("Graphics command buffers cleaned up.");
         }
+
+        VulkanSwapchain RegenerateFramebuffers(VulkanSwapchain swapchain, VulkanRenderpass renderpass)
+        {
+            if(_context == null)
+            {
+                throw new Exception("Context is not set up. Was RegenerateFramebuffers called before Vulkan is initialized?");
+            }
+            if(swapchain.ImageViews == null)
+            {
+                _logger.LogWarning("Image views are emtpy for regenerating frame buffers. Why?");
+                return swapchain;
+            }
+
+            for(int cnt = 0; cnt < swapchain.ImageViews.Length; cnt++)
+            {
+                var attachments = new[]
+                {
+                    swapchain.ImageViews[cnt],
+                    swapchain.DepthAttachment.ImageView,
+                };
+
+                swapchain.Framebuffers[cnt] = _framebufferSetup.FramebufferCreate(_context!, renderpass, _context!.FramebufferSize, attachments);
+            }
+            return swapchain;
+        }
+
+        VulkanSwapchain DestroyFramebuffers(VulkanSwapchain swapchain)
+        {
+            for (int cnt = 0; cnt < swapchain.Framebuffers.Length; cnt++)
+            {
+                swapchain.Framebuffers[cnt] = _framebufferSetup.FramebufferDestroy(_context!, swapchain.Framebuffers[cnt]);
+            }
+            return swapchain;
+        }
+
+        private void CreateSemaphoresAndFences()
+        {
+            if(_context == null)
+            {
+                return;
+            }
+            var imageAvailableSemaphores = new Silk.NET.Vulkan.Semaphore[_context.Swapchain.MaxFramesInFlight];
+            var renderFinishedSemaphores = new Silk.NET.Vulkan.Semaphore[_context.Swapchain.MaxFramesInFlight];
+            var inFlightFences = new VulkanFence[_context.Swapchain.MaxFramesInFlight];
+
+            SemaphoreCreateInfo semaphoreInfo = new()
+            {
+                SType = StructureType.SemaphoreCreateInfo,
+            };
+
+            for (var i = 0; i < _context.Swapchain.MaxFramesInFlight; i++)
+            {
+                if (_context.Vk.CreateSemaphore(_context.Device.LogicalDevice, semaphoreInfo, _context.Allocator, out imageAvailableSemaphores[i]) != Result.Success ||
+                    _context.Vk.CreateSemaphore(_context.Device.LogicalDevice, semaphoreInfo, _context.Allocator, out renderFinishedSemaphores[i]) != Result.Success)
+                {
+                    throw new Exception("Failed to create synchronization objects for a frame!");
+                }
+                inFlightFences[i] = _fenceSetup.FenceCreate(_context, true);
+            }
+
+            var imagesInflight = new VulkanFence[_context.Swapchain.SwapchainImages.Length];
+
+            _context.SetupSemaphores(imageAvailableSemaphores, renderFinishedSemaphores);
+            _context.SetupFences(inFlightFences, imagesInflight);
+        }
+
+        private void DestroySemaphoresAndFences()
+        {
+            if (_context == null)
+            {
+                return;
+            }
+            for (int i = 0; i < _context.Swapchain.MaxFramesInFlight; i++)
+            {
+                _context.Vk.DestroySemaphore(_context.Device.LogicalDevice, _context.ImageAvailableSemaphores![i], _context.Allocator);
+                _context.Vk.DestroySemaphore(_context.Device.LogicalDevice, _context.QueueCompleteSemaphores![i], _context.Allocator);
+                _fenceSetup.FenceDestroy(_context, _context.InFlightFences![i]);
+
+                _context.ImageAvailableSemaphores![i] = default;
+                _context.QueueCompleteSemaphores![i] = default;
+                _context.InFlightFences![i] = default;
+            }
+        }
+
     }
 }

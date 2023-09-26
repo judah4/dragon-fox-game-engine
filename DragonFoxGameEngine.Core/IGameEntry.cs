@@ -11,6 +11,6 @@ namespace DragonFoxGameEngine.Core
         void Initialize(IWindow window);
         void Update(double deltaTime);
         void Render(double deltaTime);
-        void OnResize(Vector2D<int> size);
+        void OnResize(Vector2D<uint> size);
     }
 }

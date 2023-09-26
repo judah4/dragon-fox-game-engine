@@ -81,6 +81,10 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             {
                 throw new Exception("failed to present swap chain image!");
             }
+
+            //Increment and loop the index
+            var currentFrame = (context.CurrentFrame + 1) % swapchain.MaxFramesInFlight;
+            context.SetCurrentFrame(currentFrame);
         }
 
         private VulkanSwapchain InnerCreate(VulkanContext context, Vector2D<uint> size)
