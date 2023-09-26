@@ -3,7 +3,6 @@ using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
-using System;
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 {
@@ -26,7 +25,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public VulkanDevice Device { get; private set; }
 
         public Vector2D<uint> FramebufferSize { get; private set; }
+        public ulong FramebufferSizeGeneration { get; private set; }
 
+        public ulong FramebufferSizeGenerationLastGeneration { get; private set; }
         public VulkanSwapchain Swapchain { get; private set; }
         public VulkanRenderpass MainRenderPass { get; private set; }
 
@@ -120,6 +121,13 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public void SetCurrentFrame(uint currentFrame)
         {
             CurrentFrame = currentFrame;
+        }
+
+        public void SetFramebufferSize(Vector2D<uint> size, ulong framebufferSizeGeneration)
+        {
+            FramebufferSize = size;
+            FramebufferSizeGenerationLastGeneration = FramebufferSizeGeneration;
+            FramebufferSizeGeneration = framebufferSizeGeneration;
         }
     }
 }
