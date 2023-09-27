@@ -9,7 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DragonFoxGameEngine.Core", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DragonFoxGameEngine.Game", "DragonFoxGameEngine.Game\DragonFoxGameEngine.Game.csproj", "{65746DD9-1701-44D8-BAD0-9F42B3586050}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameEngine.Core.Tests", "GameEngine.Core.Tests\GameEngine.Core.Tests.csproj", "{FD5929DB-172D-416F-A2BF-941DA5626C19}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GameEngine.Core.Tests", "GameEngine.Core.Tests\GameEngine.Core.Tests.csproj", "{FD5929DB-172D-416F-A2BF-941DA5626C19}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foxis.Library", "Foxis.Library\Foxis.Library.csproj", "{7C56EC40-F9EA-4A44-9786-1F52E1F4BDCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Foxis.Library.Tests", "Foxis.Library.Tests\Foxis.Library.Tests.csproj", "{5A93579B-4859-46C0-9DBB-D9FD4FE225B2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +37,14 @@ Global
 		{FD5929DB-172D-416F-A2BF-941DA5626C19}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FD5929DB-172D-416F-A2BF-941DA5626C19}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FD5929DB-172D-416F-A2BF-941DA5626C19}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7C56EC40-F9EA-4A44-9786-1F52E1F4BDCD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7C56EC40-F9EA-4A44-9786-1F52E1F4BDCD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7C56EC40-F9EA-4A44-9786-1F52E1F4BDCD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7C56EC40-F9EA-4A44-9786-1F52E1F4BDCD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5A93579B-4859-46C0-9DBB-D9FD4FE225B2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5A93579B-4859-46C0-9DBB-D9FD4FE225B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5A93579B-4859-46C0-9DBB-D9FD4FE225B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5A93579B-4859-46C0-9DBB-D9FD4FE225B2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

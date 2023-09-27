@@ -1,14 +1,14 @@
-using DragonFoxGameEngine.Core;
+using Foxis.Library;
 
-namespace GameEngine.Core.Tests
+namespace Foxis.Library.Tests
 {
     [TestClass]
-    public class EngineResultTests
+    public class ResultTests
     {
         [TestMethod]
-        public void EngineResult_Ok_Test()
+        public void Result_Ok_Test()
         {
-            var result = EngineResult.Ok(10);
+            var result = Result.Ok(10);
 
             Assert.IsTrue(result.Success);
             Assert.IsFalse(result.IsFailure);
@@ -17,9 +17,9 @@ namespace GameEngine.Core.Tests
         }
 
         [TestMethod]
-        public void EngineResult_Ok_Simple_Test()
+        public void Result_Ok_Simple_Test()
         {
-            var result = EngineResult.Ok<bool>();
+            var result = Result.Ok<bool>();
 
             Assert.IsTrue(result.Success);
             Assert.IsFalse(result.IsFailure);
@@ -28,10 +28,10 @@ namespace GameEngine.Core.Tests
         }
 
         [TestMethod]
-        public void EngineResult_Fail_Test()
+        public void Result_Fail_Test()
         {
             var expectedError = "This is an error.";
-            var result = EngineResult.Fail<int>(expectedError);
+            var result = Result.Fail<int>(expectedError);
 
             Assert.IsFalse(result.Success);
             Assert.IsTrue(result.IsFailure);
