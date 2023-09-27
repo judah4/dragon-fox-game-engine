@@ -23,7 +23,7 @@ namespace DragonFoxGameEngine.Core.Rendering
 
         public void Shutdown()
         {
-            _rendererBackend.Destroy();
+            _rendererBackend.Shutdown();
         }
 
         public void Resized(Vector2D<uint> size)
@@ -33,9 +33,11 @@ namespace DragonFoxGameEngine.Core.Rendering
 
         public void DrawFrame(RenderPacket packet)
         {
-            _rendererBackend.BeginFrame(packet.DeltaTime);
+            if(_rendererBackend.BeginFrame(packet.DeltaTime))
+            {
+                _rendererBackend.EndFrame(packet.DeltaTime);
+            }
 
-            _rendererBackend.EndFrame(packet.DeltaTime);
         }
     }
 }

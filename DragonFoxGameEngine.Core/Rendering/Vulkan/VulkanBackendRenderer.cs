@@ -3,11 +3,11 @@ using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.Maths;
+using Silk.NET.OpenAL;
 using Silk.NET.SDL;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Windowing;
-using Svelto.Common;
 using System;
 using System.Runtime.InteropServices;
 
@@ -241,14 +241,163 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _logger.LogDebug($"Vulkan Backend Renderer resized {size}, generation {_context.FramebufferSizeGeneration}");
         }
 
-        public void BeginFrame(double deltaTime)
+        public bool BeginFrame(double deltaTime)
         {
+            if(_context == null)
+            {
+                return false;
+            }
+            var device = _context.Device;
+            if(_context.RecreatingSwapchain)
+            {
+                var result = _context.Vk.DeviceWaitIdle(device.LogicalDevice);
+                if(!VulkanUtils.ResultIsSuccess(result))
+                {
+                    _logger.LogError($"BeginFrame DeviceWaitIdle failed: {VulkanUtils.FormattedResult(result)}");
+                    return false;
+                }
+                _logger.LogDebug("Recreating swapchain, booting");
+                return false;
+            }
 
+            //Check if the framebuffer has been resized. If so, a new swapchain must be created.
+            if(_context.FramebufferSizeGeneration != _context.FramebufferSizeGenerationLastGeneration)
+            {
+                var result = _context.Vk.DeviceWaitIdle(device.LogicalDevice);
+                if (!VulkanUtils.ResultIsSuccess(result))
+                {
+                    _logger.LogError($"BeginFrame DeviceWaitIdle failed: {VulkanUtils.FormattedResult(result)}");
+                    return false;
+                }
+
+                if(!RecreateSwapchain())
+                {
+                    return false;
+                }
+
+                _logger.LogDebug("Resized, booting");
+                return false;
+            }
+
+            // Wait for the current frame to complete. The fence being free will allow this one to move on.
+            var fenceResult = _fenceSetup.FenceWait(_context, _context.InFlightFences![_context.CurrentFrame], ulong.MaxValue);
+            if(fenceResult.IsFailure)
+            {
+                _logger.LogWarning("In-flight fence wait failure!");
+                return false;
+            }
+            _context.InFlightFences[_context.CurrentFrame] = fenceResult.Value; //set the fence in the array
+
+
+            
+            //Acquire the next image from the swapchain. Pass along the semaphore that should signal when this completes.
+            //This same semaphore will alter be waited on by the queue submission to ensure this image is available.
+            var imageIndex = _swapchainSetup.AquireNextImageIndex(_context, _context.Swapchain, ulong.MaxValue, _context.ImageAvailableSemaphores![_context.CurrentFrame], default);
+            _context.SetImageIndex(imageIndex);
+
+            //begin reporting commands
+            var commandBuffer = _context.GraphicsCommandBuffers![_context.ImageIndex];
+            commandBuffer = _commandBufferSetup.CommandBufferReset(_context, commandBuffer);
+            commandBuffer = _commandBufferSetup.CommandBufferBegin(_context, commandBuffer, false, false, false);
+            _context.GraphicsCommandBuffers[_context.ImageIndex] = commandBuffer;
+
+            //dynamic state
+            Viewport viewport = new()
+            {
+                X = 0,
+                Y = _context.FramebufferSize.Y,
+                Width = _context.FramebufferSize.X,
+                Height = -_context.FramebufferSize.Y, //flip to be with OpenGL
+                MinDepth = 0.0f,
+                MaxDepth = 1.0f,
+            };
+
+            //Scissor
+            Rect2D scissor = new()
+            {
+                Offset = { X = 0, Y = 0 },
+                Extent = new Extent2D(_context.FramebufferSize.X, _context.FramebufferSize.Y),
+            };
+
+            _context.Vk.CmdSetViewport(commandBuffer.Handle, 0, 1, viewport);
+            _context.Vk.CmdSetScissor(commandBuffer.Handle, 0, 1, scissor);
+
+            var renderPass = _context.MainRenderPass;
+            renderPass.Rect.Extent = scissor.Extent; //hacky but sets it at least
+            _context.SetupMainRenderpass(renderPass);
+
+            commandBuffer = _renderpassSetup.BeginRenderpass(_context, commandBuffer, _context.MainRenderPass, _context.Swapchain.Framebuffers[_context.ImageIndex].Framebuffer);
+            _context.GraphicsCommandBuffers[_context.ImageIndex] = commandBuffer;
+            //we started the frame!
+
+            return true;
         }
 
-        public void EndFrame(double deltaTime)
+        public bool EndFrame(double deltaTime)
         {
+            if (_context == null)
+            {
+                return false;
+            }
 
+            var commandBuffer = _context.GraphicsCommandBuffers![_context.ImageIndex];
+            //End renderpass
+            commandBuffer = _renderpassSetup.EndRenderpass(_context, commandBuffer, _context.MainRenderPass);
+
+            commandBuffer = _commandBufferSetup.CommandBufferEnd(_context, commandBuffer);
+            _context.GraphicsCommandBuffers[_context.ImageIndex] = commandBuffer;
+
+            //make sure the previous frame is not using this image
+            if (_context.ImagesInFlight![_context.ImageIndex] != default)
+            {
+                _fenceSetup.FenceWait(_context, _context.InFlightFences![_context.CurrentFrame], ulong.MaxValue);
+            }
+
+            //mark in use
+            fixed(VulkanFence* fencePtr = &_context.InFlightFences![_context.CurrentFrame])
+            {
+                _context.ImagesInFlight[_context.ImageIndex] = fencePtr;
+            }
+
+            _context.InFlightFences[_context.CurrentFrame] = _fenceSetup.FenceReset(_context, _context.InFlightFences[_context.CurrentFrame]);
+
+            SubmitInfo submitInfo = new()
+            {
+                SType = StructureType.SubmitInfo,
+                CommandBufferCount = 1,
+                PCommandBuffers = &commandBuffer.Handle,
+            };
+
+            var signalSemaphores = stackalloc[] { _context.QueueCompleteSemaphores![_context.CurrentFrame] };
+            // The semaphore(s) to be signaled when the queue is complete.
+            submitInfo.SignalSemaphoreCount = 1;
+            submitInfo.PSignalSemaphores = signalSemaphores;
+
+            var waitSemaphores = stackalloc[] { _context.ImageAvailableSemaphores![_context.CurrentFrame] };
+            // Wait semaphore ensures that the operation cannot begin until the image is available.
+            submitInfo.WaitSemaphoreCount = 1;
+            submitInfo.PWaitSemaphores = waitSemaphores;
+
+            var flags = new PipelineStageFlags[] { PipelineStageFlags.ColorAttachmentOutputBit };
+            fixed(PipelineStageFlags* flagsPtr = flags)
+            {
+                submitInfo.PWaitDstStageMask = flagsPtr;
+            }
+
+            var submitResult = _context.Vk.QueueSubmit(_context.Device.GraphicsQueue, 1, submitInfo, _context.InFlightFences[_context.CurrentFrame].Handle);
+            if (!VulkanUtils.ResultIsSuccess(submitResult))
+            {
+                _logger.LogError($"QueueSubmit failed: {VulkanUtils.FormattedResult(submitResult)}");
+                return false;
+            }
+
+            commandBuffer = _commandBufferSetup.CommandBufferUpdateSubmitted(_context, commandBuffer);
+            _context.GraphicsCommandBuffers[_context.ImageIndex] = commandBuffer;
+            //End queue submission
+
+            _swapchainSetup.Present(_context, _context.Swapchain, _context.Device.GraphicsQueue, _context.Device.PresentQueue, signalSemaphores, _context.ImageIndex);
+
+            return true;
         }
 
         private void PopulateDebugMessengerCreateInfo(ref DebugUtilsMessengerCreateInfoEXT createInfo)
@@ -413,7 +562,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 inFlightFences[i] = _fenceSetup.FenceCreate(_context, true);
             }
 
-            var imagesInflight = new VulkanFence[_context.Swapchain.SwapchainImages.Length];
+            var imagesInflight = new VulkanFence*[_context.Swapchain.SwapchainImages.Length];
 
             _context.SetupSemaphores(imageAvailableSemaphores, renderFinishedSemaphores);
             _context.SetupFences(inFlightFences, imagesInflight);
@@ -437,5 +586,72 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             }
         }
 
+        private bool RecreateSwapchain()
+        {
+            if(_context == null)
+            {
+                return false;
+            }
+            if(_context.RecreatingSwapchain)
+            {
+                return false;
+            }
+            if(_context.FramebufferSize.X == 0 || _context.FramebufferSize.Y == 0)
+            {
+                return false;
+            }
+            _context.SetRecreateSwapchain(true);
+            //wait for any operations to finish
+            _context.Vk.DeviceWaitIdle(_context.Device.LogicalDevice);
+
+            //clear these out
+            for(int cnt = 0; cnt < _context.ImagesInFlight!.Length; cnt++)
+            {
+                _context.ImagesInFlight[cnt] = default;
+            }
+
+            var device = _context.Device;
+            device.SwapchainSupport = _deviceSetup.QuerySwapChainSupport(_context.Device.PhysicalDevice, _context);
+            _context.SetupDevice(device);
+            _deviceSetup.DetectDepthFormat(_context);
+
+            var swapchain = _swapchainSetup.Recreate(_context, _context.FramebufferSize, _context.Swapchain);
+            _context.SetupSwapchain(swapchain);
+
+            var renderPass = _context.MainRenderPass;
+            renderPass.Rect.Extent.Width = _context.FramebufferSize.X;
+            renderPass.Rect.Extent.Height = _context.FramebufferSize.Y;
+            _context.SetupMainRenderpass(renderPass);
+
+            //update framebuffer size generation
+            _context.SetFramebufferSizeGenerationLastGeneration(_context.FramebufferSizeGeneration);
+
+            for(int cnt = 0; cnt < _context.GraphicsCommandBuffers!.Length; cnt++)
+            {
+                _context.GraphicsCommandBuffers[cnt] = _commandBufferSetup.CommandBufferFree(_context, _context.Device.GraphicsCommandPool, _context.GraphicsCommandBuffers[cnt]);
+            }
+
+            for (int cnt = 0; cnt < _context.Swapchain.Framebuffers!.Length; cnt++)
+            {
+                _context.Swapchain.Framebuffers[cnt] = _framebufferSetup.FramebufferDestroy(_context, _context.Swapchain.Framebuffers[cnt]);
+            }
+
+            //something something struct later
+            renderPass = _context.MainRenderPass;
+            renderPass.Rect.Offset.X = 0;
+            renderPass.Rect.Offset.Y = 0;
+            renderPass.Rect.Extent.Width = _context.FramebufferSize.X;
+            renderPass.Rect.Extent.Height = _context.FramebufferSize.Y;
+            _context.SetupMainRenderpass(renderPass);
+
+            _context.SetupSwapchain(RegenerateFramebuffers(_context.Swapchain, _context.MainRenderPass));
+
+            CreateCommandBuffers();
+
+            // Clear the recreating flag.
+            _context.SetRecreateSwapchain(false);
+
+            return true;
+        }
     }
 }

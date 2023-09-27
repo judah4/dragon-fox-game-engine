@@ -1,4 +1,5 @@
 ﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+using Foxis.Library;
 using Microsoft.Extensions.Logging;
 using Silk.NET.OpenAL;
 using Silk.NET.Vulkan;
@@ -34,7 +35,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 fenceInfo.Flags = FenceCreateFlags.SignaledBit;
             }
 
-            if(context.Vk.CreateFence(context.Device.LogicalDevice, fenceInfo, context.Allocator, out var fence) != Result.Success)
+            if(context.Vk.CreateFence(context.Device.LogicalDevice, fenceInfo, context.Allocator, out var fence) != Silk.NET.Vulkan.Result.Success)
             {
                 throw new Exception("Failed to create fence!");
             }
@@ -56,23 +57,23 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return vulkanFence;
         }
 
-        public EngineResult<VulkanFence> FenceWait(VulkanContext context, VulkanFence vulkanFence, ulong timeoutNs)
+        public Result<VulkanFence> FenceWait(VulkanContext context, VulkanFence vulkanFence, ulong timeoutNs)
         {
             if(vulkanFence.IsSignaled)
-                return EngineResult.Ok(vulkanFence);
+                return Foxis.Library.Result.Ok(vulkanFence);
 
             var result = context.Vk.WaitForFences(context.Device.LogicalDevice, 1, vulkanFence.Handle, true, timeoutNs);
             switch(result)
             {
-                case Result.Success:
+                case Silk.NET.Vulkan.Result.Success:
                     vulkanFence.IsSignaled = true;
-                    return EngineResult.Ok(vulkanFence);
-                case Result.Timeout:
+                    return Foxis.Library.Result.Ok(vulkanFence);
+                case Silk.NET.Vulkan.Result.Timeout:
                     _logger.LogWarning($"Fence Wait - {result}");
-                    return EngineResult.Fail<VulkanFence>(result.ToString());
+                    return Foxis.Library.Result.Fail<VulkanFence>(result.ToString());
                 default:
                     _logger.LogError($"Fence Wait - {result}");
-                    return EngineResult.Fail<VulkanFence>(result.ToString());
+                    return Foxis.Library.Result.Fail<VulkanFence>(result.ToString());
             }
         }
 

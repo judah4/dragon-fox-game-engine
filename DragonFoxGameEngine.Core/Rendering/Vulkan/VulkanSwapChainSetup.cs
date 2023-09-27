@@ -35,9 +35,20 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public void Destroy(VulkanContext context, VulkanSwapchain swapchain)
         {
+            context.Vk.DeviceWaitIdle(context.Device.LogicalDevice);
             InnerDestroy(context, swapchain);
         }
 
+        /// <summary>
+        /// Aquire the next image index
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="swapchain"></param>
+        /// <param name="timeoutNs"></param>
+        /// <param name="semaphore"></param>
+        /// <param name="fence"></param>
+        /// <returns>The image index</returns>
+        /// <exception cref="Exception">Throws if not successful.</exception>
         public uint AquireNextImageIndex(VulkanContext context, VulkanSwapchain swapchain, ulong timeoutNs, Silk.NET.Vulkan.Semaphore semaphore, Fence fence)
         {
             uint imageIndex = 0;
@@ -56,7 +67,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return imageIndex;
         }
 
-        public void Present(VulkanContext context, VulkanSwapchain swapchain, Queue graphicsQueue, Queue presentQueue, Silk.NET.Vulkan.Semaphore* renderCompleteSemaphore, Fence fence, uint presentImageIndex)
+        public void Present(VulkanContext context, VulkanSwapchain swapchain, Queue graphicsQueue, Queue presentQueue, Silk.NET.Vulkan.Semaphore* renderCompleteSemaphore, uint presentImageIndex)
         {
             PresentInfoKHR presentInfo = new()
             {
@@ -68,7 +79,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 SwapchainCount = 1,
                 PSwapchains = &swapchain.Swapchain,
 
-                PImageIndices = &presentImageIndex
+                PImageIndices = &presentImageIndex,
             };
 
             var result = swapchain.KhrSwapchain.QueuePresent(presentQueue, presentInfo);

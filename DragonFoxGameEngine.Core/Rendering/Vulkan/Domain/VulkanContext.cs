@@ -3,6 +3,7 @@ using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
+using System;
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 {
@@ -26,8 +27,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 
         public Vector2D<uint> FramebufferSize { get; private set; }
         public ulong FramebufferSizeGeneration { get; private set; }
-
         public ulong FramebufferSizeGenerationLastGeneration { get; private set; }
+
         public VulkanSwapchain Swapchain { get; private set; }
         public VulkanRenderpass MainRenderPass { get; private set; }
 
@@ -41,7 +42,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         /// <summary>
         /// Holds refs to fences which exist and are owned elsewhere.
         /// </summary>
-        public VulkanFence[]? ImagesInFlight { get; private set; }
+        public VulkanFence*[]? ImagesInFlight { get; private set; }
 
         public uint ImageIndex { get; private set; }
         public uint CurrentFrame { get; private set; }
@@ -112,7 +113,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
             QueueCompleteSemaphores = queueCompleteSemaphores;
         }
 
-        public void SetupFences(VulkanFence[] inFlightFences, VulkanFence[] imagesInFlight)
+        public void SetupFences(VulkanFence[] inFlightFences, VulkanFence*[] imagesInFlight)
         {
             InFlightFences = inFlightFences;
             ImagesInFlight = imagesInFlight;
@@ -128,6 +129,21 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
             FramebufferSize = size;
             FramebufferSizeGenerationLastGeneration = FramebufferSizeGeneration;
             FramebufferSizeGeneration = framebufferSizeGeneration;
+        }
+
+        public void SetImageIndex(uint imageIndex)
+        {
+            ImageIndex = imageIndex;
+        }
+
+        internal void SetRecreateSwapchain(bool recreateSwapchain)
+        {
+            RecreatingSwapchain = recreateSwapchain;
+        }
+
+        public void SetFramebufferSizeGenerationLastGeneration(ulong framebufferSizeGeneration)
+        {
+            FramebufferSizeGenerationLastGeneration = framebufferSizeGeneration;
         }
     }
 }
