@@ -24,19 +24,19 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public VulkanSwapchain Create(VulkanContext context, Vector2D<uint> size)
         {
-            return InnerCreate(context, size);
+            return InnerCreate(context, size, new VulkanSwapchain());
         }
 
         public VulkanSwapchain Recreate(VulkanContext context, Vector2D<uint> size, VulkanSwapchain swapchain)
         {
-            InnerDestroy(context, swapchain);
-            return InnerCreate(context, size);
+            swapchain = InnerDestroy(context, swapchain);
+            return InnerCreate(context, size, swapchain);
         }
 
-        public void Destroy(VulkanContext context, VulkanSwapchain swapchain)
+        public VulkanSwapchain Destroy(VulkanContext context, VulkanSwapchain swapchain)
         {
             context.Vk.DeviceWaitIdle(context.Device.LogicalDevice);
-            InnerDestroy(context, swapchain);
+            return InnerDestroy(context, swapchain);
         }
 
         /// <summary>
@@ -98,10 +98,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             context.SetCurrentFrame(currentFrame);
         }
 
-        private VulkanSwapchain InnerCreate(VulkanContext context, Vector2D<uint> size)
+        private VulkanSwapchain InnerCreate(VulkanContext context, Vector2D<uint> size, VulkanSwapchain swapchain)
         {
             var swapchainExtent = new Extent2D(size.X, size.Y);
-            var swapchain = new VulkanSwapchain();
             swapchain.MaxFramesInFlight = 2;
 
             swapchain.ImageFormat = ChooseSwapSurfaceFormat(context.Device.SwapchainSupport.Formats);
@@ -234,7 +233,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return swapchain;
         }
 
-        private void InnerDestroy(VulkanContext context, VulkanSwapchain swapchain)
+        private VulkanSwapchain InnerDestroy(VulkanContext context, VulkanSwapchain swapchain)
         {
             _vulkanImageSetup.ImageDestroy(context, swapchain.DepthAttachment);
 
@@ -250,6 +249,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             swapchain.KhrSwapchain.DestroySwapchain(context.Device.LogicalDevice, swapchain.Swapchain, context.Allocator);
             _logger.LogDebug("Swapchain destroyed.");
+            return swapchain;
         }
 
         /// <summary>

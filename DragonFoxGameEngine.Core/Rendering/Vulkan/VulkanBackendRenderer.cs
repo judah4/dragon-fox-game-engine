@@ -288,7 +288,6 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             }
             _context.InFlightFences[_context.CurrentFrame] = fenceResult.Value; //set the fence in the array
 
-
             
             //Acquire the next image from the swapchain. Pass along the semaphore that should signal when this completes.
             //This same semaphore will alter be waited on by the queue submission to ensure this image is available.
@@ -631,10 +630,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 _context.GraphicsCommandBuffers[cnt] = _commandBufferSetup.CommandBufferFree(_context, _context.Device.GraphicsCommandPool, _context.GraphicsCommandBuffers[cnt]);
             }
 
-            for (int cnt = 0; cnt < _context.Swapchain.Framebuffers!.Length; cnt++)
-            {
-                _context.Swapchain.Framebuffers[cnt] = _framebufferSetup.FramebufferDestroy(_context, _context.Swapchain.Framebuffers[cnt]);
-            }
+            DestroyFramebuffers(swapchain);
 
             //something something struct later
             renderPass = _context.MainRenderPass;
