@@ -17,7 +17,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj" />
     <ProjectReference Include="..\Foxis.Library\Foxis.Library.csproj" />
   </ItemGroup>
 

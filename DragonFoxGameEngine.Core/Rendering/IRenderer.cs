@@ -4,24 +4,12 @@ namespace DragonFoxGameEngine.Core.Rendering
 {
     public interface IRenderer
     {
-        public void Shutdown()
-        {
+        public void Shutdown();
 
-        }
+        public void Resized(Vector2D<uint> size);
 
-        public void Resized(Vector2D<uint> size)
-        {
+        public bool BeginFrame(double deltaTime);
 
-        }
-
-        public void BeginFrame(double deltaTime)
-        {
-
-        }
-
-        public void EndFrame(double deltaTime)
-        {
-
-        }
+        public bool EndFrame(double deltaTime);
     }
 }

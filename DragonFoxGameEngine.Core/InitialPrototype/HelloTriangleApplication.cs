@@ -1076,7 +1076,7 @@ namespace DragonFoxGameEngine.Core.InitialPrototype
                 };
 
                 _graphicsWorldPipelineData = _vulkanPipeline.CreateGraphicsWorldPipeline(vk!, _device, _renderPass, _descriptorSetLayout, viewport, scissor);
-                _uiPipelineData = _vulkanPipeline.CreateGraphicsWorldPipeline(vk!, _device, _renderPass, _descriptorSetLayout, viewport, scissor);
+                _uiPipelineData = _vulkanPipeline.CreateGraphicsUiPipeline(vk!, _device, _renderPass, _descriptorSetLayout, viewport, scissor);
             }
         }
 

@@ -24,20 +24,31 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public VulkanSwapchain Create(VulkanContext context, Vector2D<uint> size)
         {
-            return InnerCreate(context, size);
+            return InnerCreate(context, size, new VulkanSwapchain());
         }
 
         public VulkanSwapchain Recreate(VulkanContext context, Vector2D<uint> size, VulkanSwapchain swapchain)
         {
-            InnerDestroy(context, swapchain);
-            return InnerCreate(context, size);
+            swapchain = InnerDestroy(context, swapchain);
+            return InnerCreate(context, size, swapchain);
         }
 
-        public void Destroy(VulkanContext context, VulkanSwapchain swapchain)
+        public VulkanSwapchain Destroy(VulkanContext context, VulkanSwapchain swapchain)
         {
-            InnerDestroy(context, swapchain);
+            context.Vk.DeviceWaitIdle(context.Device.LogicalDevice);
+            return InnerDestroy(context, swapchain);
         }
 
+        /// <summary>
+        /// Aquire the next image index
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="swapchain"></param>
+        /// <param name="timeoutNs"></param>
+        /// <param name="semaphore"></param>
+        /// <param name="fence"></param>
+        /// <returns>The image index</returns>
+        /// <exception cref="Exception">Throws if not successful.</exception>
         public uint AquireNextImageIndex(VulkanContext context, VulkanSwapchain swapchain, ulong timeoutNs, Silk.NET.Vulkan.Semaphore semaphore, Fence fence)
         {
             uint imageIndex = 0;
@@ -56,7 +67,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return imageIndex;
         }
 
-        public void Present(VulkanContext context, VulkanSwapchain swapchain, Queue graphicsQueue, Queue presentQueue, Silk.NET.Vulkan.Semaphore* renderCompleteSemaphore, Fence fence, uint presentImageIndex)
+        public void Present(VulkanContext context, VulkanSwapchain swapchain, Queue graphicsQueue, Queue presentQueue, Silk.NET.Vulkan.Semaphore* renderCompleteSemaphore, uint presentImageIndex)
         {
             PresentInfoKHR presentInfo = new()
             {
@@ -68,7 +79,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 SwapchainCount = 1,
                 PSwapchains = &swapchain.Swapchain,
 
-                PImageIndices = &presentImageIndex
+                PImageIndices = &presentImageIndex,
             };
 
             var result = swapchain.KhrSwapchain.QueuePresent(presentQueue, presentInfo);
@@ -87,10 +98,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             context.SetCurrentFrame(currentFrame);
         }
 
-        private VulkanSwapchain InnerCreate(VulkanContext context, Vector2D<uint> size)
+        private VulkanSwapchain InnerCreate(VulkanContext context, Vector2D<uint> size, VulkanSwapchain swapchain)
         {
             var swapchainExtent = new Extent2D(size.X, size.Y);
-            var swapchain = new VulkanSwapchain();
             swapchain.MaxFramesInFlight = 2;
 
             swapchain.ImageFormat = ChooseSwapSurfaceFormat(context.Device.SwapchainSupport.Formats);
@@ -223,7 +233,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return swapchain;
         }
 
-        private void InnerDestroy(VulkanContext context, VulkanSwapchain swapchain)
+        private VulkanSwapchain InnerDestroy(VulkanContext context, VulkanSwapchain swapchain)
         {
             _vulkanImageSetup.ImageDestroy(context, swapchain.DepthAttachment);
 
@@ -239,6 +249,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             swapchain.KhrSwapchain.DestroySwapchain(context.Device.LogicalDevice, swapchain.Swapchain, context.Allocator);
             _logger.LogDebug("Swapchain destroyed.");
+            return swapchain;
         }
 
         /// <summary>

@@ -36,7 +36,7 @@ namespace DragonFoxGameEngine.Core.Rendering
            
         }
 
-        public void Destroy()
+        public void Shutdown()
         {
             _renderer.Shutdown();
         }
@@ -46,14 +46,14 @@ namespace DragonFoxGameEngine.Core.Rendering
             _renderer.Resized(size);
         }
 
-        public void BeginFrame(double deltaTime)
+        public bool BeginFrame(double deltaTime)
         {
-            _renderer.BeginFrame(deltaTime);
+            return _renderer.BeginFrame(deltaTime);
         }
 
-        public void EndFrame(double deltaTime)
+        public bool EndFrame(double deltaTime)
         {
-            _renderer.EndFrame(deltaTime);
+            return _renderer.EndFrame(deltaTime);
         }
     }
 }

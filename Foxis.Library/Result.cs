@@ -1,33 +1,36 @@
 ﻿using System;
 
-namespace DragonFoxGameEngine.Core
+namespace Foxis.Library
 {
-    public static class EngineResult
+    /// <summary>
+    /// Result for status, error, and value.
+    /// </summary>
+    public static class Result
     {
-        public static EngineResult<T> Fail<T>(string message)
+        public static Result<T> Fail<T>(string message)
         {
-            return new EngineResult<T>(false, message, default);
+            return new Result<T>(false, message, default);
         }
 
-        public static EngineResult<T> Ok<T>()
+        public static Result<T> Ok<T>()
         {
-            return new EngineResult<T>(true, string.Empty, default);
+            return new Result<T>(true, string.Empty, default);
         }
 
-        public static EngineResult<T> Ok<T>(T value)
+        public static Result<T> Ok<T>(T value)
         {
-            return new EngineResult<T>(true, string.Empty, value);
+            return new Result<T>(true, string.Empty, value);
         }
     }
 
-    public struct EngineResult<T>
+    public struct Result<T>
     {
         public T? Value { get; }
         public bool Success { get; }
         public string Error { get; }
         public bool IsFailure => !Success;
 
-        internal EngineResult(bool success, string error, T? value)
+        internal Result(bool success, string error, T? value)
         {
             if (success && error != string.Empty)
                 throw new InvalidOperationException();
@@ -38,7 +41,7 @@ namespace DragonFoxGameEngine.Core
             Error = error;
         }
 
-        public EngineResult()
+        public Result()
         {
             Value = default;
             Success = true;
