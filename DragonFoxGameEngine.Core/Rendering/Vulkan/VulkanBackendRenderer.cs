@@ -235,6 +235,10 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         {
             if(_context == null)
                 return;
+
+            if(_context.FramebufferSize == size)
+                return;
+
             //do resizing
             _context.SetFramebufferSize(size, _context.FramebufferSizeGeneration + 1);
 

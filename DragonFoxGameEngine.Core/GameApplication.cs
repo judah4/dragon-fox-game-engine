@@ -1,10 +1,10 @@
 ﻿using DragonFoxGameEngine.Core.Platforms;
 using DragonFoxGameEngine.Core.Rendering;
 using Microsoft.Extensions.Logging;
+using Silk.NET.Input;
 using Silk.NET.Maths;
-using Silk.NET.SDL;
 using Silk.NET.Windowing;
-using System;
+using System.Linq;
 
 namespace DragonFoxGameEngine.Core
 {
@@ -15,6 +15,7 @@ namespace DragonFoxGameEngine.Core
         private readonly IWindow _window;
         private readonly RendererFrontend _renderer;
         private readonly ILogger _logger;
+        private readonly EngineInternalInput _engineInternalInput;
 
         public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger)
         {
@@ -28,6 +29,9 @@ namespace DragonFoxGameEngine.Core
             _window.Resize += OnResize;
 
             _renderer = new RendererFrontend(config.Title, window, _logger);
+
+            IInputContext input = window!.CreateInput();
+            _engineInternalInput = new EngineInternalInput(input, window, logger);
 
             game.Initialize(window);
         }

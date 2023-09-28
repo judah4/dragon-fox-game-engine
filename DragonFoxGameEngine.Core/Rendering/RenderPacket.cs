@@ -1,7 +1,7 @@
 ﻿
 namespace DragonFoxGameEngine.Core.Rendering
 {
-    public class RenderPacket
+    public struct RenderPacket
     {
         public readonly double DeltaTime;
 
