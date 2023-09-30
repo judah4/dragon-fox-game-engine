@@ -9,7 +9,7 @@
   <ItemGroup>
 	  <PackageReference Include="Hardware.Info" Version="100.0.0.0" />
 	  <PackageReference Include="Microsoft.Extensions.Hosting" Version="7.0.1" />
-	  <PackageReference Include="NReco.Logging.File" Version="1.1.6" />
+	  <PackageReference Include="NReco.Logging.File" Version="1.1.7" />
 	  <PackageReference Include="Silk.NET" Version="2.17.1" />
 	  <PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.17.1" />
 	  <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />

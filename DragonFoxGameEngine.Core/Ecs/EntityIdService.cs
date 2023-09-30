@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DragonFoxGameEngine.Core
+﻿
+namespace DragonFoxGameEngine.Core.Ecs
 {
     /// <summary>
     /// Entity service to get new entity ids
@@ -23,7 +18,7 @@ namespace DragonFoxGameEngine.Core
     /// </summary>
     public class EntityIdService : IEntityIdService
     {
-        private static object s_syncRoot = new object();
+        private readonly static object s_syncRoot = new object();
         private uint _nextEntityId = 1;
 
         public uint GetNextEntityId()

@@ -136,11 +136,12 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 PEnabledFeatures = &deviceFeatures,
 
                 EnabledExtensionCount = (uint)requirements.DeviceExtensions.Length,
-                PpEnabledExtensionNames = (byte**)SilkMarshal.StringArrayToPtr(requirements.DeviceExtensions)
+                PpEnabledExtensionNames = (byte**)SilkMarshal.StringArrayToPtr(requirements.DeviceExtensions),
+
+                //layers are deprecated, do not use.
+                EnabledLayerCount = 0,
             };
 
-            //layers are deprecated, do not use.
-            createInfo.EnabledLayerCount = 0;
 
             if (context.Vk.CreateDevice(context.Device.PhysicalDevice, in createInfo, null, out var device) != Result.Success)
             {
@@ -303,21 +304,21 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                     continue;
                 }
 
-                _logger.LogInformation($"Device Name:" + Marshal.PtrToStringAnsi((nint)properties.DeviceName));
-                _logger.LogInformation($"Device Type: {properties.DeviceType.ToString()}");
-                _logger.LogInformation($"GPU Driver Version: {Version32ToString((Version32)properties.DriverVersion)}");
-                _logger.LogInformation($"Vulcan API Version: {Version32ToString((Version32)properties.ApiVersion)}");
+                _logger.LogInformation("Device Name: {dname}", Marshal.PtrToStringAnsi((nint)properties.DeviceName));
+                _logger.LogInformation("Device Type: {dtype}", properties.DeviceType.ToString());
+                _logger.LogInformation("GPU Driver Version: {dVersion}", SilkUtils.Version32ToString((Version32)properties.DriverVersion));
+                _logger.LogInformation("Vulcan API Version: {vVersion}", SilkUtils.Version32ToString((Version32)properties.ApiVersion));
 
                 for (var cnt = 0; cnt < memoryProperties.MemoryHeapCount; cnt++)
                 {
                     float memorySizeGib = memoryProperties.MemoryHeaps[cnt].Size / 1024f / 1024f / 1024f;
                     if (memoryProperties.MemoryHeaps[cnt].Flags.HasFlag(MemoryHeapFlags.DeviceLocalBit))
                     {
-                        _logger.LogInformation($"Local GPU Memory: {memorySizeGib:F2} GiB");
+                        _logger.LogInformation("Local GPU Memory: {mem} GiB", memorySizeGib.ToString("F2"));
                     }
                     else
                     {
-                        _logger.LogInformation($"Shared System Memory: {memorySizeGib:F2} GiB");
+                        _logger.LogInformation("Shared System Memory: {mem} GiB", memorySizeGib.ToString("F2"));
                     }
                 }
 
@@ -335,11 +336,6 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             }
 
             throw new Exception("No physical device found which meet the requirements!");
-        }
-
-        string Version32ToString(Version32 version)
-        {
-            return $"{version.Major}.{version.Minor}.{version.Patch}";
         }
 
         private (PhysicalDeviceQueueFamilyInfo, VulkanSwapchainSupportInfo)? DeviceMeetsRequirements(
@@ -361,9 +357,11 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 #if DEBUG
             _logger.LogDebug("Graphics | Present | Compute | Transfer | Name");
             var deviceName = Marshal.PtrToStringAnsi((nint)properties.DeviceName);
-            _logger.LogDebug($"{queueFamilyInfoBuilder.GraphicsFamilyIndex,9}|{queueFamilyInfoBuilder.PresentFamilyIndex,9}|{queueFamilyInfoBuilder.ComputeFamilyIndex,9}|{queueFamilyInfoBuilder.TransferFamilyIndex,10}| {deviceName}");
+            _logger.LogDebug("{gFamilyIndex}|{pFamilyIndex}|{cFamilyIndex}|{tFamilyIndex}| {deviceName}",
+                queueFamilyInfoBuilder.GraphicsFamilyIndex.ToString()?.PadLeft(9), queueFamilyInfoBuilder.PresentFamilyIndex.ToString()?.PadLeft(9), queueFamilyInfoBuilder.ComputeFamilyIndex.ToString()?.PadLeft(9), queueFamilyInfoBuilder.TransferFamilyIndex.ToString()?.PadLeft(10), deviceName);
+
 #endif
-            if(
+            if (
                 (!requirements.Graphics || queueFamilyInfoBuilder.GraphicsFamilyIndex.HasValue) &&
                 (!requirements.Present || queueFamilyInfoBuilder.PresentFamilyIndex.HasValue) &&
                 (!requirements.Compute || queueFamilyInfoBuilder.ComputeFamilyIndex.HasValue) &&

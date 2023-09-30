@@ -6,7 +6,9 @@ using DragonFoxGameEngine.Core;
 using System;
 using System.IO;
 using DragonFoxGameEngine.Core.Platforms;
-using DragonFoxGameEngine.Game;
+using System.Linq;
+using Silk.NET.Maths;
+using Microsoft.Extensions.Logging.Console;
 
 namespace DragonFoxGameEngine
 {
@@ -17,8 +19,21 @@ namespace DragonFoxGameEngine
             var host = SetupHost(args);
             var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
             var logger = loggerFactory.CreateLogger("Engine");
+            //host.Run();
+            //return;
 
-            var config = new ApplicationConfig();
+            bool headlessMode = false;
+            if (args.Any(x => x == "--headless"))
+            {
+                headlessMode = true;
+            }
+            var config = new ApplicationConfig(
+                ApplicationConfig.DEFAULT_WINDOW_TITLE,
+                new Vector2D<int>(-1, -1),
+                new Vector2D<int>(ApplicationConfig.WIDTH, ApplicationConfig.HEIGHT),
+                headlessMode,
+                ApplicationConfig.GOOD_MAX_FPS,
+                ApplicationConfig.GOOD_MAX_FPS);
 
             var platform = new PlatformWindowing(logger);
             var window = platform.InitWindow(config, null);
@@ -34,7 +49,9 @@ namespace DragonFoxGameEngine
         {
             var application = new GameApplication(config, game, window, logger);
 
-            application.Run();
+            application.Init();
+
+            application.Run(); //Do the thing
 
             application.Shutdown();
             platform.Cleanup();
@@ -48,6 +65,7 @@ namespace DragonFoxGameEngine
                 options.IncludeScopes = false;
                 options.SingleLine = true;
                 options.TimestampFormat = "hh:mm:ss ";
+                options.ColorBehavior = LoggerColorBehavior.Enabled;
             });
             var dataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
             var logPath = Path.Combine(dataPath, "dragonfox/game1/output.log");

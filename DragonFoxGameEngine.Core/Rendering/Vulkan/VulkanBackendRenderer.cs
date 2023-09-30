@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.Maths;
-using Silk.NET.OpenAL;
 using Silk.NET.SDL;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
@@ -16,6 +15,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
     public sealed unsafe class VulkanBackendRenderer : IRenderer
     {
         private readonly ILogger _logger;
+        private readonly string _applicationName;
+        private readonly IWindow _window;
 
         private VulkanContext? _context;
         private readonly VulkanDeviceSetup _deviceSetup;
@@ -37,8 +38,10 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             "VK_LAYER_KHRONOS_validation"
         };
 
-        public VulkanBackendRenderer(ILogger logger)
+        public VulkanBackendRenderer(string applicationName, IWindow window, ILogger logger)
         {
+            _applicationName = applicationName;
+            _window = window;
             _logger = logger;
             _deviceSetup = new VulkanDeviceSetup(logger);
             _imageSetup = new VulkanImageSetup(logger);
@@ -49,7 +52,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _fenceSetup = new VulkanFenceSetup(logger);
         }
 
-        public VulkanContext Init(string applicationName, IWindow window)
+        public void Init()
         {
             if(_context != null)
             {
@@ -68,7 +71,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             Silk.NET.Vulkan.ApplicationInfo appInfo = new()
             {
                 SType = StructureType.ApplicationInfo,
-                PApplicationName = (byte*)Marshal.StringToHGlobalAnsi(applicationName),
+                PApplicationName = (byte*)Marshal.StringToHGlobalAnsi(_applicationName),
                 ApplicationVersion = new Version32((uint)gameVersion.Major, (uint)gameVersion.Minor, (uint)gameVersion.Revision),
                 PEngineName = (byte*)Marshal.StringToHGlobalAnsi(ApplicationInfo.GAME_ENGINE_NAME),
                 EngineVersion = new Version32((uint)engineVersion.Major, (uint)engineVersion.Minor, (uint)engineVersion.Revision),
@@ -81,10 +84,10 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 PApplicationInfo = &appInfo
             };
 
-            var extensions = VulkanPlatform.GetRequiredExtensions(window);
+            var extensions = VulkanPlatform.GetRequiredExtensions(_window);
 
 #if DEBUG
-            _logger.LogDebug($"Required Extensions: {string.Join(",", extensions)}");
+            _logger.LogDebug("Required Extensions: {extentionsFormatted}", string.Join(",", extensions));
 #endif
 
             createInfo.EnabledExtensionCount = (uint)extensions.Length;
@@ -118,7 +121,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                             {
                                 throw new Exception($"Required Validation Layer is missing: {layer}");
                             }
-                            _logger.LogDebug($"Validation Layer {layer} added.");
+                            _logger.LogDebug("Validation Layer {layer} added.", layer);
                         }
                     }
                 }
@@ -163,8 +166,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 SilkMarshal.Free((nint)createInfo.PpEnabledLayerNames);
             }
 
-            var framebufferSize = new Vector2D<uint>((uint)window.Size.X, (uint)window.Size.Y);
-            _context = new VulkanContext(vk, window, instance, allocator, debugUtils, debugMessenger, framebufferSize);
+            var framebufferSize = new Vector2D<uint>((uint)_window.Size.X, (uint)_window.Size.Y);
+            _context = new VulkanContext(vk, _window, instance, allocator, debugUtils, debugMessenger, framebufferSize);
 
             VulkanPlatform.CreateSurface(_context, _logger);
 
@@ -190,7 +193,6 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             CreateSemaphoresAndFences();
 
             _logger.LogInformation($"Vulkan initialized.");
-            return _context;
         }
 
         public void Shutdown()
@@ -242,7 +244,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             //do resizing
             _context.SetFramebufferSize(size, _context.FramebufferSizeGeneration + 1);
 
-            _logger.LogDebug($"Vulkan Backend Renderer resized {size}, generation {_context.FramebufferSizeGeneration}");
+            _logger.LogDebug("Vulkan Backend Renderer resized {size}, generation {framebufferSizeGeneration}", size, _context.FramebufferSizeGeneration);
         }
 
         public bool BeginFrame(double deltaTime)
@@ -257,7 +259,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 var result = _context.Vk.DeviceWaitIdle(device.LogicalDevice);
                 if(!VulkanUtils.ResultIsSuccess(result))
                 {
-                    _logger.LogError($"BeginFrame DeviceWaitIdle failed: {VulkanUtils.FormattedResult(result)}");
+                    _logger.LogError("BeginFrame DeviceWaitIdle failed: {formattedError}", VulkanUtils.FormattedResult(result));
                     return false;
                 }
                 _logger.LogDebug("Recreating swapchain, booting");
@@ -270,7 +272,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 var result = _context.Vk.DeviceWaitIdle(device.LogicalDevice);
                 if (!VulkanUtils.ResultIsSuccess(result))
                 {
-                    _logger.LogError($"BeginFrame DeviceWaitIdle failed: {VulkanUtils.FormattedResult(result)}");
+                    _logger.LogError("BeginFrame DeviceWaitIdle failed: {formattedError}", VulkanUtils.FormattedResult(result));
                     return false;
                 }
 
@@ -454,7 +456,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         /// <returns></returns>
         private uint DebugCallback(DebugUtilsMessageSeverityFlagsEXT messageSeverity, DebugUtilsMessageTypeFlagsEXT messageTypes, DebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData)
         {
-            _logger.LogDebug($"validation layer:" + Marshal.PtrToStringAnsi((nint)pCallbackData->PMessage));
+            _logger.LogDebug("validation layer: {message}", Marshal.PtrToStringAnsi((nint)pCallbackData->PMessage));
 
             return Vk.False;
         }

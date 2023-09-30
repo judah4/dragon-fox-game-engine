@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
-using System.Linq;
+using System;
 
 namespace DragonFoxGameEngine.Core
 {
@@ -17,7 +17,12 @@ namespace DragonFoxGameEngine.Core
         private readonly ILogger _logger;
         private readonly EngineInternalInput _engineInternalInput;
 
-        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger)
+        //Debug fps stuff
+        private readonly TimeSpan _fpsDisplayTime = TimeSpan.FromSeconds(0.1);
+        private SimpleFpsCounter _fpsCounter;
+        private DateTime _lastFpsTime =  DateTime.UtcNow;
+
+        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, RendererFrontend rendererFrontend)
         {
             _config = config;
             _game = game;
@@ -28,12 +33,21 @@ namespace DragonFoxGameEngine.Core
             _window.Render += OnDrawFrame;
             _window.Resize += OnResize;
 
-            _renderer = new RendererFrontend(config.Title, window, _logger);
+            _renderer = rendererFrontend;
 
             IInputContext input = window!.CreateInput();
             _engineInternalInput = new EngineInternalInput(input, window, logger);
+            _fpsCounter = new SimpleFpsCounter();
+        }
 
-            game.Initialize(window);
+        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger) : this(config, game, window, logger, new RendererFrontend(config, window, logger))
+        {
+        }
+
+        public void Init()
+        {
+            _renderer.Init();
+            _game.Initialize(_window);
         }
 
         private void OnResize(Vector2D<int> size)
@@ -50,13 +64,18 @@ namespace DragonFoxGameEngine.Core
 
         public void Shutdown()
         {
+            _game.Shutdown();
             _renderer.Shutdown();
         }
 
         private void OnUpdate(double deltaTime)
         {
-            var fps = (int)(1.0 / deltaTime);
-            _window!.Title = $"{_config.Title} ({fps}) - ({deltaTime})";
+            _fpsCounter.SetFpsFromDeltaTime(deltaTime);
+            if(_lastFpsTime < DateTime.UtcNow.Add(-_fpsDisplayTime))
+            {
+                _window.Title = $"{_config.Title} ({_fpsCounter.CurrentFps.ToString().PadLeft(4, '0')}) - ({deltaTime.ToString().PadLeft(9, '0')}) - Min: {_fpsCounter.MinFps}, Max: {_fpsCounter.MaxFps}";
+                _lastFpsTime = DateTime.UtcNow;
+            }
 
             _game.Update(deltaTime);
         }
@@ -69,6 +88,5 @@ namespace DragonFoxGameEngine.Core
 
             _renderer.DrawFrame(renderPacket);
         }
-
     }
 }

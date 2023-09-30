@@ -33,5 +33,10 @@ namespace DragonFoxGameEngine.Game
 
         }
 
+        public void Shutdown()
+        {
+            _logger.LogDebug("Game shutdown.");
+        }
+
     }
 }

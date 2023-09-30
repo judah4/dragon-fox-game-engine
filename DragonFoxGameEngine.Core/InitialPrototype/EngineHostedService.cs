@@ -7,6 +7,7 @@ using DragonFoxGameEngine.Core.Ecs.Components;
 using DragonFoxGameEngine.Core.Ecs.Systems;
 using System.Threading;
 using System.Threading.Tasks;
+using DragonFoxGameEngine.Core.Ecs;
 
 namespace DragonFoxGameEngine.Core.InitialPrototype
 {

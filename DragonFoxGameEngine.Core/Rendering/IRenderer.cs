@@ -4,6 +4,7 @@ namespace DragonFoxGameEngine.Core.Rendering
 {
     public interface IRenderer
     {
+        public void Init();
         public void Shutdown();
 
         public void Resized(Vector2D<uint> size);

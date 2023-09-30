@@ -1,25 +1,5 @@
 ﻿namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 {
-    public struct PhysicalDeviceQueueFamilyInfoBuilder
-    {
-        public uint? GraphicsFamilyIndex;
-        public uint? PresentFamilyIndex;
-        public uint? ComputeFamilyIndex;
-        public uint? TransferFamilyIndex;
-
-        public PhysicalDeviceQueueFamilyInfoBuilder()
-        {
-        }
-
-        public PhysicalDeviceQueueFamilyInfo Build()
-        {
-            return new PhysicalDeviceQueueFamilyInfo()
-            {
-
-            };
-        }
-    }
-
     public struct PhysicalDeviceQueueFamilyInfo
     {
         public readonly uint GraphicsFamilyIndex;
@@ -34,7 +14,7 @@
             public uint? ComputeFamilyIndex;
             public uint? TransferFamilyIndex;
 
-            public PhysicalDeviceQueueFamilyInfo Build()
+            public readonly PhysicalDeviceQueueFamilyInfo Build()
             {
                 return new PhysicalDeviceQueueFamilyInfo(
                     GraphicsFamilyIndex ?? 0,

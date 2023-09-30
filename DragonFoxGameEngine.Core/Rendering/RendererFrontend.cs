@@ -1,5 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DragonFoxGameEngine.Core.Platforms;
+using DragonFoxGameEngine.Core.Rendering.Headless;
+using DragonFoxGameEngine.Core.Rendering.Vulkan;
+using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
+using Silk.NET.SDL;
 using Silk.NET.Windowing;
 
 namespace DragonFoxGameEngine.Core.Rendering
@@ -7,18 +11,27 @@ namespace DragonFoxGameEngine.Core.Rendering
     public sealed class RendererFrontend
     {
         private readonly IWindow _window;
-        private readonly string _applicationName;
+        private readonly ApplicationConfig _config;
 
         private readonly ILogger _logger;
-        private readonly RendererBackend _rendererBackend;
+        private readonly IRenderer _rendererBackend;
 
-        public RendererFrontend(string applicationName, IWindow window, ILogger logger)
+        public RendererFrontend(ApplicationConfig config, IWindow window, ILogger logger, IRenderer renderer)
         {
-            _applicationName = applicationName;
+            _config = config;
             _window = window;
             _logger = logger;
+            _rendererBackend = renderer;
+        }
 
-            _rendererBackend = new RendererBackend(RendererBackendType.Vulkan, applicationName, window, logger);
+        public RendererFrontend(ApplicationConfig config, IWindow window, ILogger logger)
+            : this(config, window, logger, SetupRenderer(config, window, logger))
+        {
+        }
+
+        public void Init()
+        {
+            _rendererBackend.Init();
         }
 
         public void Shutdown()
@@ -37,7 +50,23 @@ namespace DragonFoxGameEngine.Core.Rendering
             {
                 _rendererBackend.EndFrame(packet.DeltaTime);
             }
-
         }
+
+        private static IRenderer SetupRenderer(ApplicationConfig config, IWindow window, ILogger logger)
+        {
+            IRenderer renderer;
+            if (!config.HeadlessMode)
+            {
+                renderer = new VulkanBackendRenderer(config.Title, window, logger);
+            }
+            else
+            {
+                renderer = new HeadlessRenderer(logger);
+            }
+
+
+            return new RendererBackend(window, logger, renderer);
+        }
+
     }
 }

@@ -174,7 +174,7 @@ namespace DragonFoxGameEngine.Core.InitialPrototype
         private DescriptorSetLayout _descriptorSetLayout;
         private VulkanPipeline? _vulkanPipeline;
         private VulkanPipelineData _graphicsWorldPipelineData;
-        private VulkanPipelineData _uiPipelineData;
+        //private VulkanPipelineData _uiPipelineData;
 
 
         private CommandPool commandPool;
@@ -252,11 +252,14 @@ namespace DragonFoxGameEngine.Core.InitialPrototype
             20, 23, 22, 22, 21, 20,
         };
 
+        private SimpleFpsCounter _fpsCounter;
+
         public HelloTriangleApplication(ILogger logger, SystemEnginesGroup ecsSystemEnginesGroup, SimpleEntitiesSubmissionScheduler entitiesSubmissionScheduler)
         {
             _logger = logger;
             _ecsSystemEnginesGroup = ecsSystemEnginesGroup;
             _entitiesSubmissionScheduler = entitiesSubmissionScheduler;
+            _fpsCounter = new SimpleFpsCounter();
         }
 
         public void Run()
@@ -317,7 +320,7 @@ namespace DragonFoxGameEngine.Core.InitialPrototype
         private void OnLoad()
         {
             IInputContext input = window!.CreateInput();
-            _primaryKeyboard = input.Keyboards.First();
+            _primaryKeyboard = input.Keyboards[0];
             if (_primaryKeyboard != null)
             {
                 _primaryKeyboard.KeyDown += KeyDown;
@@ -462,7 +465,7 @@ namespace DragonFoxGameEngine.Core.InitialPrototype
             }
 
             _vulkanPipeline!.CleanUpPipeline(vk, _device, _graphicsWorldPipelineData);
-            _vulkanPipeline!.CleanUpPipeline(vk, _device, _uiPipelineData);
+            //_vulkanPipeline!.CleanUpPipeline(vk, _device, _uiPipelineData);
 
             vk!.DestroyRenderPass(_device, _renderPass, null);
             vk!.DestroyRenderPass(_device, _uiRenderPass, null);
@@ -1076,7 +1079,7 @@ namespace DragonFoxGameEngine.Core.InitialPrototype
                 };
 
                 _graphicsWorldPipelineData = _vulkanPipeline.CreateGraphicsWorldPipeline(vk!, _device, _renderPass, _descriptorSetLayout, viewport, scissor);
-                _uiPipelineData = _vulkanPipeline.CreateGraphicsUiPipeline(vk!, _device, _renderPass, _descriptorSetLayout, viewport, scissor);
+                //_uiPipelineData = _vulkanPipeline.CreateGraphicsUiPipeline(vk!, _device, _renderPass, _descriptorSetLayout, viewport, scissor);
             }
         }
 
@@ -1771,41 +1774,41 @@ namespace DragonFoxGameEngine.Core.InitialPrototype
             vk!.CmdEndRenderPass(_commandBuffers[bufferIndex]);
         }
 
-        void DoRenderPassUi(int bufferIndex, RenderPass renderPass)
-        {
-            RenderPassBeginInfo renderPassInfo = new()
-            {
-                SType = StructureType.RenderPassBeginInfo,
-                RenderPass = renderPass,
-                Framebuffer = _uiFramebuffers![bufferIndex],
-                RenderArea =
-                {
-                    Offset = { X = 0, Y = 0 },
-                    Extent = swapChainExtent,
-                }
-            };
+        //void DoRenderPassUi(int bufferIndex, RenderPass renderPass)
+        //{
+        //    RenderPassBeginInfo renderPassInfo = new()
+        //    {
+        //        SType = StructureType.RenderPassBeginInfo,
+        //        RenderPass = renderPass,
+        //        Framebuffer = _uiFramebuffers![bufferIndex],
+        //        RenderArea =
+        //        {
+        //            Offset = { X = 0, Y = 0 },
+        //            Extent = swapChainExtent,
+        //        }
+        //    };
 
-            vk!.CmdBeginRenderPass(_commandBuffers![bufferIndex], &renderPassInfo, SubpassContents.Inline);
+        //    vk!.CmdBeginRenderPass(_commandBuffers![bufferIndex], &renderPassInfo, SubpassContents.Inline);
 
-            vk!.CmdBindPipeline(_commandBuffers[bufferIndex], PipelineBindPoint.Graphics, _graphicsWorldPipelineData.PipelineHandle);
+        //    vk!.CmdBindPipeline(_commandBuffers[bufferIndex], PipelineBindPoint.Graphics, _graphicsWorldPipelineData.PipelineHandle);
 
-            var vertexBuffers = new Buffer[] { vertexBuffer };
-            var offsets = new ulong[] { 0 };
+        //    var vertexBuffers = new Buffer[] { vertexBuffer };
+        //    var offsets = new ulong[] { 0 };
 
-            fixed (ulong* offsetsPtr = offsets)
-            fixed (Buffer* vertexBuffersPtr = vertexBuffers)
-            {
-                vk!.CmdBindVertexBuffers(_commandBuffers[bufferIndex], 0, 1, vertexBuffersPtr, offsetsPtr);
-            }
+        //    fixed (ulong* offsetsPtr = offsets)
+        //    fixed (Buffer* vertexBuffersPtr = vertexBuffers)
+        //    {
+        //        vk!.CmdBindVertexBuffers(_commandBuffers[bufferIndex], 0, 1, vertexBuffersPtr, offsetsPtr);
+        //    }
 
-            vk!.CmdBindIndexBuffer(_commandBuffers[bufferIndex], indexBuffer, 0, IndexType.Uint16);
+        //    vk!.CmdBindIndexBuffer(_commandBuffers[bufferIndex], indexBuffer, 0, IndexType.Uint16);
 
-            vk!.CmdBindDescriptorSets(_commandBuffers[bufferIndex], PipelineBindPoint.Graphics, _uiPipelineData.PipelineLayout, 0, 1, descriptorSets![bufferIndex], 0, null);
+        //    vk!.CmdBindDescriptorSets(_commandBuffers[bufferIndex], PipelineBindPoint.Graphics, _uiPipelineData.PipelineLayout, 0, 1, descriptorSets![bufferIndex], 0, null);
 
-            vk!.CmdDrawIndexed(_commandBuffers[bufferIndex], (uint)indices.Length, 1, 0, 0, 0);
+        //    vk!.CmdDrawIndexed(_commandBuffers[bufferIndex], (uint)indices.Length, 1, 0, 0, 0);
 
-            vk!.CmdEndRenderPass(_commandBuffers[bufferIndex]);
-        }
+        //    vk!.CmdEndRenderPass(_commandBuffers[bufferIndex]);
+        //}
 
 
         private void CreateSyncObjects()
@@ -1865,8 +1868,8 @@ namespace DragonFoxGameEngine.Core.InitialPrototype
 
         private void DrawFrame(double delta)
         {
-            var fps = (int)(1000.0 / delta);
-            window!.Title = $"{DEFAULT_WINDOW_TITLE} ({fps}) - ({delta})";
+            _fpsCounter.SetFpsFromDeltaTime(delta);
+            window!.Title = $"{DEFAULT_WINDOW_TITLE} ({_fpsCounter.CurrentFps.ToString().PadLeft(4, '0')}) - ({delta.ToString().PadLeft(9, '0')}) - Min: {_fpsCounter.MinFps}, Max: {_fpsCounter.MaxFps}";
             vk!.WaitForFences(_device, 1, inFlightFences![currentFrame], true, ulong.MaxValue);
 
             uint imageIndex = 0;

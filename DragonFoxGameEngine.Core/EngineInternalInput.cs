@@ -28,17 +28,18 @@ namespace DragonFoxGameEngine.Core
         {
             if(device is IKeyboard)
             {
-                _logger.LogDebug($"Keyboard state changed, Connected:{device.IsConnected}");
+                _logger.LogDebug("Keyboard state changed, Connected:{deviceIsConnected}", device.IsConnected);
             }
         }
 
         void SetupKeyboard()
         {
-            _keyboard = _inputContext.Keyboards.FirstOrDefault();
-            if (_keyboard != null)
+            if(_inputContext.Keyboards.Count == 0)
             {
-                _keyboard.KeyDown += OnKeyDown;
+                return;
             }
+            _keyboard = _inputContext.Keyboards[0];
+            _keyboard.KeyDown += OnKeyDown;
         }
 
         private void OnKeyDown(IKeyboard keyboard, Key key, int arg3)
@@ -48,7 +49,7 @@ namespace DragonFoxGameEngine.Core
                 //resize!
                 _logger.LogDebug("Resize is pressed!");
                 var curState = _window.WindowState;
-                switch(curState)
+                switch (curState)
                 {
                     case WindowState.Normal:
                         _window.WindowState = WindowState.Fullscreen;

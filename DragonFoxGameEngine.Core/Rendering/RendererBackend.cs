@@ -1,39 +1,25 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan;
-using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
-using System;
 
 namespace DragonFoxGameEngine.Core.Rendering
 {
     public sealed class RendererBackend : IRenderer
     {
-        private readonly RendererBackendType _type;
         private readonly IWindow _window;
-        private readonly string _applicationName;
         private readonly ILogger _logger;
+        private readonly IRenderer _renderer;
 
-        IRenderer _renderer;
-        VulkanContext _context;
-        public RendererBackend(RendererBackendType type, string applicationName, IWindow window, ILogger logger)
+        public RendererBackend(IWindow window, ILogger logger, IRenderer renderer)
         {
-            _type = type;
-            _applicationName = applicationName;
             _window = window;
             _logger = logger;
+            _renderer = renderer;
+        }
 
-            if(type == RendererBackendType.Vulkan)
-            {
-                var renderer = new VulkanBackendRenderer(logger);
-                _context = renderer.Init(_applicationName, _window);
-                _renderer = renderer;
-            }
-            else
-            {
-                throw new Exception($"Renderer {type} could not be setup!");
-            }
-           
+        public void Init()
+        {
+            _renderer.Init();
         }
 
         public void Shutdown()

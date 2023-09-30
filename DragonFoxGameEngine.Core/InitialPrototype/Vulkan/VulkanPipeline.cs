@@ -122,8 +122,8 @@ namespace DragonFoxGameEngine.Core.InitialPrototype.Vulkan
 
         public VulkanPipelineData CreateGraphicsUiPipeline(Vk vk, Device device, RenderPass renderPass, DescriptorSetLayout descriptorSetLayout, Viewport viewport, Rect2D scissor)
         {
-            var vertShaderCode = File.ReadAllBytes("Assets/shaders/Builtin.UIShader.vert.spv.spv");
-            var fragShaderCode = File.ReadAllBytes("Assets/shaders/Builtin.UIShader.frag.spv.spv");
+            var vertShaderCode = File.ReadAllBytes("Assets/shaders/Builtin.UIShader.vert.spv");
+            var fragShaderCode = File.ReadAllBytes("Assets/shaders/Builtin.UIShader.frag.spv");
 
             var vertShaderModule = CreateShaderModule(vk, device, vertShaderCode);
             var fragShaderModule = CreateShaderModule(vk, device, fragShaderCode);
