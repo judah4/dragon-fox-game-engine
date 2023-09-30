@@ -23,10 +23,12 @@ jobs:
       with:
         dotnet-version: 7.0.x
 
-    - name: Install Vulkan SDK
-      uses: humbletim/install-vulkan-sdk@v1.1.1
+    - name: Prepare Vulkan SDK
+      uses: humbletim/setup-vulkan-sdk@v1.2.0
       with:
-        cache: true
+        vulkan-query-version: latest
+        vulkan-components: Vulkan-Headers Vulkan-Loader SPIRV-Headers SPIRV-Cross SPIRV-Tools SPIRV-Reflect Glslang
+        vulkan-use-cache: true
     - name: Test Vulkan SDK Install
       run: |
         echo "Vulkan SDK Version=='$VULKAN_SDK_VERSION'"
