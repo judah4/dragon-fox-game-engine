@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
@@ -21,6 +21,8 @@
 
 	<ItemGroup>
 		<Content Include="..\Assets\**" CopyToOutputDirectory="Always" LinkBase="Assets" />
+		<ShaderFilesVert Include="..\Assets\**\*.vert.glsl" />
+		<ShaderFilesFrag Include="..\Assets\**\*.frag.glsl" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -40,4 +42,26 @@
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
 	</ItemGroup>
+
+	<PropertyGroup>
+		<VulkanBinPath>$(VULKAN_SDK)\Bin</VulkanBinPath>
+		<ShaderOutputPath>Shaders</ShaderOutputPath>
+	</PropertyGroup>
+
+	<Target Name="PostBuildChecks" AfterTargets="Build">
+		<Message Text="OS: $(OS)" Importance="high" />
+	</Target>
+
+	<Target Name="BuildVulkanShader" AfterTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
+		<Message Text="VulkanBinPath: $(VulkanBinPath)" Importance="high" />
+		<Message Text="ShaderOutputPath: $(OutputPath)$(ShaderOutputPath)" Importance="high" />
+		<Message Text="Vert ShaderFiles: @(ShaderFilesVert)" Importance="high" />
+		<Message Text="Frag ShaderFiles: @(ShaderFilesFrag)" Importance="high" />
+		<MakeDir Directories="$(TargetDir)$(ShaderOutputPath)" Condition="!Exists('$(TargetDir)$(ShaderOutputPath)')" />
+		<!--https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-well-known-item-metadata?view=vs-2022-->
+		<Exec Command="$(VulkanBinPath)\glslc.exe -fshader-stage=vert &quot;%(ShaderFilesVert.FullPath)&quot; -o &quot;$(TargetDir)$(ShaderOutputPath)\%(ShaderFilesVert.Filename).spv&quot;" Condition="'@(ShaderFilesVert)'!=''" />
+		<Exec Command="$(VulkanBinPath)\glslc.exe -fshader-stage=frag &quot;%(ShaderFilesFrag.FullPath)&quot; -o &quot;$(TargetDir)$(ShaderOutputPath)\%(ShaderFilesFrag.Filename).spv&quot;" Condition="'@(ShaderFilesFrag)'!=''" />
+		<!--TODO: setup shader build for OS: Unix-->
+	</Target>
+	
 </Project>
