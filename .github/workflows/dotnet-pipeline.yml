@@ -27,12 +27,13 @@ jobs:
       uses: humbletim/setup-vulkan-sdk@v1.2.0
       with:
         vulkan-query-version: latest
-        vulkan-components: Vulkan-Headers Vulkan-Loader SPIRV-Headers SPIRV-Cross SPIRV-Tools SPIRV-Reflect Glslang
+        vulkan-components: Vulkan-Headers Vulkan-Loader Glslang
         vulkan-use-cache: true
     - name: Test Vulkan SDK Install
       run: |
         echo "Vulkan SDK Version=='$VULKAN_SDK_VERSION'"
         echo "VULKAN_SDK=='$VULKAN_SDK'"
+        echo "OS=='$OS'"
         
     - name: Restore dependencies
       run: dotnet restore
