@@ -33,7 +33,6 @@ jobs:
       run: |
         echo "Vulkan SDK Version=='$VULKAN_SDK_VERSION'"
         echo "VULKAN_SDK=='$VULKAN_SDK'"
-        echo "OS=='$OS'"
         
     - name: Restore dependencies
       run: dotnet restore

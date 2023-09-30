@@ -48,8 +48,11 @@
 		<ShaderOutputPath>Shaders</ShaderOutputPath>
 	</PropertyGroup>
 
-	<Target Name="BuildVulkanShader" AfterTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
+	<Target Name="PostBuildChecks" AfterTargets="Build">
 		<Message Text="OS: $(OS)" Importance="high" />
+	</Target>
+
+	<Target Name="BuildVulkanShader" AfterTargets="Build" Condition="'$(OS)' == 'Windows_NT'">
 		<Message Text="VulkanBinPath: $(VulkanBinPath)" Importance="high" />
 		<Message Text="ShaderOutputPath: $(OutputPath)$(ShaderOutputPath)" Importance="high" />
 		<Message Text="Vert ShaderFiles: @(ShaderFilesVert)" Importance="high" />
@@ -58,19 +61,6 @@
 		<!--https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-well-known-item-metadata?view=vs-2022-->
 		<Exec Command="$(VulkanBinPath)\glslc.exe -fshader-stage=vert &quot;%(ShaderFilesVert.FullPath)&quot; -o &quot;$(TargetDir)$(ShaderOutputPath)\%(ShaderFilesVert.Filename).spv&quot;" Condition="'@(ShaderFilesVert)'!=''" />
 		<Exec Command="$(VulkanBinPath)\glslc.exe -fshader-stage=frag &quot;%(ShaderFilesFrag.FullPath)&quot; -o &quot;$(TargetDir)$(ShaderOutputPath)\%(ShaderFilesFrag.Filename).spv&quot;" Condition="'@(ShaderFilesFrag)'!=''" />
-
-	</Target>
-
-	<Target Name="BuildVulkanShader" AfterTargets="Build" Condition="'$(OS)' == 'Linux'">
-		<Message Text="OS: $(OS)" Importance="high" />
-		<Message Text="VulkanBinPath: $(VulkanBinPath)" Importance="high" />
-		<Message Text="ShaderOutputPath: $(OutputPath)$(ShaderOutputPath)" Importance="high" />
-		<Message Text="Vert ShaderFiles: @(ShaderFilesVert)" Importance="high" />
-		<Message Text="Frag ShaderFiles: @(ShaderFilesFrag)" Importance="high" />
-		<MakeDir Directories="$(TargetDir)$(ShaderOutputPath)" Condition="!Exists('$(TargetDir)$(ShaderOutputPath)')" />
-		<!--https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-well-known-item-metadata?view=vs-2022-->
-		<Exec Command="$(VulkanBinPath)\glslc -fshader-stage=vert &quot;%(ShaderFilesVert.FullPath)&quot; -o &quot;$(TargetDir)$(ShaderOutputPath)\%(ShaderFilesVert.Filename).spv&quot;" Condition="'@(ShaderFilesVert)'!=''" />
-		<Exec Command="$(VulkanBinPath)\glslc -fshader-stage=frag &quot;%(ShaderFilesFrag.FullPath)&quot; -o &quot;$(TargetDir)$(ShaderOutputPath)\%(ShaderFilesFrag.Filename).spv&quot;" Condition="'@(ShaderFilesFrag)'!=''" />
 
 	</Target>
 	
