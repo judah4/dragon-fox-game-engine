@@ -1,5 +1,7 @@
 ﻿
 using System;
+using System.Linq;
+using System.Reflection;
 
 namespace DragonFoxGameEngine.Core
 {
@@ -14,9 +16,21 @@ namespace DragonFoxGameEngine.Core
         static ApplicationInfo()
         {
             //for now, game and engine version are the same
-            var version = System.Reflection.Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(1, 0);
+            var version = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(1, 0);
             GameVersion = version;
             EngineVersion = version;
+
+            var entryInterface = typeof(IGameEntry);
+            var entryType = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(s => s.GetTypes())
+                .Where(p => p.IsClass && entryInterface.IsAssignableFrom(p))
+                .FirstOrDefault();
+
+            if(entryType == null)
+                return;
+
+            var gameVersion = entryType.Assembly.GetName().Version ?? new Version(1, 0);
+            GameVersion = gameVersion;
         }
 
     }
