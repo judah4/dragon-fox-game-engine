@@ -61,7 +61,7 @@
 		<!--https://learn.microsoft.com/en-us/visualstudio/msbuild/msbuild-well-known-item-metadata?view=vs-2022-->
 		<Exec Command="$(VulkanBinPath)\glslc.exe -fshader-stage=vert &quot;%(ShaderFilesVert.FullPath)&quot; -o &quot;$(TargetDir)$(ShaderOutputPath)\%(ShaderFilesVert.Filename).spv&quot;" Condition="'@(ShaderFilesVert)'!=''" />
 		<Exec Command="$(VulkanBinPath)\glslc.exe -fshader-stage=frag &quot;%(ShaderFilesFrag.FullPath)&quot; -o &quot;$(TargetDir)$(ShaderOutputPath)\%(ShaderFilesFrag.Filename).spv&quot;" Condition="'@(ShaderFilesFrag)'!=''" />
-
+		<!--TODO: setup shader build for OS: Unix-->
 	</Target>
 	
 </Project>
