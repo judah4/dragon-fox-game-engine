@@ -153,7 +153,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 
         internal void SetupBuiltinShaders(VulkanObjectShader objectShader)
         {
-            objectShader = objectShader;
+            ObjectShader = objectShader;
         }
     }
 }
