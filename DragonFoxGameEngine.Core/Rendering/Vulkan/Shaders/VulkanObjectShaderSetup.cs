@@ -3,7 +3,6 @@ using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using Foxis.Library;
 using Microsoft.Extensions.Logging;
-using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
 using System;
 using Result = Foxis.Library.Result;
@@ -101,7 +100,6 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
         {
             throw new NotImplementedException();
         }
-
 
     }
 }
