@@ -29,6 +29,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         private readonly VulkanFenceSetup _fenceSetup;
         private readonly VulkanShaderSetup _shaderSetup;
         private readonly VulkanObjectShaderSetup _objectShaderSetup;
+        private readonly VulkanPipelineSetup _pipelineSetup;
 
 #if DEBUG
         private readonly bool EnableValidationLayers = true; //enable when tools are installed. Add to config
@@ -55,7 +56,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _fenceSetup = new VulkanFenceSetup(logger);
             //shaders
             _shaderSetup = new VulkanShaderSetup();
-            _objectShaderSetup = new VulkanObjectShaderSetup(logger, _shaderSetup);
+            _pipelineSetup = new VulkanPipelineSetup(logger);
+            _objectShaderSetup = new VulkanObjectShaderSetup(logger, _shaderSetup, _pipelineSetup);
         }
 
         public void Init()
@@ -213,6 +215,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         {
             if(_context == null)
                 return;
+
+            _objectShaderSetup.ObjectShaderDestroy(_context, _context.ObjectShader!.Value);
 
             //wait until the device is idle again
             _context.Vk.DeviceWaitIdle(_context.Device.LogicalDevice);
