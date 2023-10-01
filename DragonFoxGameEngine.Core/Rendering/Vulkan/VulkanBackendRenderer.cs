@@ -79,7 +79,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 SType = StructureType.ApplicationInfo,
                 PApplicationName = (byte*)Marshal.StringToHGlobalAnsi(_applicationName),
                 ApplicationVersion = new Version32((uint)gameVersion.Major, (uint)gameVersion.Minor, (uint)gameVersion.Revision),
-                PEngineName = (byte*)Marshal.StringToHGlobalAnsi(ApplicationInfo.GAME_ENGINE_NAME),
+                PEngineName = (byte*)Marshal.StringToHGlobalAnsi(ApplicationInfo.GetGameEngineName()),
                 EngineVersion = new Version32((uint)engineVersion.Major, (uint)engineVersion.Minor, (uint)engineVersion.Revision),
                 ApiVersion = Vk.Version12,
             };

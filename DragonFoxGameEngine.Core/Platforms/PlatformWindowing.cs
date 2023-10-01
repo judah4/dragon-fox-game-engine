@@ -29,8 +29,8 @@ namespace DragonFoxGameEngine.Core.Platforms
                 throw new Exception("Window is already created!");
             }
 
-            _logger.LogInformation($"Dragon Fox Game Engine {ApplicationInfo.EngineVersion}");
-            _logger.LogInformation($"{config.Title} {ApplicationInfo.GameVersion}");
+            _logger.LogInformation("{gameEngineName} {engineVersion}", ApplicationInfo.GetGameEngineName(), ApplicationInfo.EngineVersion);
+            _logger.LogInformation("{gameTitle} {gameVersion}", config.Title, ApplicationInfo.GameVersion);
 
             //Create a window.
             var options = WindowOptions.DefaultVulkan with

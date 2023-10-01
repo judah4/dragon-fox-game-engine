@@ -28,7 +28,7 @@ namespace DragonFoxGameEngine
                 headlessMode = true;
             }
             var config = new ApplicationConfig(
-                ApplicationConfig.DEFAULT_WINDOW_TITLE,
+                Game.GameEntry.GAME_NAME,
                 new Vector2D<int>(-1, -1),
                 new Vector2D<int>(ApplicationConfig.WIDTH, ApplicationConfig.HEIGHT),
                 headlessMode,

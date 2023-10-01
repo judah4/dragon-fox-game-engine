@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Linq;
 using System.Reflection;
 
@@ -7,11 +6,20 @@ namespace DragonFoxGameEngine.Core
 {
     public static class ApplicationInfo
     {
-        public const string GAME_ENGINE_NAME = "Dragon Fox Game Engine";
+        public static readonly string[] GAME_ENGINE_NAMES = new [] 
+        {
+            "Coffee Dragon Engine",
+            "Dragon Fox Engine",
+            "Bookwyrm Engine",
+            "Kitsune Engine", // weakest so far
+            "Untitled Dragon Engine",
+        };
 
         public static readonly Version GameVersion;
 
         public static readonly Version EngineVersion;
+
+        private static int _nameIndex;
 
         static ApplicationInfo()
         {
@@ -31,7 +39,13 @@ namespace DragonFoxGameEngine.Core
 
             var gameVersion = entryType.Assembly.GetName().Version ?? new Version(1, 0);
             GameVersion = gameVersion;
+
+            _nameIndex = EngineRandom.Random.Next(GAME_ENGINE_NAMES.Length);
         }
 
+        public static string GetGameEngineName()
+        {
+            return GAME_ENGINE_NAMES[EngineRandom.Random.Next(_nameIndex)];
+        }
     }
 }

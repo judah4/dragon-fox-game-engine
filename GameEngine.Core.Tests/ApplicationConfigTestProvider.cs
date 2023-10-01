@@ -1,4 +1,5 @@
-﻿using DragonFoxGameEngine.Core.Platforms;
+﻿using DragonFoxGameEngine.Core;
+using DragonFoxGameEngine.Core.Platforms;
 using Silk.NET.Maths;
 
 namespace GameEngine.Core.Tests
@@ -13,7 +14,7 @@ namespace GameEngine.Core.Tests
         public static ApplicationConfig CreateTestConfig()
         {
             var config = new ApplicationConfig(
-                ApplicationConfig.DEFAULT_WINDOW_TITLE,
+                ApplicationInfo.GetGameEngineName(),
                 new Vector2D<int>(-1, -1),
                 new Vector2D<int>(ApplicationConfig.WIDTH, ApplicationConfig.HEIGHT),
                 true, //don't actually initialize a renderer for these tests.

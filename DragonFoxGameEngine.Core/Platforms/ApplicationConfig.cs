@@ -1,9 +1,4 @@
 ﻿using Silk.NET.Maths;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DragonFoxGameEngine.Core.Platforms
 {
@@ -12,8 +7,6 @@ namespace DragonFoxGameEngine.Core.Platforms
         public const int WIDTH = 800;
         public const int HEIGHT = 600;
         public const int GOOD_MAX_FPS = 1025;
-
-        public const string DEFAULT_WINDOW_TITLE = "Project Coffee Dragon Fox";
 
         public readonly Vector2D<int> StartingPos;
         public readonly Vector2D<int> StartingSize;
@@ -32,8 +25,8 @@ namespace DragonFoxGameEngine.Core.Platforms
         {
             Title = title;
             if(string.IsNullOrEmpty(title)) 
-            { 
-                Title = DEFAULT_WINDOW_TITLE;
+            {
+                Title = DefaultGameName();
             }
             StartingPos = startingPos;
             StartingSize = startingSize;
@@ -46,10 +39,15 @@ namespace DragonFoxGameEngine.Core.Platforms
         {
             StartingPos = new Vector2D<int>(-1, -1);
             StartingSize = new Vector2D<int>(WIDTH, HEIGHT);
-            Title = DEFAULT_WINDOW_TITLE;
+            Title = DefaultGameName();
             HeadlessMode = false;
             UpdatesPerSecond = 0;
             FramesPerSecond = 0;
+        }
+
+        public string DefaultGameName()
+        {
+            return $"{ApplicationInfo.GetGameEngineName()} Game";
         }
     }
 }

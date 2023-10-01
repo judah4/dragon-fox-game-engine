@@ -7,6 +7,10 @@ namespace DragonFoxGameEngine.Game
 {
     public sealed class GameEntry : IGameEntry
     {
+        /// <summary>
+        /// Set this name once a game is in progress
+        /// </summary>
+        public const string GAME_NAME = "";
         private readonly ILogger _logger;
 
         public GameEntry(ILogger logger)
