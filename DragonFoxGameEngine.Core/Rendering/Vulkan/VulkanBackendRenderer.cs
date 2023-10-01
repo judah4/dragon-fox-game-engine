@@ -1,4 +1,5 @@
 ﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+using DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
@@ -26,6 +27,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         private readonly VulkanCommandBufferSetup _commandBufferSetup;
         private readonly VulkanFramebufferSetup _framebufferSetup;
         private readonly VulkanFenceSetup _fenceSetup;
+        private readonly VulkanShaderSetup _shaderSetup;
+        private readonly VulkanObjectShaderSetup _objectShaderSetup;
 
 #if DEBUG
         private readonly bool EnableValidationLayers = true; //enable when tools are installed. Add to config
@@ -50,6 +53,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _commandBufferSetup = new VulkanCommandBufferSetup(logger);
             _framebufferSetup = new VulkanFramebufferSetup(logger);
             _fenceSetup = new VulkanFenceSetup(logger);
+            //shaders
+            _shaderSetup = new VulkanShaderSetup();
+            _objectShaderSetup = new VulkanObjectShaderSetup(logger, _shaderSetup);
         }
 
         public void Init()
@@ -191,6 +197,14 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             CreateCommandBuffers();
 
             CreateSemaphoresAndFences();
+
+            var objectShaderResult = _objectShaderSetup.ObjectShaderCreate(_context);
+            if(objectShaderResult.IsFailure)
+            {
+                _logger.LogError("Error loading built-in basic_lighting shader. {msg}", objectShaderResult.Error);
+                throw new Exception("Failed to start Vulkan");
+            }
+            _context.SetupBuiltinShaders(objectShaderResult.Value);
 
             _logger.LogInformation($"Vulkan initialized.");
         }

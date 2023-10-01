@@ -1,4 +1,6 @@
-﻿using Silk.NET.Maths;
+﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
+using Foxis.Library;
+using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Vulkan.Extensions.KHR;
@@ -47,6 +49,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public uint ImageIndex { get; private set; }
         public uint CurrentFrame { get; private set; }
         public bool RecreatingSwapchain { get; private set; }
+
+        //shaders
+        public VulkanObjectShader? ObjectShader { get; private set; }
 
         public VulkanContext(
             Vk vk,
@@ -144,6 +149,11 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public void SetFramebufferSizeGenerationLastGeneration(ulong framebufferSizeGeneration)
         {
             FramebufferSizeGenerationLastGeneration = framebufferSizeGeneration;
+        }
+
+        internal void SetupBuiltinShaders(VulkanObjectShader objectShader)
+        {
+            objectShader = objectShader;
         }
     }
 }
