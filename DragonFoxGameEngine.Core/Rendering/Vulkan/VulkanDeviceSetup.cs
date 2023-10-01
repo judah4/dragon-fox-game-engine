@@ -61,7 +61,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 Transfer = true,
                 Compute = false,
                 SamplerAnisotropy = true,
-                //DiscreteGpu = true,
+                DiscreteGpu = false,
             };
 
             SelectPhysicalDevice(context, requirements);
