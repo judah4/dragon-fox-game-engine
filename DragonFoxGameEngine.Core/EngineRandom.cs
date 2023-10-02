@@ -4,6 +4,6 @@ namespace DragonFoxGameEngine.Core
 {
     public static class EngineRandom
     {
-        public static readonly Random Random = new Random();
+        public static readonly Random Random = new Random(Environment.TickCount);
     }
 }
