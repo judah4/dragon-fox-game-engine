@@ -38,7 +38,8 @@ namespace DragonFoxGameEngine.Core
 
             stringBuilder.AppendLine($"{s_hardwareInfo.OperatingSystem.Name} {s_hardwareInfo.OperatingSystem.VersionString}");
 
-            stringBuilder.AppendLine($"Memory: {s_hardwareInfo.MemoryStatus.TotalPhysical}");
+            var memoryGib = s_hardwareInfo.MemoryStatus.TotalPhysical / 1024f / 1024f / 1024f;
+            stringBuilder.AppendLine($"Memory: {memoryGib:f2} GiB");
 
             foreach (var cpu in s_hardwareInfo.CpuList)
             {
