@@ -208,6 +208,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             }
             _context.SetupBuiltinShaders(objectShaderResult.Value);
 
+            CreateBuffers(_context);
+
             _logger.LogInformation($"Vulkan initialized.");
         }
 
@@ -215,6 +217,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         {
             if(_context == null)
                 return;
+
+            DestroyBuffers(_context);
 
             _objectShaderSetup.ObjectShaderDestroy(_context, _context.ObjectShader!.Value);
 
@@ -482,7 +486,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         /// <summary>
         /// Create our primary command buffers
         /// </summary>
-        void CreateCommandBuffers()
+        private void CreateCommandBuffers()
         {
             var commandBuffers = _context!.GraphicsCommandBuffers;
             if (commandBuffers == null || commandBuffers.Length != _context.Swapchain.SwapchainImages.Length)
@@ -508,7 +512,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         /// <summary>
         /// Free our primary command buffers
         /// </summary>
-        void CleanUpCommandBuffers()
+        private void CleanUpCommandBuffers()
         {
             var commandBuffers = _context!.GraphicsCommandBuffers;
             if (commandBuffers == null)
@@ -526,7 +530,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _logger.LogDebug("Graphics command buffers cleaned up.");
         }
 
-        VulkanSwapchain RegenerateFramebuffers(VulkanSwapchain swapchain, VulkanRenderpass renderpass)
+        private VulkanSwapchain RegenerateFramebuffers(VulkanSwapchain swapchain, VulkanRenderpass renderpass)
         {
             if(_context == null)
             {
@@ -551,7 +555,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return swapchain;
         }
 
-        VulkanSwapchain DestroyFramebuffers(VulkanSwapchain swapchain)
+        private VulkanSwapchain DestroyFramebuffers(VulkanSwapchain swapchain)
         {
             for (int cnt = 0; cnt < swapchain.Framebuffers.Length; cnt++)
             {
@@ -672,6 +676,16 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _context.SetRecreateSwapchain(false);
 
             return true;
+        }
+
+        private void CreateBuffers(VulkanContext context)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void DestroyBuffers(VulkanContext context)
+        {
+            throw new NotImplementedException();
         }
     }
 }
