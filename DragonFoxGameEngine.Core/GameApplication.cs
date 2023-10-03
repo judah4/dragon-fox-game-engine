@@ -17,10 +17,14 @@ namespace DragonFoxGameEngine.Core
         private readonly ILogger _logger;
         private readonly EngineInternalInput _engineInternalInput;
 
+        private long _frame;
+
         //Debug fps stuff
         private readonly TimeSpan _fpsDisplayTime = TimeSpan.FromSeconds(0.1);
-        private SimpleFpsCounter _fpsCounter;
+        private readonly TimeSpan _fpsFrameStatsTime = TimeSpan.FromSeconds(10.0);
+        private readonly FrameStats _frameStats;
         private DateTime _lastFpsTime =  DateTime.UtcNow;
+        private DateTime _lastFpsFrameStatsTime = DateTime.UtcNow;
 
         public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, RendererFrontend rendererFrontend)
         {
@@ -37,7 +41,7 @@ namespace DragonFoxGameEngine.Core
 
             IInputContext input = window!.CreateInput();
             _engineInternalInput = new EngineInternalInput(input, window, logger);
-            _fpsCounter = new SimpleFpsCounter();
+            _frameStats = new FrameStats();
         }
 
         public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger) : this(config, game, window, logger, new RendererFrontend(config, window, logger))
@@ -70,11 +74,17 @@ namespace DragonFoxGameEngine.Core
 
         private void OnUpdate(double deltaTime)
         {
-            _fpsCounter.SetFpsFromDeltaTime(deltaTime);
-            if(_lastFpsTime < DateTime.UtcNow.Add(-_fpsDisplayTime))
+            _frameStats.AddSample(_frame, _window.Time, deltaTime);
+            if (_lastFpsTime < DateTime.UtcNow.Add(-_fpsDisplayTime))
             {
-                _window.Title = $"{_config.Title} ({_fpsCounter.CurrentFps.ToString().PadLeft(4, '0')}) - ({deltaTime.ToString().PadLeft(9, '0')}) - Min: {_fpsCounter.MinFps}, Max: {_fpsCounter.MaxFps}";
+                _window.Title = $"{_config.Title} ({_frameStats.GetCurrentFps().ToString("F0").PadLeft(4, '0')}) - ({deltaTime.ToString().PadLeft(9, '0')} s) - Min: {_frameStats.GetMinFps().ToString("F0")}, Max: {_frameStats.GetMaxFps().ToString("F0")}, 95th: {_frameStats.GetPercentile95thTime()} s";
                 _lastFpsTime = DateTime.UtcNow;
+            }
+
+            if (_lastFpsFrameStatsTime < DateTime.UtcNow.Add(-_fpsFrameStatsTime))
+            {
+                _frameStats.SendDebugMessage(_logger);
+                _lastFpsFrameStatsTime = DateTime.UtcNow;
             }
 
             _game.Update(deltaTime);
@@ -87,6 +97,9 @@ namespace DragonFoxGameEngine.Core
             var renderPacket = new RenderPacket(deltaTime);
 
             _renderer.DrawFrame(renderPacket);
+
+            //end, to the next frame
+            _frame++;
         }
     }
 }

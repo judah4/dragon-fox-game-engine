@@ -6,7 +6,7 @@ namespace DragonFoxGameEngine.Core.Platforms
     {
         public const int WIDTH = 800;
         public const int HEIGHT = 600;
-        public const int GOOD_MAX_FPS = 1025;
+        public const int GOOD_MAX_FPS = 1024;
 
         public readonly Vector2D<int> StartingPos;
         public readonly Vector2D<int> StartingSize;
