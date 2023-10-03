@@ -9,7 +9,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public BufferUsageFlags Usage;
         public bool IsLocked;
         public DeviceMemory Memory;
-        public int MemoryIndex;
-        public uint MemoryPropertyFlags;
+        public uint MemoryIndex;
+        public MemoryPropertyFlags MemoryPropertyFlags;
     }
 }

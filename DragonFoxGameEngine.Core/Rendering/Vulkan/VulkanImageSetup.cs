@@ -1,7 +1,6 @@
 ﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
-using Silk.NET.OpenAL;
 using Silk.NET.Vulkan;
 using System;
 
@@ -120,7 +119,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return vulkanImage;
         }
 
-        private uint FindMemoryIndex(VulkanContext context, uint typeFilter, MemoryPropertyFlags properties)
+        public uint FindMemoryIndex(VulkanContext context, uint typeFilter, MemoryPropertyFlags properties)
         {
             context.Vk.GetPhysicalDeviceMemoryProperties(context.Device.PhysicalDevice, out PhysicalDeviceMemoryProperties memProperties);
 
