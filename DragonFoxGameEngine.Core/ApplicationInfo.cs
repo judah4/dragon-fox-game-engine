@@ -13,6 +13,8 @@ namespace DragonFoxGameEngine.Core
             "Bookwyrm Engine",
             "Kitsune Engine", // weakest so far
             "Untitled Dragon Engine",
+            "Dragon Weaver Engine",
+            "Kitsune Weaver Engine",
         };
 
         public static readonly Version GameVersion;
