@@ -67,7 +67,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             if(bindOnCreate)
             {
-                vulkanBuffer = BufferBind(context, vulkanBuffer, 0);
+                BufferBind(context, vulkanBuffer, 0);
             }
 
             return vulkanBuffer;
