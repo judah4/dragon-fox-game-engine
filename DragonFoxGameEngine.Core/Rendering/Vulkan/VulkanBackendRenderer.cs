@@ -1,4 +1,5 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonFoxGameEngine.Core.Maths;
+using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
@@ -30,6 +31,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         private readonly VulkanShaderSetup _shaderSetup;
         private readonly VulkanObjectShaderSetup _objectShaderSetup;
         private readonly VulkanPipelineSetup _pipelineSetup;
+        private readonly VulkanBufferSetup _bufferSetup;
 
 #if DEBUG
         private readonly bool EnableValidationLayers = true; //enable when tools are installed. Add to config
@@ -58,6 +60,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _shaderSetup = new VulkanShaderSetup();
             _pipelineSetup = new VulkanPipelineSetup(logger);
             _objectShaderSetup = new VulkanObjectShaderSetup(logger, _shaderSetup, _pipelineSetup);
+
+            _bufferSetup = new VulkanBufferSetup(_imageSetup, _commandBufferSetup, logger);
         }
 
         public void Init()
@@ -680,6 +684,20 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         private void CreateBuffers(VulkanContext context)
         {
+            MemoryPropertyFlags memPropFlags = MemoryPropertyFlags.DeviceLocalBit;
+
+            //about 64 MB when complete
+            ulong vertextBufferSize = (ulong)sizeof(Vertex3d) * 1024UL * 1024UL;
+            var objectVertexUsage = BufferUsageFlags.VertexBufferBit | BufferUsageFlags.TransferDstBit | BufferUsageFlags.TransferSrcBit;
+
+            var objectVertexBuffer = _bufferSetup.BufferCreate(context, vertextBufferSize, objectVertexUsage, memPropFlags, true);
+
+            ulong indexBufferSize = (ulong)sizeof(Vertex3d) * 1024UL * 1024UL;
+            var objectIndexUsage = BufferUsageFlags.VertexBufferBit | BufferUsageFlags.TransferDstBit | BufferUsageFlags.TransferSrcBit;
+
+            var objectIndexBuffer = _bufferSetup.BufferCreate(context, vertextBufferSize, objectVertexUsage, memPropFlags, true);
+
+            context.SetupBuffers(objectVertexBuffer, objectIndexBuffer);
             throw new NotImplementedException();
         }
 

@@ -1,14 +1,7 @@
 ﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
-using Hardware.Info;
 using Microsoft.Extensions.Logging;
-using Silk.NET.OpenAL;
-using Silk.NET.OpenGL;
 using Silk.NET.Vulkan;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Buffer = Silk.NET.Vulkan.Buffer;
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan
@@ -16,11 +9,13 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
     public unsafe class VulkanBufferSetup
     { 
         private readonly VulkanImageSetup _imageSetup;
+        private readonly VulkanCommandBufferSetup _commandBufferSetup;
         private readonly ILogger _logger;
 
-        public VulkanBufferSetup(VulkanImageSetup imageSetup, ILogger logger)
+        public VulkanBufferSetup(VulkanImageSetup imageSetup, VulkanCommandBufferSetup commandBufferSetup, ILogger logger)
         {
             _imageSetup = imageSetup;
+            _commandBufferSetup = commandBufferSetup;
             _logger = logger;
         }
 
@@ -159,23 +154,42 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             }
         }
 
-        public VulkanBuffer BufferLockMemory(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset, ulong size, uint flags)
+        public Span<byte> BufferLockMemory(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset, ulong size, uint flags)
         {
-            throw new NotImplementedException();
+            void* data;
+            if(context.Vk.MapMemory(context.Device.LogicalDevice, vulkanBuffer.Memory, offset, size, flags, &data) != Result.Success)
+            {
+                throw new Exception("Lock buffer failed!");
+
+            }
+            //img.CopyPixelDataTo(new Span<byte>(data, (int)imageSize)); //from demo
+            return new Span<byte>(data, (int)size);
         }
 
-        public VulkanBuffer BufferUnlockMemory(VulkanContext context, VulkanBuffer vulkanBuffer)
+        public void BufferUnlockMemory(VulkanContext context, VulkanBuffer vulkanBuffer)
         {
-            throw new NotImplementedException();
+            context.Vk.UnmapMemory(context.Device.LogicalDevice, vulkanBuffer.Memory);
         }
 
-        public VulkanBuffer BufferLoadData(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset, ulong size, uint flags, Span<byte> data)
+        public void BufferLoadData(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset, ulong size, uint flags, Span<byte> data)
         {
-            throw new NotImplementedException();
+            var bufferSpan = BufferLockMemory(context, vulkanBuffer, offset, size, flags);
+
+            //copy
+            data.CopyTo(bufferSpan);
+
+            BufferUnlockMemory(context, vulkanBuffer);
         }
 
         public void BufferCopyTo(VulkanContext context, CommandPool pool, Fence fence, Queue queue, Buffer source, ulong sourceOffset, Buffer dest, ulong destOffset, ulong size)
         {
+            context.Vk.QueueWaitIdle(queue);
+            //create a one time use command buffer
+            var commandBuffer = _commandBufferSetup.CommandBufferAllocateAndBeginSingleUse(context, pool);
+
+            BufferCopy copyRegion = new BufferCopy(sourceOffset, destOffset, size);
+
+            context.Vk.CmdCopyBuffer(commandBuffer.Handle, source, dest, 1, copyRegion);
             throw new NotImplementedException();
         }
     }
