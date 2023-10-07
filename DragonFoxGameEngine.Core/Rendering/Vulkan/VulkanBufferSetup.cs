@@ -154,7 +154,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             }
         }
 
-        public Span<byte> BufferLockMemory(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset, ulong size, uint flags)
+        public Span<T> BufferLockMemory<T>(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset, ulong size, uint flags)
         {
             void* data;
             if(context.Vk.MapMemory(context.Device.LogicalDevice, vulkanBuffer.Memory, offset, size, flags, &data) != Result.Success)
@@ -163,7 +163,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             }
             //img.CopyPixelDataTo(new Span<byte>(data, (int)imageSize)); //from demo
-            return new Span<byte>(data, (int)size);
+            return new Span<T>(data, (int)size);
         }
 
         public void BufferUnlockMemory(VulkanContext context, VulkanBuffer vulkanBuffer)
@@ -171,9 +171,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             context.Vk.UnmapMemory(context.Device.LogicalDevice, vulkanBuffer.Memory);
         }
 
-        public void BufferLoadData(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset, ulong size, uint flags, Span<byte> data)
+        public void BufferLoadData<T>(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset, ulong size, uint flags, Span<T> data)
         {
-            var bufferSpan = BufferLockMemory(context, vulkanBuffer, offset, size, flags);
+            var bufferSpan = BufferLockMemory<T>(context, vulkanBuffer, offset, size, flags);
 
             //copy
             data.CopyTo(bufferSpan);
@@ -190,7 +190,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             BufferCopy copyRegion = new BufferCopy(sourceOffset, destOffset, size);
 
             context.Vk.CmdCopyBuffer(commandBuffer.Handle, source, dest, 1, copyRegion);
-            throw new NotImplementedException();
+
+            //submit the vuffer for execution and wait for it to complete
+            _commandBufferSetup.CommandBufferEndSingleUse(context, pool, commandBuffer, queue);
         }
     }
 }
