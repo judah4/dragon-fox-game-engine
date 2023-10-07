@@ -1,4 +1,5 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonFoxGameEngine.Core.Maths;
+using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
@@ -30,6 +31,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         private readonly VulkanShaderSetup _shaderSetup;
         private readonly VulkanObjectShaderSetup _objectShaderSetup;
         private readonly VulkanPipelineSetup _pipelineSetup;
+        private readonly VulkanBufferSetup _bufferSetup;
 
 #if DEBUG
         private readonly bool EnableValidationLayers = true; //enable when tools are installed. Add to config
@@ -58,6 +60,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _shaderSetup = new VulkanShaderSetup();
             _pipelineSetup = new VulkanPipelineSetup(logger);
             _objectShaderSetup = new VulkanObjectShaderSetup(logger, _shaderSetup, _pipelineSetup);
+
+            _bufferSetup = new VulkanBufferSetup(_imageSetup, _commandBufferSetup, logger);
         }
 
         public void Init()
@@ -208,6 +212,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             }
             _context.SetupBuiltinShaders(objectShaderResult.Value);
 
+            CreateBuffers(_context);
+
             _logger.LogInformation($"Vulkan initialized.");
         }
 
@@ -215,6 +221,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         {
             if(_context == null)
                 return;
+
+            DestroyBuffers(_context);
 
             _objectShaderSetup.ObjectShaderDestroy(_context, _context.ObjectShader!.Value);
 
@@ -482,7 +490,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         /// <summary>
         /// Create our primary command buffers
         /// </summary>
-        void CreateCommandBuffers()
+        private void CreateCommandBuffers()
         {
             var commandBuffers = _context!.GraphicsCommandBuffers;
             if (commandBuffers == null || commandBuffers.Length != _context.Swapchain.SwapchainImages.Length)
@@ -508,7 +516,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         /// <summary>
         /// Free our primary command buffers
         /// </summary>
-        void CleanUpCommandBuffers()
+        private void CleanUpCommandBuffers()
         {
             var commandBuffers = _context!.GraphicsCommandBuffers;
             if (commandBuffers == null)
@@ -526,7 +534,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _logger.LogDebug("Graphics command buffers cleaned up.");
         }
 
-        VulkanSwapchain RegenerateFramebuffers(VulkanSwapchain swapchain, VulkanRenderpass renderpass)
+        private VulkanSwapchain RegenerateFramebuffers(VulkanSwapchain swapchain, VulkanRenderpass renderpass)
         {
             if(_context == null)
             {
@@ -551,7 +559,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return swapchain;
         }
 
-        VulkanSwapchain DestroyFramebuffers(VulkanSwapchain swapchain)
+        private VulkanSwapchain DestroyFramebuffers(VulkanSwapchain swapchain)
         {
             for (int cnt = 0; cnt < swapchain.Framebuffers.Length; cnt++)
             {
@@ -672,6 +680,32 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _context.SetRecreateSwapchain(false);
 
             return true;
+        }
+
+        private void CreateBuffers(VulkanContext context)
+        {
+            MemoryPropertyFlags memPropFlags = MemoryPropertyFlags.DeviceLocalBit;
+
+            //about 64 MB when complete
+            ulong vertexBufferSize = (ulong)sizeof(Vertex3d) * 1024UL * 1024UL;
+            var objectVertexUsage = BufferUsageFlags.VertexBufferBit | BufferUsageFlags.TransferDstBit | BufferUsageFlags.TransferSrcBit;
+
+            var objectVertexBuffer = _bufferSetup.BufferCreate(context, vertexBufferSize, objectVertexUsage, memPropFlags, true);
+
+            ulong indexBufferSize = (ulong)sizeof(uint) * 1024UL * 1024UL;
+            var objectIndexUsage = BufferUsageFlags.IndexBufferBit | BufferUsageFlags.TransferDstBit | BufferUsageFlags.TransferSrcBit;
+
+            var objectIndexBuffer = _bufferSetup.BufferCreate(context, indexBufferSize, objectIndexUsage, memPropFlags, true);
+
+            context.SetupBuffers(objectVertexBuffer, objectIndexBuffer);
+        }
+
+        private void DestroyBuffers(VulkanContext context)
+        {
+            var vertBuffer = _bufferSetup.BufferDestroy(context, context.ObjectVertexBuffer);
+            var indexBuffer =_bufferSetup.BufferDestroy(context, context.ObjectIndexBuffer);
+            context.SetupBuffers(vertBuffer, indexBuffer);
+            context.SetupBufferOffsets(0, 0);
         }
     }
 }

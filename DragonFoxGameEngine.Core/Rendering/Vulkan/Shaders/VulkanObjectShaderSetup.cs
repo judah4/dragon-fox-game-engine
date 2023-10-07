@@ -96,10 +96,10 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
             return shader;
         }
 
-        public VulkanObjectShader ObjectShaderUse(VulkanContext context, VulkanObjectShader shader)
+        public void ObjectShaderUse(VulkanContext context, VulkanObjectShader shader)
         {
-            throw new NotImplementedException();
+            var imageIndex = context.ImageIndex;
+            _pipelineSetup.PipelineBind(context, context.GraphicsCommandBuffers![imageIndex], PipelineBindPoint.Graphics, shader.Pipeline);
         }
-
     }
 }

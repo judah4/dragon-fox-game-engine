@@ -13,6 +13,8 @@ namespace DragonFoxGameEngine.Core
             "Bookwyrm Engine",
             "Kitsune Engine", // weakest so far
             "Untitled Dragon Engine",
+            "Dragon Weaver Engine",
+            "Kitsune Weaver Engine",
         };
 
         public static readonly Version GameVersion;
@@ -24,7 +26,7 @@ namespace DragonFoxGameEngine.Core
         static ApplicationInfo()
         {
             //for now, game and engine version are the same
-            var version = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(1, 0);
+            var version = typeof(ApplicationInfo).Assembly?.GetName().Version ?? new Version(1, 0);
             GameVersion = version;
             EngineVersion = version;
 
@@ -37,7 +39,7 @@ namespace DragonFoxGameEngine.Core
             if(entryType == null)
                 return;
 
-            var gameVersion = entryType.Assembly.GetName().Version ?? new Version(1, 0);
+            var gameVersion = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(1, 0);
             GameVersion = gameVersion;
 
             _nameIndex = EngineRandom.Random.Next(GAME_ENGINE_NAMES.Length);

@@ -34,6 +34,10 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public VulkanSwapchain Swapchain { get; private set; }
         public VulkanRenderpass MainRenderPass { get; private set; }
 
+#region Buffers
+        public VulkanBuffer ObjectVertexBuffer { get; private set; }
+        public VulkanBuffer ObjectIndexBuffer { get; private set; }
+#endregion
         public VulkanCommandBuffer[]? GraphicsCommandBuffers { get; private set; }
 
         public Semaphore[]? ImageAvailableSemaphores { get; private set; }
@@ -52,6 +56,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
 
         //shaders
         public VulkanObjectShader? ObjectShader { get; private set; }
+
+        public ulong GeometryVertexOffset { get; private set; }
+        public ulong GeometryIndexOffset { get; private set; }
 
         public VulkanContext(
             Vk vk,
@@ -151,9 +158,21 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
             FramebufferSizeGenerationLastGeneration = framebufferSizeGeneration;
         }
 
-        internal void SetupBuiltinShaders(VulkanObjectShader objectShader)
+        public void SetupBuiltinShaders(VulkanObjectShader objectShader)
         {
             ObjectShader = objectShader;
+        }
+
+        public void SetupBuffers(VulkanBuffer objectVertexBuffer, VulkanBuffer objectIndexBuffer)
+        {
+            ObjectVertexBuffer = objectVertexBuffer;
+            ObjectIndexBuffer = objectIndexBuffer;
+        }
+
+        public void SetupBufferOffsets(ulong geometryVertexOffset, ulong geometryIndexOffset)
+        {
+            GeometryVertexOffset = geometryVertexOffset;
+            GeometryIndexOffset = geometryIndexOffset;
         }
     }
 }

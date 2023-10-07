@@ -252,14 +252,11 @@ namespace DragonFoxGameEngine.Core.InitialPrototype
             20, 23, 22, 22, 21, 20,
         };
 
-        private SimpleFpsCounter _fpsCounter;
-
         public HelloTriangleApplication(ILogger logger, SystemEnginesGroup ecsSystemEnginesGroup, SimpleEntitiesSubmissionScheduler entitiesSubmissionScheduler)
         {
             _logger = logger;
             _ecsSystemEnginesGroup = ecsSystemEnginesGroup;
             _entitiesSubmissionScheduler = entitiesSubmissionScheduler;
-            _fpsCounter = new SimpleFpsCounter();
         }
 
         public void Run()
@@ -1868,8 +1865,6 @@ namespace DragonFoxGameEngine.Core.InitialPrototype
 
         private void DrawFrame(double delta)
         {
-            _fpsCounter.SetFpsFromDeltaTime(delta);
-            window!.Title = $"{DEFAULT_WINDOW_TITLE} ({_fpsCounter.CurrentFps.ToString().PadLeft(4, '0')}) - ({delta.ToString().PadLeft(9, '0')}) - Min: {_fpsCounter.MinFps}, Max: {_fpsCounter.MaxFps}";
             vk!.WaitForFences(_device, 1, inFlightFences![currentFrame], true, ulong.MaxValue);
 
             uint imageIndex = 0;

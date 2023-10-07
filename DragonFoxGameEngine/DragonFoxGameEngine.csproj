@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
-	<Version>0.1.0</Version>
+	<Version>0.0.1</Version>
 
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
   </PropertyGroup>
@@ -26,15 +26,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Remove="appsettings.Development.json" />
 	  <None Remove="appsettings.json" />
 	  <None Remove="favicon.png" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Content Include="appsettings.Development.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </Content>
 	  <Content Include="appsettings.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </Content>
