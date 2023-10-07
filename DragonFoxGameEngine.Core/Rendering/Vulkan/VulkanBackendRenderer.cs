@@ -687,23 +687,25 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             MemoryPropertyFlags memPropFlags = MemoryPropertyFlags.DeviceLocalBit;
 
             //about 64 MB when complete
-            ulong vertextBufferSize = (ulong)sizeof(Vertex3d) * 1024UL * 1024UL;
+            ulong vertexBufferSize = (ulong)sizeof(Vertex3d) * 1024UL * 1024UL;
             var objectVertexUsage = BufferUsageFlags.VertexBufferBit | BufferUsageFlags.TransferDstBit | BufferUsageFlags.TransferSrcBit;
 
-            var objectVertexBuffer = _bufferSetup.BufferCreate(context, vertextBufferSize, objectVertexUsage, memPropFlags, true);
+            var objectVertexBuffer = _bufferSetup.BufferCreate(context, vertexBufferSize, objectVertexUsage, memPropFlags, true);
 
-            ulong indexBufferSize = (ulong)sizeof(Vertex3d) * 1024UL * 1024UL;
-            var objectIndexUsage = BufferUsageFlags.VertexBufferBit | BufferUsageFlags.TransferDstBit | BufferUsageFlags.TransferSrcBit;
+            ulong indexBufferSize = (ulong)sizeof(uint) * 1024UL * 1024UL;
+            var objectIndexUsage = BufferUsageFlags.IndexBufferBit | BufferUsageFlags.TransferDstBit | BufferUsageFlags.TransferSrcBit;
 
-            var objectIndexBuffer = _bufferSetup.BufferCreate(context, vertextBufferSize, objectVertexUsage, memPropFlags, true);
+            var objectIndexBuffer = _bufferSetup.BufferCreate(context, indexBufferSize, objectIndexUsage, memPropFlags, true);
 
             context.SetupBuffers(objectVertexBuffer, objectIndexBuffer);
-            throw new NotImplementedException();
         }
 
         private void DestroyBuffers(VulkanContext context)
         {
-            throw new NotImplementedException();
+            var vertBuffer = _bufferSetup.BufferDestroy(context, context.ObjectVertexBuffer);
+            var indexBuffer =_bufferSetup.BufferDestroy(context, context.ObjectIndexBuffer);
+            context.SetupBuffers(vertBuffer, indexBuffer);
+            context.SetupBufferOffsets(0, 0);
         }
     }
 }

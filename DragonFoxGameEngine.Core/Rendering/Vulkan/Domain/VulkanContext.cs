@@ -57,8 +57,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         //shaders
         public VulkanObjectShader? ObjectShader { get; private set; }
 
-        public ulong GeometryVertextOffset { get; private set; }
-        public ulong GeometryIndextOffset { get; private set; }
+        public ulong GeometryVertexOffset { get; private set; }
+        public ulong GeometryIndexOffset { get; private set; }
 
         public VulkanContext(
             Vk vk,
@@ -167,6 +167,12 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         {
             ObjectVertexBuffer = objectVertexBuffer;
             ObjectIndexBuffer = objectIndexBuffer;
+        }
+
+        public void SetupBufferOffsets(ulong geometryVertexOffset, ulong geometryIndexOffset)
+        {
+            GeometryVertexOffset = geometryVertexOffset;
+            GeometryIndexOffset = geometryIndexOffset;
         }
     }
 }
