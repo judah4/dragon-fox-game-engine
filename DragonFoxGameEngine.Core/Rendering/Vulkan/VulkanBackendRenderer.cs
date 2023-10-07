@@ -11,6 +11,7 @@ using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Windowing;
 using System;
 using System.Runtime.InteropServices;
+using Buffer = Silk.NET.Vulkan.Buffer;
 
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 {
@@ -214,6 +215,28 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             CreateBuffers(_context);
 
+            //TODO: Temporary test geometry
+
+            var verts = new Vertex3d[]
+            {
+                new Vertex3d(new Vector3D<float>(0, -0.5f, 0)),
+                new Vertex3d(new Vector3D<float>(0.5f, 0.5f, 0)),   
+                new Vertex3d(new Vector3D<float>(0, 0.5f, 0)),
+            };
+
+            // ___
+            // | /
+            // |/
+
+            var indices = new uint[]
+            {
+                0,1,2,
+            };
+
+            UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectVertexBuffer, 0, (ulong)(sizeof(Vertex3d) * verts.LongLength), verts.AsSpan());
+            UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectIndexBuffer, 0, (ulong)(sizeof(uint) * indices.LongLength), indices.AsSpan());
+            //todo: end test code.
+
             _logger.LogInformation($"Vulkan initialized.");
         }
 
@@ -222,12 +245,12 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             if(_context == null)
                 return;
 
-            DestroyBuffers(_context);
-
-            _objectShaderSetup.ObjectShaderDestroy(_context, _context.ObjectShader!.Value);
-
             //wait until the device is idle again
             _context.Vk.DeviceWaitIdle(_context.Device.LogicalDevice);
+
+            DestroyBuffers(_context);
+
+            _objectShaderSetup.ObjectShaderDestroy(_context, _context.ObjectShader);
 
             DestroySemaphoresAndFences();
 
@@ -319,7 +342,6 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 return false;
             }
             _context.InFlightFences[_context.CurrentFrame] = fenceResult.Value; //set the fence in the array
-
             
             //Acquire the next image from the swapchain. Pass along the semaphore that should signal when this completes.
             //This same semaphore will alter be waited on by the queue submission to ensure this image is available.
@@ -360,6 +382,27 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             commandBuffer = _renderpassSetup.BeginRenderpass(_context, commandBuffer, _context.MainRenderPass, _context.Swapchain.Framebuffers[_context.ImageIndex].Framebuffer);
             _context.GraphicsCommandBuffers[_context.ImageIndex] = commandBuffer;
             //we started the frame!
+
+            //TODO: Test code to draw
+            _objectShaderSetup.ObjectShaderUse(_context, _context.ObjectShader);
+
+            var vertexBuffers = new Buffer[] { _context.ObjectVertexBuffer.Handle };
+            //bind vertex buffer at offset
+            var offsets = new ulong[] { 0 };
+
+            fixed (ulong* offsetsPtr = offsets)
+            fixed (Buffer* vertexBuffersPtr = vertexBuffers)
+            {
+                _context.Vk.CmdBindVertexBuffers(commandBuffer.Handle, 0, 1, vertexBuffersPtr, offsetsPtr);
+            }
+
+            //bind index buffer at offset
+            _context.Vk.CmdBindIndexBuffer(commandBuffer.Handle, _context.ObjectIndexBuffer.Handle, 0, IndexType.Uint32);
+
+            //issue the draw. hardcode to 3 indices for now
+            _context.Vk.CmdDrawIndexed(commandBuffer.Handle, 3U, 1, 0, 0, 0);
+            //drawCall++
+            //end temp test code
 
             return true;
         }
@@ -706,6 +749,22 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             var indexBuffer =_bufferSetup.BufferDestroy(context, context.ObjectIndexBuffer);
             context.SetupBuffers(vertBuffer, indexBuffer);
             context.SetupBufferOffsets(0, 0);
+        }
+
+        void UploadDataRange<T>(VulkanContext context, CommandPool pool, Fence fence, Queue queue, VulkanBuffer buffer, ulong offset, ulong size, Span<T> data)
+        {
+            //Create a host visible staging buffer to upload to. Mark it as the source of the transfer
+            var flags = MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit;
+            var staging = _bufferSetup.BufferCreate(context, size, BufferUsageFlags.TransferSrcBit, flags, true);
+
+            //load the data into the staging buffer
+            _bufferSetup.BufferLoadData(context, staging, 0, size, 0, data);
+            
+            //perform the copy from staging to the device local buffer
+            _bufferSetup.BufferCopyTo(context, pool, fence, queue, staging.Handle, 0, buffer.Handle, offset, size);
+
+            //clean up the staging buffer
+            _bufferSetup.BufferDestroy(context, staging);
         }
     }
 }

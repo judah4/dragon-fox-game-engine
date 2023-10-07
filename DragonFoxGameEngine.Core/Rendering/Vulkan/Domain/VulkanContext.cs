@@ -55,7 +55,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public bool RecreatingSwapchain { get; private set; }
 
         //shaders
-        public VulkanObjectShader? ObjectShader { get; private set; }
+        public VulkanObjectShader ObjectShader { get; private set; }
 
         public ulong GeometryVertexOffset { get; private set; }
         public ulong GeometryIndexOffset { get; private set; }

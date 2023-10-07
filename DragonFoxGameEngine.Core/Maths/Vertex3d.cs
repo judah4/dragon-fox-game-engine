@@ -10,6 +10,11 @@ namespace DragonFoxGameEngine.Core.Maths
         //public Vector3D<float> Color;
         //public Vector2D<float> TextureCoordinate;
 
+        public Vertex3d(Vector3D<float> position)
+        {
+            Position = position;
+        }
+
         public static VertexInputAttributeDescription[] GetAttributeDescriptions()
         {
             var attributeDescriptions = new[]
