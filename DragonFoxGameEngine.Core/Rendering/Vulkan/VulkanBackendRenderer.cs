@@ -245,12 +245,12 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             if(_context == null)
                 return;
 
+            //wait until the device is idle again
+            _context.Vk.DeviceWaitIdle(_context.Device.LogicalDevice);
+
             DestroyBuffers(_context);
 
             _objectShaderSetup.ObjectShaderDestroy(_context, _context.ObjectShader);
-
-            //wait until the device is idle again
-            _context.Vk.DeviceWaitIdle(_context.Device.LogicalDevice);
 
             DestroySemaphoresAndFences();
 
