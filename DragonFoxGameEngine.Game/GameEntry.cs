@@ -20,6 +20,7 @@ namespace DragonFoxGameEngine.Game
 
         public void Initialize(IWindow window)
         {
+            BasicMusic.LoadMusic();
             _logger.LogDebug("Game initialized!");
         }
 
@@ -39,6 +40,7 @@ namespace DragonFoxGameEngine.Game
 
         public void Shutdown()
         {
+            BasicMusic.Destroy();
             _logger.LogDebug("Game shutdown.");
         }
 

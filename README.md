@@ -14,6 +14,8 @@ The following [CC0 licensed image](https://pixabay.com/en/statue-sculpture-fig-h
 
 * `Assets/texture.jpg`
 
+Music by <a href="https://pixabay.com/users/white_records-32584949/?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=164704">Maksym Dudchyk</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&utm_medium=referral&utm_campaign=music&utm_content=164704">Pixabay</a>
+
 ## Compile shaders
 
 Do this by hand for testing
