@@ -57,12 +57,13 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _commandBufferSetup = new VulkanCommandBufferSetup(logger);
             _framebufferSetup = new VulkanFramebufferSetup(logger);
             _fenceSetup = new VulkanFenceSetup(logger);
+            _bufferSetup = new VulkanBufferSetup(_imageSetup, _commandBufferSetup, logger);
+
             //shaders
             _shaderSetup = new VulkanShaderSetup();
             _pipelineSetup = new VulkanPipelineSetup(logger);
-            _objectShaderSetup = new VulkanObjectShaderSetup(logger, _shaderSetup, _pipelineSetup);
+            _objectShaderSetup = new VulkanObjectShaderSetup(logger, _shaderSetup, _pipelineSetup, _bufferSetup);
 
-            _bufferSetup = new VulkanBufferSetup(_imageSetup, _commandBufferSetup, logger);
         }
 
         public void Init()
@@ -205,13 +206,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             CreateSemaphoresAndFences();
 
-            var objectShaderResult = _objectShaderSetup.ObjectShaderCreate(_context);
-            if(objectShaderResult.IsFailure)
-            {
-                _logger.LogError("Error loading built-in basic_lighting shader. {msg}", objectShaderResult.Error);
-                throw new Exception("Failed to start Vulkan");
-            }
-            _context.SetupBuiltinShaders(objectShaderResult.Value);
+            var objectShader = _objectShaderSetup.ObjectShaderCreate(_context);
+            _context.SetupBuiltinShaders(objectShader);
 
             CreateBuffers(_context);
 

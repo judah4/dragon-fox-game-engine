@@ -1,4 +1,5 @@
-﻿
+﻿using Silk.NET.Vulkan;
+
 namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain.Shaders
 {
     public struct VulkanObjectShader
@@ -9,11 +10,31 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         /// Vertex, Fragment
         /// </summary>
         public VulkanShaderStage[] ShaderStages;
+
+        public DescriptorPool GlobalDescriptorPool;
+        public DescriptorSetLayout GlobalDescriptorSetLayout;
+
+        /// <summary>
+        /// Global descriptor sets per frame
+        /// </summary>
+        /// <remarks>
+        /// One descriptor set per frame - max 3 for triple buffering.
+        /// </remarks>
+        public DescriptorSet[] GlobalDescriptorSets;
+
+        /// <summary>
+        /// Global uniform object
+        /// </summary>
+        public GlobalUniformObject GlobalUbo;
+
+        public VulkanBuffer GlobalUniformBuffer;
+
         public VulkanPipeline Pipeline;
 
         public VulkanObjectShader()
         {
             ShaderStages = new VulkanShaderStage[OBJECT_SHADER_STAGE_COUNT];
+            GlobalDescriptorSets = new DescriptorSet[3];
         }
     }
 }
