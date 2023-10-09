@@ -186,6 +186,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
             context.Vk.DestroyDescriptorPool(logicalDevice, shader.GlobalDescriptorPool, context.Allocator);
             shader.GlobalDescriptorPool = default;
 
+            context.Vk.DestroyDescriptorSetLayout(logicalDevice, shader.GlobalDescriptorSetLayout, context.Allocator);
+            shader.GlobalDescriptorSetLayout = default;
+
             //destroy shader modules
             for (int cnt = 0; cnt <  shader.ShaderStages.Length; cnt++)
             {
