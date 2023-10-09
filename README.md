@@ -32,3 +32,12 @@ Coffee Dragon Engine
 Dragon Fox Engine
 
 Kitsune Engine
+
+
+## Publish
+
+```SHELL
+
+dotnet publish -c Release -r win-x64 --self-contained true
+
+```
