@@ -1,8 +1,8 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Vulkan;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanCommandBufferSetup
     {
@@ -25,7 +25,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             context.Vk.AllocateCommandBuffers(context.Device.LogicalDevice, allocateInfo, out CommandBuffer commandBuffer);
 
-            var vulkanCommandBuffer = new VulkanCommandBuffer() {
+            var vulkanCommandBuffer = new VulkanCommandBuffer()
+            {
                 State = CommandBufferState.NotAllocated,
                 Handle = commandBuffer,
             };
@@ -47,7 +48,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         public VulkanCommandBuffer CommandBufferBegin(VulkanContext context, VulkanCommandBuffer vulkanCommandBuffer, bool isSingleUse, bool isRenderpassContinue, bool isSimultaneousUse)
         {
             var flags = CommandBufferUsageFlags.None;
-            if(isSingleUse)
+            if (isSingleUse)
             {
                 flags |= CommandBufferUsageFlags.OneTimeSubmitBit;
             }

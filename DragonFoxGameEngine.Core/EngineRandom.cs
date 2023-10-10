@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonGameEngine.Core
 {
     public static class EngineRandom
     {

@@ -2,7 +2,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonGameEngine.Core
 {
     public class FrameStats
     {
@@ -19,7 +19,7 @@ namespace DragonFoxGameEngine.Core
         private List<FrameInfo> _samples = new List<FrameInfo>(100_000);
         private double _currentDelta;
 
-        public void AddSample(in long frame, in double time, in double deltaTime) 
+        public void AddSample(in long frame, in double time, in double deltaTime)
         {
             var frameData = new FrameInfo()
             {
@@ -44,7 +44,7 @@ namespace DragonFoxGameEngine.Core
         public double GetAverage()
         {
             double avg = 0.0;
-            foreach( var val in _samples )
+            foreach (var val in _samples)
             {
                 avg += val.DeltaTime;
             }
@@ -59,7 +59,7 @@ namespace DragonFoxGameEngine.Core
             {
                 return 0.0;
             }
-            var index = Math.Max((_samples.Count * 95 / 100) - 1, 0);
+            var index = Math.Max(_samples.Count * 95 / 100 - 1, 0);
             return _samples[index].DeltaTime;
         }
 
@@ -112,11 +112,11 @@ namespace DragonFoxGameEngine.Core
 
         public double GetCurrentFps()
         {
-            if(_currentDelta == 0.0)
+            if (_currentDelta == 0.0)
             {
                 return 0;
             }
-            return (1.0 / _currentDelta);
+            return 1.0 / _currentDelta;
         }
 
         public double GetMinFps()
@@ -126,7 +126,7 @@ namespace DragonFoxGameEngine.Core
                 return 0.0;
             }
 
-            return (1.0 / _samples[_samples.Count - 1].DeltaTime);
+            return 1.0 / _samples[_samples.Count - 1].DeltaTime;
         }
 
         public double GetMaxFps()
@@ -136,7 +136,7 @@ namespace DragonFoxGameEngine.Core
                 return 0.0;
             }
 
-            return (1.0 / _samples[0].DeltaTime);
+            return 1.0 / _samples[0].DeltaTime;
         }
     }
 }

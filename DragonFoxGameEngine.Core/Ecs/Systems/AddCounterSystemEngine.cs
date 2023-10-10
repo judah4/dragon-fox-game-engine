@@ -1,4 +1,4 @@
-﻿using DragonFoxGameEngine.Core.Ecs.Components;
+﻿using DragonGameEngine.Core.Ecs.Components;
 using Microsoft.Extensions.Logging;
 using Svelto.ECS;
 using System;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DragonFoxGameEngine.Core.Ecs.Systems
+namespace DragonGameEngine.Core.Ecs.Systems
 {
     public class AddCounterSystemEngine : IUpdateEngine
     {

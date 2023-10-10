@@ -1,9 +1,16 @@
 ﻿using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
+using System.Drawing;
 
-namespace DragonFoxGameEngine.Core.Rendering
+namespace DragonGameEngine.Core.Rendering
 {
+    /// <summary>
+    /// The backend renderer
+    /// </summary>
+    /// <remarks>
+    /// Can probably be simplified later and removed.
+    /// </remarks>
     public sealed class RendererBackend : IRenderer
     {
         private readonly IWindow _window;
@@ -37,9 +44,14 @@ namespace DragonFoxGameEngine.Core.Rendering
             return _renderer.BeginFrame(deltaTime);
         }
 
-        public bool EndFrame(double deltaTime)
+        public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode)
         {
-            return _renderer.EndFrame(deltaTime);
+            _renderer.UpdateGlobalState(projection, view, viewPosition, ambientColor, mode);
+        }
+
+        public void EndFrame(double deltaTime)
+        {
+            _renderer.EndFrame(deltaTime);
         }
     }
 }

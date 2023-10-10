@@ -1,10 +1,10 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 using System;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanFramebufferSetup
     {
@@ -22,7 +22,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 Renderpass = vulkanRenderpass,
                 Attachments = new ImageView[attachments.Length],
             };
-            for(int cnt = 0; cnt < attachments.Length; cnt++)
+            for (int cnt = 0; cnt < attachments.Length; cnt++)
             {
                 vulkanFramebuffer.Attachments[cnt] = attachments[cnt];
             }

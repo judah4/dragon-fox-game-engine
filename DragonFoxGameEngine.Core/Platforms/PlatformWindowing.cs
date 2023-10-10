@@ -9,7 +9,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
-namespace DragonFoxGameEngine.Core.Platforms
+namespace DragonGameEngine.Core.Platforms
 {
     public class PlatformWindowing
     {
@@ -24,7 +24,7 @@ namespace DragonFoxGameEngine.Core.Platforms
 
         public unsafe IWindow InitWindow(ApplicationConfig config, Action? onLoadAction)
         {
-            if(_window != null)
+            if (_window != null)
             {
                 throw new Exception("Window is already created!");
             }
@@ -43,7 +43,7 @@ namespace DragonFoxGameEngine.Core.Platforms
                 VSync = false,
             };
 
-            if(config.StartingPos.X > 0 && config.StartingPos.Y > 0)
+            if (config.StartingPos.X > 0 && config.StartingPos.Y > 0)
             {
                 options.Position = config.StartingPos;
             }

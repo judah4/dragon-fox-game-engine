@@ -1,15 +1,15 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 using System;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanImageSetup
     {
         private readonly ILogger _logger;
-        
+
         public VulkanImageSetup(ILogger logger)
         {
             _logger = logger;
@@ -64,12 +64,12 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             if (context.Vk.AllocateMemory(context.Device.LogicalDevice, allocInfo, context.Allocator, &vulkanImage.Memory) != Result.Success)
             {
                 throw new Exception("Failed to allocate image memory!");
-            }      
+            }
 
             //bind the memory
             context.Vk.BindImageMemory(context.Device.LogicalDevice, vulkanImage.Handle, vulkanImage.Memory, 0); //TODO: configurable memory offset
 
-            if(createView)
+            if (createView)
             {
                 vulkanImage.ImageView = default;
                 vulkanImage = ImageViewCreate(context, format, vulkanImage, viewAspectFlags);
@@ -125,7 +125,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             for (int i = 0; i < memProperties.MemoryTypeCount; i++)
             {
-                if ((typeFilter & (1 << i)) != 0 && (memProperties.MemoryTypes[i].PropertyFlags & properties) == properties)
+                if ((typeFilter & 1 << i) != 0 && (memProperties.MemoryTypes[i].PropertyFlags & properties) == properties)
                 {
                     return (uint)i;
                 }

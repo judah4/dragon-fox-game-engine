@@ -1,4 +1,4 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Foxis.Library;
 using Microsoft.Extensions.Logging;
 using Silk.NET.OpenAL;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanFenceSetup
     {
@@ -30,12 +30,12 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             {
                 SType = StructureType.FenceCreateInfo,
             };
-            if(createSignaled)
+            if (createSignaled)
             {
                 fenceInfo.Flags = FenceCreateFlags.SignaledBit;
             }
 
-            if(context.Vk.CreateFence(context.Device.LogicalDevice, fenceInfo, context.Allocator, out var fence) != Silk.NET.Vulkan.Result.Success)
+            if (context.Vk.CreateFence(context.Device.LogicalDevice, fenceInfo, context.Allocator, out var fence) != Silk.NET.Vulkan.Result.Success)
             {
                 throw new Exception("Failed to create fence!");
             }
@@ -47,7 +47,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public VulkanFence FenceDestroy(VulkanContext context, VulkanFence vulkanFence)
         {
-            if(vulkanFence.Handle.Handle != 0)
+            if (vulkanFence.Handle.Handle != 0)
             {
                 context.Vk.DestroyFence(context.Device.LogicalDevice, vulkanFence.Handle, context.Allocator);
             }
@@ -59,11 +59,11 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public Result<VulkanFence> FenceWait(VulkanContext context, VulkanFence vulkanFence, ulong timeoutNs)
         {
-            if(vulkanFence.IsSignaled)
+            if (vulkanFence.IsSignaled)
                 return Foxis.Library.Result.Ok(vulkanFence);
 
             var result = context.Vk.WaitForFences(context.Device.LogicalDevice, 1, vulkanFence.Handle, true, timeoutNs);
-            switch(result)
+            switch (result)
             {
                 case Silk.NET.Vulkan.Result.Success:
                     vulkanFence.IsSignaled = true;
@@ -79,7 +79,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public VulkanFence FenceReset(VulkanContext context, VulkanFence vulkanFence)
         {
-            if(vulkanFence.IsSignaled)
+            if (vulkanFence.IsSignaled)
             {
                 context.Vk.ResetFences(context.Device.LogicalDevice, 1, vulkanFence.Handle);
                 vulkanFence.IsSignaled = false;

@@ -1,7 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DragonGameEngine.Core.Rendering;
+using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
+using System.Drawing;
 
-namespace DragonFoxGameEngine.Core.Rendering.Headless
+namespace DragonGameEngine.Core.Rendering.Headless
 {
     public class HeadlessRenderer : IRenderer
     {
@@ -21,9 +23,13 @@ namespace DragonFoxGameEngine.Core.Rendering.Headless
             return true;
         }
 
-        public bool EndFrame(double deltaTime)
+        public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode)
         {
-            return true;
+            throw new System.NotImplementedException();
+        }
+
+        public void EndFrame(double deltaTime)
+        {
         }
 
         public void Resized(Vector2D<uint> size)
@@ -33,5 +39,6 @@ namespace DragonFoxGameEngine.Core.Rendering.Headless
         public void Shutdown()
         {
         }
+
     }
 }

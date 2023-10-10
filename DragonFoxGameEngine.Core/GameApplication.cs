@@ -1,12 +1,12 @@
-﻿using DragonFoxGameEngine.Core.Platforms;
-using DragonFoxGameEngine.Core.Rendering;
+﻿using DragonGameEngine.Core.Platforms;
+using DragonGameEngine.Core.Rendering;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonGameEngine.Core
 {
     public class GameApplication
     {
@@ -23,7 +23,7 @@ namespace DragonFoxGameEngine.Core
         private readonly TimeSpan _fpsDisplayTime = TimeSpan.FromSeconds(0.1);
         private readonly TimeSpan _fpsFrameStatsTime = TimeSpan.FromSeconds(10.0);
         private readonly FrameStats _frameStats;
-        private DateTime _lastFpsTime =  DateTime.UtcNow;
+        private DateTime _lastFpsTime = DateTime.UtcNow;
         private DateTime _lastFpsFrameStatsTime = DateTime.UtcNow;
 
         public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, RendererFrontend rendererFrontend)

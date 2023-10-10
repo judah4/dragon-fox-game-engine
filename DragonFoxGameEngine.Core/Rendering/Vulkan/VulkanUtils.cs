@@ -1,6 +1,6 @@
 ﻿using Silk.NET.Vulkan;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public static class VulkanUtils
     {

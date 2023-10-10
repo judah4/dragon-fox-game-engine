@@ -1,4 +1,4 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core.Native;
 using Silk.NET.SDL;
@@ -9,7 +9,7 @@ using Silk.NET.Windowing;
 using System;
 using System.Linq;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanPlatform
     {
@@ -32,7 +32,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 throw new NotSupportedException("KHR_surface extension not found.");
             }
 
-            var surface = context.Window.VkSurface!.Create<AllocationCallbacks>(context.Instance.ToHandle(), context.Allocator).ToSurface();
+            var surface = context.Window.VkSurface!.Create(context.Instance.ToHandle(), context.Allocator).ToSurface();
 
             context.SetupSurface(khrSurface, surface);
             logger.LogDebug("Surface setup");

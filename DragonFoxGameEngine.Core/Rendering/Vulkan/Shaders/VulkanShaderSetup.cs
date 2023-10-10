@@ -1,12 +1,12 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
-using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using Foxis.Library;
 using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
 using System;
 using System.IO;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
+namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 {
     public unsafe class VulkanShaderSetup
     {

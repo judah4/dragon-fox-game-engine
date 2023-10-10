@@ -1,6 +1,6 @@
 ﻿using Silk.NET.Maths;
 
-namespace DragonFoxGameEngine.Core.InitialPrototype
+namespace DragonGameEngine.Core.InitialPrototype
 {
     public readonly struct Mesh
     {

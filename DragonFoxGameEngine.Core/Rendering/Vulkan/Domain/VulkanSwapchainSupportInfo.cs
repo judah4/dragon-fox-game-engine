@@ -1,6 +1,6 @@
 ﻿using Silk.NET.Vulkan;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
+namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
     public struct VulkanSwapchainSupportInfo
     {

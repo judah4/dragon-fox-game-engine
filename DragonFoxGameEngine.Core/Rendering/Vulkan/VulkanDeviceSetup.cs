@@ -1,5 +1,4 @@
-﻿
-using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
@@ -11,7 +10,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     /// <summary>
     /// Physical and Logical Device setup for Vulakn
@@ -69,7 +68,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             bool presentSharesGraphicsQueue = context.Device.QueueFamilyIndices.GraphicsFamilyIndex == context.Device.QueueFamilyIndices.PresentFamilyIndex;
             bool transferSharesGraphicsQueue = context.Device.QueueFamilyIndices.GraphicsFamilyIndex == context.Device.QueueFamilyIndices.TransferFamilyIndex;
             int indexCount = 1;
-            if(!presentSharesGraphicsQueue)
+            if (!presentSharesGraphicsQueue)
             {
                 indexCount++;
             }
@@ -85,7 +84,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             uint[] indices = new uint[indexCount];
             byte index = 0;
             indices[index++] = context.Device.QueueFamilyIndices.GraphicsFamilyIndex;
-            if(!presentSharesGraphicsQueue)
+            if (!presentSharesGraphicsQueue)
             {
                 indices[index++] = context.Device.QueueFamilyIndices.PresentFamilyIndex;
             }
@@ -93,7 +92,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             {
                 indices[index++] = context.Device.QueueFamilyIndices.TransferFamilyIndex;
             }
-            if(requirements.Compute)
+            if (requirements.Compute)
             {
                 indices[index++] = context.Device.QueueFamilyIndices.ComputeFamilyIndex;
             }
@@ -157,7 +156,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             context.Vk.GetDeviceQueue(device, context.Device.QueueFamilyIndices.GraphicsFamilyIndex, 0, out vDevice.GraphicsQueue);
             context.Vk.GetDeviceQueue(device, context.Device.QueueFamilyIndices.PresentFamilyIndex, 0, out vDevice.PresentQueue);
             context.Vk.GetDeviceQueue(device, context.Device.QueueFamilyIndices.TransferFamilyIndex, 0, out vDevice.TransferQueue);
-            if(requirements.Compute)
+            if (requirements.Compute)
             {
                 Queue computeQueue;
                 context.Vk.GetDeviceQueue(device, context.Device.QueueFamilyIndices.ComputeFamilyIndex, 0, out computeQueue);
@@ -298,7 +297,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 var memoryProperties = context.Vk.GetPhysicalDeviceMemoryProperties(pDevice);
 
                 var result = DeviceMeetsRequirements(pDevice, context, context.Surface!.Value, properties, features, requirements);
-                if(!result.HasValue)
+                if (!result.HasValue)
                 {
                     continue;
                 }
@@ -331,7 +330,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                     Memory = memoryProperties,
                 });
                 return; //we have a device!
-                
+
             }
 
             throw new Exception("No physical device found which meet the requirements!");
@@ -345,9 +344,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             PhysicalDeviceFeatures features,
             PhysicalDeviceRequirements requirements)
         {
-            if(requirements.DiscreteGpu)
+            if (requirements.DiscreteGpu)
             {
-                if(properties.DeviceType != PhysicalDeviceType.DiscreteGpu)
+                if (properties.DeviceType != PhysicalDeviceType.DiscreteGpu)
                     return null;
             }
 
@@ -370,18 +369,18 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 _logger.LogDebug("Device meets queue requirements");
 
                 var swapChainSupport = QuerySwapChainSupport(device, context);
-                if(swapChainSupport.Formats.Length < 1 || swapChainSupport.PresentModes.Length < 1)
+                if (swapChainSupport.Formats.Length < 1 || swapChainSupport.PresentModes.Length < 1)
                 {
                     //not sufficient
                     return null;
                 }
 
-                if(requirements.DeviceExtensions.Length > 0 && !CheckDeviceExtensionsSupport(device, context, requirements.DeviceExtensions))
+                if (requirements.DeviceExtensions.Length > 0 && !CheckDeviceExtensionsSupport(device, context, requirements.DeviceExtensions))
                 {
                     return null;
                 }
 
-                if(requirements.SamplerAnisotropy && !features.SamplerAnisotropy)
+                if (requirements.SamplerAnisotropy && !features.SamplerAnisotropy)
                     return null;
 
                 return (queueFamilyInfoBuilder.Build(), swapChainSupport);
@@ -401,7 +400,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 context.Vk.EnumerateDeviceExtensionProperties(device, (byte*)null, ref extentionsCount, availableExtensionsPtr);
             }
 
-            var availableExtensionNames = availableExtensions.Select(extension => Marshal.PtrToStringAnsi((IntPtr)extension.ExtensionName)).ToHashSet();
+            var availableExtensionNames = availableExtensions.Select(extension => Marshal.PtrToStringAnsi((nint)extension.ExtensionName)).ToHashSet();
 
             return deviceExtensions.All(availableExtensionNames.Contains);
 
@@ -442,7 +441,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 if (queueFamily.QueueFlags.HasFlag(QueueFlags.TransferBit))
                 {
                     //take the index if it is the current lowest
-                    if(currentTransferScore <= minTransferScore)
+                    if (currentTransferScore <= minTransferScore)
                     {
                         queueFamilyInfo.TransferFamilyIndex = i;
                         minTransferScore = currentTransferScore;

@@ -6,7 +6,7 @@ using Silk.NET.Core.Native;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 
-namespace DragonFoxGameEngine.Core.InitialPrototype.Vulkan
+namespace DragonGameEngine.Core.InitialPrototype.Vulkan
 {
     public struct Vertex
     {

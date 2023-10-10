@@ -1,14 +1,14 @@
 ﻿using Silk.NET.Windowing;
 using Microsoft.Extensions.Logging;
-using DragonFoxGameEngine.Core;
 using System;
 using System.IO;
-using DragonFoxGameEngine.Core.Platforms;
 using System.Linq;
 using Silk.NET.Maths;
 using Microsoft.Extensions.Logging.Console;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Configuration;
+using DragonGameEngine.Core.Platforms;
+using DragonGameEngine.Core;
 
 namespace DragonFoxGameEngine
 {

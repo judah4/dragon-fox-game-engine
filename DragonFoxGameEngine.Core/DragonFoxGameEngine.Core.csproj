@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	<Version>0.1.0</Version>
+	<RootNamespace>DragonGameEngine.Core</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

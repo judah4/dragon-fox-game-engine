@@ -1,4 +1,4 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
@@ -6,7 +6,7 @@ using Silk.NET.Vulkan.Extensions.KHR;
 using System;
 using System.Collections.Generic;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanSwapchainSetup
     {
@@ -49,7 +49,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         /// <param name="fence"></param>
         /// <returns>The image index</returns>
         /// <exception cref="Exception">Throws if not successful.</exception>
-        public uint AquireNextImageIndex(VulkanContext context, VulkanSwapchain swapchain, ulong timeoutNs, Silk.NET.Vulkan.Semaphore semaphore, Fence fence)
+        public uint AquireNextImageIndex(VulkanContext context, VulkanSwapchain swapchain, ulong timeoutNs, Semaphore semaphore, Fence fence)
         {
             uint imageIndex = 0;
             var result = swapchain.KhrSwapchain.AcquireNextImage(context.Device.LogicalDevice, swapchain.Swapchain, timeoutNs, semaphore, fence, ref imageIndex);
@@ -67,7 +67,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return imageIndex;
         }
 
-        public void Present(VulkanContext context, VulkanSwapchain swapchain, Queue graphicsQueue, Queue presentQueue, Silk.NET.Vulkan.Semaphore* renderCompleteSemaphore, uint presentImageIndex)
+        public void Present(VulkanContext context, VulkanSwapchain swapchain, Queue graphicsQueue, Queue presentQueue, Semaphore* renderCompleteSemaphore, uint presentImageIndex)
         {
             PresentInfoKHR presentInfo = new()
             {
@@ -108,7 +108,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             var swapchainSupport = _vulkanDeviceSetup.QuerySwapChainSupport(context.Device.PhysicalDevice, context);
 
-            if(swapchainSupport.Capabilities.CurrentExtent.Width != uint.MaxValue)
+            if (swapchainSupport.Capabilities.CurrentExtent.Width != uint.MaxValue)
             {
                 swapchainExtent = swapchainSupport.Capabilities.CurrentExtent;
             }
@@ -120,7 +120,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             swapchainExtent.Height = Math.Clamp(swapchainExtent.Height, min.Height, max.Height);
 
             var imageCount = swapchainSupport.Capabilities.MinImageCount + 1;
-            if(swapchainSupport.Capabilities.MaxImageCount > 0 && imageCount > swapchainSupport.Capabilities.MaxImageCount)
+            if (swapchainSupport.Capabilities.MaxImageCount > 0 && imageCount > swapchainSupport.Capabilities.MaxImageCount)
             {
                 imageCount = swapchainSupport.Capabilities.MaxImageCount;
             }
@@ -182,21 +182,21 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             uint swapImageCount = 0;
 
             swapchain.KhrSwapchain.GetSwapchainImages(context.Device.LogicalDevice, swapchain.Swapchain, ref swapImageCount, null);
-            if(swapchain.SwapchainImages == null)
+            if (swapchain.SwapchainImages == null)
             {
-                swapchain.SwapchainImages = new Silk.NET.Vulkan.Image[swapImageCount];
+                swapchain.SwapchainImages = new Image[swapImageCount];
             }
             if (swapchain.ImageViews == null)
             {
                 swapchain.ImageViews = new ImageView[swapImageCount];
             }
-            fixed (Silk.NET.Vulkan.Image* swapChainImagesPtr = swapchain.SwapchainImages)
+            fixed (Image* swapChainImagesPtr = swapchain.SwapchainImages)
             {
                 swapchain.KhrSwapchain.GetSwapchainImages(context.Device.LogicalDevice, swapchain.Swapchain, ref swapImageCount, swapChainImagesPtr);
             }
 
             //views
-            for(int cnt = 0; cnt < swapImageCount; cnt++)
+            for (int cnt = 0; cnt < swapImageCount; cnt++)
             {
                 ImageViewCreateInfo createInfo = new()
                 {
@@ -225,7 +225,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _vulkanDeviceSetup.DetectDepthFormat(context);
 
             //create depth image and its view
-            swapchain.DepthAttachment = _vulkanImageSetup.ImageCreate(context, ImageType.Type2D, size, context.Device.DepthFormat, ImageTiling.Optimal, 
+            swapchain.DepthAttachment = _vulkanImageSetup.ImageCreate(context, ImageType.Type2D, size, context.Device.DepthFormat, ImageTiling.Optimal,
                 ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, true, ImageAspectFlags.DepthBit);
 
             _logger.LogDebug("Swapchain created successfully!");

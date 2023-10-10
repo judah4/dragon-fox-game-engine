@@ -1,5 +1,4 @@
-﻿
-namespace DragonFoxGameEngine.Core.Rendering
+﻿namespace DragonGameEngine.Core.Rendering
 {
     public struct RenderPacket
     {
