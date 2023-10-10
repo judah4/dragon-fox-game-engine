@@ -1,4 +1,4 @@
-using DragonFoxGameEngine.Core.Rendering;
+using DragonGameEngine.Core.Rendering;
 using Silk.NET.Windowing;
 
 namespace GameEngine.Core.Tests

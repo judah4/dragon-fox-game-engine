@@ -1,4 +1,4 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.OpenAL;
 using Silk.NET.Vulkan;
@@ -6,7 +6,7 @@ using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanRenderpassSetup
     {
@@ -124,7 +124,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public void Destory(VulkanContext context, VulkanRenderpass renderpass)
         {
-            if(renderpass.Handle.Handle != 0)
+            if (renderpass.Handle.Handle != 0)
             {
                 context.Vk.DestroyRenderPass(context.Device.LogicalDevice, renderpass.Handle, context.Allocator);
                 renderpass.Handle = default;

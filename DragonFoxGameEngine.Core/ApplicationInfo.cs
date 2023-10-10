@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Reflection;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonGameEngine.Core
 {
     public static class ApplicationInfo
     {
-        public static readonly string[] GAME_ENGINE_NAMES = new [] 
+        public static readonly string[] GAME_ENGINE_NAMES = new[]
         {
             "Coffee Dragon Engine",
             "Dragon Fox Engine",
@@ -36,7 +36,7 @@ namespace DragonFoxGameEngine.Core
                 .Where(p => p.IsClass && entryInterface.IsAssignableFrom(p))
                 .FirstOrDefault();
 
-            if(entryType == null)
+            if (entryType == null)
                 return;
 
             var gameVersion = Assembly.GetEntryAssembly()?.GetName().Version ?? new Version(1, 0);

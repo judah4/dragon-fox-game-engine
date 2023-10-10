@@ -3,7 +3,7 @@ using Silk.NET.Input;
 using Silk.NET.Windowing;
 using System.Linq;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonGameEngine.Core
 {
     public class EngineInternalInput
     {
@@ -26,7 +26,7 @@ namespace DragonFoxGameEngine.Core
 
         private void ConnectionChanged(IInputDevice device, bool arg2)
         {
-            if(device is IKeyboard)
+            if (device is IKeyboard)
             {
                 _logger.LogDebug("Keyboard state changed, Connected:{deviceIsConnected}", device.IsConnected);
             }
@@ -34,7 +34,7 @@ namespace DragonFoxGameEngine.Core
 
         void SetupKeyboard()
         {
-            if(_inputContext.Keyboards.Count == 0)
+            if (_inputContext.Keyboards.Count == 0)
             {
                 return;
             }
@@ -44,7 +44,7 @@ namespace DragonFoxGameEngine.Core
 
         private void OnKeyDown(IKeyboard keyboard, Key key, int arg3)
         {
-            if((key == Key.Enter && keyboard.IsKeyPressed(Key.AltLeft)) || (key == Key.AltLeft && keyboard.IsKeyPressed(Key.Enter)))
+            if (key == Key.Enter && keyboard.IsKeyPressed(Key.AltLeft) || key == Key.AltLeft && keyboard.IsKeyPressed(Key.Enter))
             {
                 //resize!
                 _logger.LogDebug("Resize is pressed!");

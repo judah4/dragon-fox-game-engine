@@ -14,14 +14,15 @@ using Microsoft.Extensions.Logging;
 using Svelto.ECS.Schedulers;
 using Silk.NET.Input;
 using SixLabors.ImageSharp.Advanced;
-using DragonFoxGameEngine.Core.InitialPrototype.Vulkan;
-using DragonFoxGameEngine.Core.Ecs.Systems;
 using System.Linq;
 using System;
 using System.Collections.Generic;
 using SixLabors.ImageSharp.PixelFormats;
+using DragonGameEngine.Core.InitialPrototype.Vulkan;
+using DragonGameEngine.Core;
+using DragonGameEngine.Core.Ecs.Systems;
 
-namespace DragonFoxGameEngine.Core.InitialPrototype
+namespace DragonGameEngine.Core.InitialPrototype
 {
 
     struct QueueFamilyIndices

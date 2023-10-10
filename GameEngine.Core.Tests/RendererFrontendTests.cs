@@ -1,6 +1,4 @@
-using DragonFoxGameEngine.Core.Platforms;
-using DragonFoxGameEngine.Core.Rendering;
-using Silk.NET.Maths;
+using DragonGameEngine.Core.Rendering;
 using Silk.NET.Windowing;
 
 namespace GameEngine.Core.Tests

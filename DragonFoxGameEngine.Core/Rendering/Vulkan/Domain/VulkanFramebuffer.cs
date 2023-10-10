@@ -1,7 +1,7 @@
 ﻿using Silk.NET.Vulkan;
 using System;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
+namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
     public struct VulkanFramebuffer
     {

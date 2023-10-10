@@ -1,6 +1,6 @@
 ﻿using Silk.NET.Vulkan;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain.Shaders
+namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
 {
     public struct VulkanObjectShader
     {

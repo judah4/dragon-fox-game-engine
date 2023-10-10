@@ -1,5 +1,5 @@
-using DragonFoxGameEngine.Core;
-using DragonFoxGameEngine.Core.Rendering;
+using DragonGameEngine.Core;
+using DragonGameEngine.Core.Rendering;
 using Silk.NET.Input;
 using Silk.NET.Windowing;
 

@@ -1,13 +1,13 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Vulkan;
 using System;
 using Buffer = Silk.NET.Vulkan.Buffer;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanBufferSetup
-    { 
+    {
         private readonly VulkanImageSetup _imageSetup;
         private readonly VulkanCommandBufferSetup _commandBufferSetup;
         private readonly ILogger _logger;
@@ -29,7 +29,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 SharingMode = SharingMode.Exclusive, //NOTE: only used in one queue
             };
             Buffer buffer = default;
-            
+
             if (context.Vk.CreateBuffer(context.Device.LogicalDevice, bufferInfo, context.Allocator, &buffer) != Result.Success)
             {
                 throw new Exception("Failed to create buffer!");
@@ -60,7 +60,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 MemoryIndex = memoryIndex,
             };
 
-            if(bindOnCreate)
+            if (bindOnCreate)
             {
                 BufferBind(context, vulkanBuffer, 0);
             }
@@ -68,9 +68,9 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             return vulkanBuffer;
         }
 
-        public VulkanBuffer BufferDestroy(VulkanContext context, VulkanBuffer vulkanBuffer) 
+        public VulkanBuffer BufferDestroy(VulkanContext context, VulkanBuffer vulkanBuffer)
         {
-            if(vulkanBuffer.Memory.Handle != default)
+            if (vulkanBuffer.Memory.Handle != default)
             {
                 context.Vk.FreeMemory(context.Device.LogicalDevice, vulkanBuffer.Memory, context.Allocator);
             }
@@ -116,7 +116,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                 throw new Exception("Failed to allocate buffer memory!");
             }
 
-            if(context.Vk.BindBufferMemory(context.Device.LogicalDevice, buffer, memory, 0) != Result.Success)
+            if (context.Vk.BindBufferMemory(context.Device.LogicalDevice, buffer, memory, 0) != Result.Success)
             {
                 throw new Exception("Bind buffer failed!");
             }
@@ -148,7 +148,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
         public void BufferBind(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset)
         {
-            if(context.Vk.BindBufferMemory(context.Device.LogicalDevice, vulkanBuffer.Handle, vulkanBuffer.Memory, offset) != Result.Success)
+            if (context.Vk.BindBufferMemory(context.Device.LogicalDevice, vulkanBuffer.Handle, vulkanBuffer.Memory, offset) != Result.Success)
             {
                 throw new Exception("Bind buffer failed!");
             }
@@ -157,7 +157,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
         public Span<T> BufferLockMemory<T>(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset, ulong size, uint flags)
         {
             void* data;
-            if(context.Vk.MapMemory(context.Device.LogicalDevice, vulkanBuffer.Memory, offset, size, flags, &data) != Result.Success)
+            if (context.Vk.MapMemory(context.Device.LogicalDevice, vulkanBuffer.Memory, offset, size, flags, &data) != Result.Success)
             {
                 throw new Exception("Lock buffer failed!");
 

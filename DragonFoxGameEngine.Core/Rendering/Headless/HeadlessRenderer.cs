@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DragonGameEngine.Core.Rendering;
+using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using System.Drawing;
 
-namespace DragonFoxGameEngine.Core.Rendering.Headless
+namespace DragonGameEngine.Core.Rendering.Headless
 {
     public class HeadlessRenderer : IRenderer
     {

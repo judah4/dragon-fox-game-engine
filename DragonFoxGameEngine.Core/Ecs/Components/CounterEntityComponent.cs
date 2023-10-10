@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DragonFoxGameEngine.Core.Ecs.Components
+namespace DragonGameEngine.Core.Ecs.Components
 {
     public struct CounterEntityComponent : IEntityComponent
     {

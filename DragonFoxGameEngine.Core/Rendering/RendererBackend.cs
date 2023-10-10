@@ -3,7 +3,7 @@ using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System.Drawing;
 
-namespace DragonFoxGameEngine.Core.Rendering
+namespace DragonGameEngine.Core.Rendering
 {
     /// <summary>
     /// The backend renderer

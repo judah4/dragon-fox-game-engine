@@ -1,6 +1,6 @@
 ﻿using Silk.NET.Maths;
 
-namespace DragonFoxGameEngine.Core.Rendering
+namespace DragonGameEngine.Core.Rendering
 {
     /// <summary>
     /// 

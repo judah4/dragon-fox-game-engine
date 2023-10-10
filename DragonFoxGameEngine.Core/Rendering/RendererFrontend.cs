@@ -1,12 +1,12 @@
-﻿using DragonFoxGameEngine.Core.Platforms;
-using DragonFoxGameEngine.Core.Rendering.Headless;
-using DragonFoxGameEngine.Core.Rendering.Vulkan;
+﻿using DragonGameEngine.Core.Platforms;
+using DragonGameEngine.Core.Rendering.Headless;
+using DragonGameEngine.Core.Rendering.Vulkan;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System.Drawing;
 
-namespace DragonFoxGameEngine.Core.Rendering
+namespace DragonGameEngine.Core.Rendering
 {
     public sealed class RendererFrontend
     {
@@ -47,7 +47,7 @@ namespace DragonFoxGameEngine.Core.Rendering
 
         public void DrawFrame(RenderPacket packet)
         {
-            if(_rendererBackend.BeginFrame(packet.DeltaTime))
+            if (_rendererBackend.BeginFrame(packet.DeltaTime))
             {
                 var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45f), (float)1280f / 720, 0.1f, 1000.0f);
                 posZ += -1.0f * (float)packet.DeltaTime;
@@ -70,7 +70,6 @@ namespace DragonFoxGameEngine.Core.Rendering
             {
                 renderer = new HeadlessRenderer(logger);
             }
-
 
             return new RendererBackend(window, logger, renderer);
         }

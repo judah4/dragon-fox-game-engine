@@ -1,6 +1,7 @@
-﻿using Silk.NET.Maths;
+﻿using DragonGameEngine.Core;
+using Silk.NET.Maths;
 
-namespace DragonFoxGameEngine.Core.Platforms
+namespace DragonGameEngine.Core.Platforms
 {
     public readonly struct ApplicationConfig
     {
@@ -24,7 +25,7 @@ namespace DragonFoxGameEngine.Core.Platforms
         public ApplicationConfig(string title, Vector2D<int> startingPos, Vector2D<int> startingSize, bool headlessMode, double updatesPerSecond, double framesPerSecond)
         {
             Title = title;
-            if(string.IsNullOrEmpty(title)) 
+            if (string.IsNullOrEmpty(title))
             {
                 Title = DefaultGameName();
             }

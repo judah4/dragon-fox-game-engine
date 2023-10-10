@@ -1,10 +1,10 @@
-﻿using DragonFoxGameEngine.Core.Maths;
-using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Maths;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Vulkan;
 using System;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan
+namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanPipelineSetup
     {
@@ -15,8 +15,8 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _logger = logger;
         }
 
-        public VulkanPipeline PipelineCreate(VulkanContext context, 
-            VulkanRenderpass renderPass, 
+        public VulkanPipeline PipelineCreate(VulkanContext context,
+            VulkanRenderpass renderPass,
             VertexInputAttributeDescription[] attributes,
             DescriptorSetLayout[] descriptorSetLayouts,
             PipelineShaderStageCreateInfo[] stages,
@@ -107,7 +107,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             fixed (DescriptorSetLayout* descriptorSetLayoutsPtr = descriptorSetLayouts)
             fixed (VertexInputAttributeDescription* attributesPtr = attributes)
             fixed (DynamicState* dynamicStatesPtr = dynamicStates)
-            fixed(PipelineShaderStageCreateInfo* stagesPtr = stages)
+            fixed (PipelineShaderStageCreateInfo* stagesPtr = stages)
             {
                 var dynamicStateCreateInfo = new PipelineDynamicStateCreateInfo()
                 {
@@ -115,7 +115,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
                     DynamicStateCount = (uint)dynamicStates.Length,
                     PDynamicStates = dynamicStatesPtr,
                 };
-            
+
                 //Vertex input
                 var bindingDescription = new VertexInputBindingDescription()
                 {

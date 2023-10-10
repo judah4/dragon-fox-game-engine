@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonGameEngine.Core
 {
     public static class HardwareStats
     {

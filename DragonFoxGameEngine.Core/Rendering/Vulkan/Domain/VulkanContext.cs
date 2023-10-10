@@ -1,4 +1,4 @@
-﻿using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using Foxis.Library;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
@@ -7,7 +7,7 @@ using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
 using System;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
+namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
     public unsafe class VulkanContext
     {
@@ -34,10 +34,10 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public VulkanSwapchain Swapchain { get; private set; }
         public VulkanRenderpass MainRenderPass { get; private set; }
 
-#region Buffers
+        #region Buffers
         public VulkanBuffer ObjectVertexBuffer { get; private set; }
         public VulkanBuffer ObjectIndexBuffer { get; private set; }
-#endregion
+        #endregion
         public VulkanCommandBuffer[]? GraphicsCommandBuffers { get; private set; }
 
         public Semaphore[]? ImageAvailableSemaphores { get; private set; }

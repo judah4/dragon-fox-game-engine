@@ -1,11 +1,13 @@
-﻿using DragonFoxGameEngine.Core.Maths;
-using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
-using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
+﻿using DragonGameEngine.Core.Maths;
+using DragonGameEngine.Core.Rendering;
+using DragonGameEngine.Core.Rendering.Vulkan;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Vulkan;
 using System;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
+namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 {
     public unsafe class VulkanObjectShaderSetup
     {
@@ -31,10 +33,10 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
             var stageTypes = new ShaderStageFlags[VulkanObjectShader.OBJECT_SHADER_STAGE_COUNT] { ShaderStageFlags.VertexBit, ShaderStageFlags.FragmentBit };
 
             var objectShader = new VulkanObjectShader();
-            for(int cnt = 0; cnt < VulkanObjectShader.OBJECT_SHADER_STAGE_COUNT; cnt++)
+            for (int cnt = 0; cnt < VulkanObjectShader.OBJECT_SHADER_STAGE_COUNT; cnt++)
             {
                 var shaderModuleResult = _shaderSetup.CreateShaderModule(context, BUILTIN_SHADER_NAME_OBJECT, stageTypesNames[cnt], stageTypes[cnt], cnt);
-                if(shaderModuleResult.IsFailure)
+                if (shaderModuleResult.IsFailure)
                 {
                     _logger.LogError("Unable to create {typeName} shader module for {shaderName}", stageTypesNames[cnt], BUILTIN_SHADER_NAME_OBJECT);
                     throw new Exception("Failed to create shader module!");
@@ -66,7 +68,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
                     PBindings = bindingsPtr,
                 };
 
-                if (context.Vk.CreateDescriptorSetLayout(context.Device.LogicalDevice, layoutInfo, context.Allocator, &globalDescriptorSetLayout) != Silk.NET.Vulkan.Result.Success)
+                if (context.Vk.CreateDescriptorSetLayout(context.Device.LogicalDevice, layoutInfo, context.Allocator, &globalDescriptorSetLayout) != Result.Success)
                 {
                     throw new Exception("Failed to create descriptor set layout!");
                 }
@@ -94,7 +96,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
                     MaxSets = (uint)context.Swapchain.SwapchainImages.Length,
                 };
 
-                if (context.Vk.CreateDescriptorPool(context.Device.LogicalDevice, poolInfo, context.Allocator, &descriptorPool) != Silk.NET.Vulkan.Result.Success)
+                if (context.Vk.CreateDescriptorPool(context.Device.LogicalDevice, poolInfo, context.Allocator, &descriptorPool) != Result.Success)
                 {
                     throw new Exception("failed to create descriptor pool!");
                 }
@@ -129,7 +131,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
             //Stages
             //Note: should match the number of shader.stages
             var stages = new PipelineShaderStageCreateInfo[objectShader.ShaderStages.Length];
-            for(int cnt = 0; cnt < objectShader.ShaderStages.Length; cnt++)
+            for (int cnt = 0; cnt < objectShader.ShaderStages.Length; cnt++)
             {
                 stages[cnt] = objectShader.ShaderStages[cnt].ShaderStageCreateInfo;
             }
@@ -147,7 +149,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
             objectShader.GlobalUniformBuffer = globalUboBuffer;
 
             var globalLayouts = new DescriptorSetLayout[3];
-            for(int cnt = 0; cnt < globalLayouts.Length; cnt++)
+            for (int cnt = 0; cnt < globalLayouts.Length; cnt++)
             {
                 globalLayouts[cnt] = objectShader.GlobalDescriptorSetLayout;
             }
@@ -189,7 +191,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
             shader.GlobalDescriptorSetLayout = default;
 
             //destroy shader modules
-            for (int cnt = 0; cnt <  shader.ShaderStages.Length; cnt++)
+            for (int cnt = 0; cnt < shader.ShaderStages.Length; cnt++)
             {
                 context.Vk.DestroyShaderModule(logicalDevice, shader.ShaderStages[cnt].Handle, context.Allocator);
                 shader.ShaderStages[cnt].Handle = default;

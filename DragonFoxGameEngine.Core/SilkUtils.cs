@@ -1,6 +1,6 @@
 ﻿using Silk.NET.Core;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonGameEngine.Core
 {
     public static class SilkUtils
     {

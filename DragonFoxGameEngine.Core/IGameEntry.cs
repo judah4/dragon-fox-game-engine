@@ -1,7 +1,7 @@
 ﻿using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonGameEngine.Core
 {
     /// <summary>
     /// The base game entry

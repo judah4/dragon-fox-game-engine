@@ -1,5 +1,4 @@
-﻿
-namespace DragonFoxGameEngine.Core.Ecs
+﻿namespace DragonGameEngine.Core.Ecs
 {
     /// <summary>
     /// Entity service to get new entity ids

@@ -1,5 +1,5 @@
-﻿using DragonFoxGameEngine.Core;
-using DragonFoxGameEngine.Core.Platforms;
+﻿using DragonGameEngine.Core;
+using DragonGameEngine.Core.Platforms;
 using Silk.NET.Maths;
 
 namespace GameEngine.Core.Tests

@@ -2,7 +2,7 @@
 using Silk.NET.Vulkan;
 using System.Runtime.InteropServices;
 
-namespace DragonFoxGameEngine.Core.Maths
+namespace DragonGameEngine.Core.Maths
 {
     public struct Vertex3d
     {

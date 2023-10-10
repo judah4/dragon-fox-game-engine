@@ -1,7 +1,7 @@
 ﻿using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 
-namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
+namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
     public struct VulkanSwapchain
     {
@@ -9,7 +9,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Domain
         public KhrSwapchain KhrSwapchain;
         public SwapchainKHR Swapchain;
         public byte MaxFramesInFlight;
-        public Silk.NET.Vulkan.Image[] SwapchainImages;
+        public Image[] SwapchainImages;
         public ImageView[]? ImageViews;
         internal VulkanImage DepthAttachment;
 

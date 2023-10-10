@@ -1,7 +1,7 @@
 ﻿using Silk.NET.Maths;
 using System.Drawing;
 
-namespace DragonFoxGameEngine.Core.Rendering
+namespace DragonGameEngine.Core.Rendering
 {
     public interface IRenderer
     {

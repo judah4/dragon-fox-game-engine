@@ -1,7 +1,7 @@
 ﻿using NReco.Logging.File;
 using System;
 
-namespace DragonFoxGameEngine.Core
+namespace DragonGameEngine.Core
 {
     public static class LoggingOptions
     {
@@ -13,7 +13,7 @@ namespace DragonFoxGameEngine.Core
             sb.Append(msg.LogLevel);
             sb.Append(' ');
             sb.Append(msg.LogName);
-            if(msg.EventId.Id != 0)
+            if (msg.EventId.Id != 0)
             {
                 sb.Append(' ');
                 sb.Append(msg.EventId.Id);
@@ -26,7 +26,7 @@ namespace DragonFoxGameEngine.Core
                 sb.Append(msg.Exception.ToString());
             }
 
-            return sb.ToString();          
+            return sb.ToString();
         }
     }
 }
