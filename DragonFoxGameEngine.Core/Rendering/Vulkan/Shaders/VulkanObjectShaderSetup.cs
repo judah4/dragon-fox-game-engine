@@ -2,7 +2,6 @@
 using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonFoxGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using Microsoft.Extensions.Logging;
-using Silk.NET.OpenAL;
 using Silk.NET.Vulkan;
 using System;
 
@@ -202,6 +201,52 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan.Shaders
         {
             var imageIndex = context.ImageIndex;
             _pipelineSetup.PipelineBind(context, context.GraphicsCommandBuffers![imageIndex], PipelineBindPoint.Graphics, shader.Pipeline);
+        }
+
+        public void UpdateGlobalState(VulkanContext context, VulkanObjectShader shader)
+        {
+            var imageIndex = context.ImageIndex;
+            CommandBuffer commandBuffer = context.GraphicsCommandBuffers![imageIndex].Handle;
+            var globalDescriptor = shader.GlobalDescriptorSets[imageIndex];
+
+            //bind the global descriptor set to be updated
+            context.Vk.CmdBindDescriptorSets(commandBuffer, PipelineBindPoint.Graphics, shader.Pipeline.PipelineLayout, 0, 1, globalDescriptor, 0, default);
+
+            //configure
+            uint range = (uint)sizeof(GlobalUniformObject);
+            ulong offset = 0;
+
+            Span<GlobalUniformObject> uboData = stackalloc GlobalUniformObject[1];
+            uboData[0] = shader.GlobalUbo;
+
+            //copy data
+            _bufferSetup.BufferLoadData(context, shader.GlobalUniformBuffer, offset, range, 0, uboData);
+
+            DescriptorBufferInfo bufferInfo = new()
+            {
+                Buffer = shader.GlobalUniformBuffer.Handle,
+                Offset = offset,
+                Range = range,
+            };
+
+            var descriptorWrites = new WriteDescriptorSet[]
+            {
+                new()
+                {
+                    SType = StructureType.WriteDescriptorSet,
+                    DstSet = shader.GlobalDescriptorSets[imageIndex],
+                    DstBinding = 0,
+                    DstArrayElement = 0,
+                    DescriptorType = DescriptorType.UniformBuffer,
+                    DescriptorCount = 1,
+                    PBufferInfo = &bufferInfo,
+                },
+            };
+
+            fixed (WriteDescriptorSet* descriptorWritesPtr = descriptorWrites)
+            {
+                context.Vk.UpdateDescriptorSets(context.Device.LogicalDevice, (uint)descriptorWrites.Length, descriptorWritesPtr, 0, default);
+            }
         }
     }
 }

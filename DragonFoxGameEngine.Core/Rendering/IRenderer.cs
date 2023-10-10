@@ -1,4 +1,5 @@
 ﻿using Silk.NET.Maths;
+using System.Drawing;
 
 namespace DragonFoxGameEngine.Core.Rendering
 {
@@ -11,6 +12,8 @@ namespace DragonFoxGameEngine.Core.Rendering
 
         public bool BeginFrame(double deltaTime);
 
-        public bool EndFrame(double deltaTime);
+        public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode);
+
+        public void EndFrame(double deltaTime);
     }
 }

@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
 using Silk.NET.Maths;
-using Silk.NET.SDL;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Windowing;
@@ -211,13 +210,15 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             CreateBuffers(_context);
 
-            //TODO: Temporary test geometry
+            //TODO: Temporary test geometrydw
+
+            float trigSize = 5f;
 
             var verts = new Vertex3d[]
             {
-                new Vertex3d(new Vector3D<float>(0, -0.5f, 0)),
-                new Vertex3d(new Vector3D<float>(0.5f, 0.5f, 0)),   
-                new Vertex3d(new Vector3D<float>(0, 0.5f, 0)),
+                new Vertex3d(new Vector3D<float>(0, 0.5f, 0) * trigSize),
+                new Vertex3d(new Vector3D<float>(-0.5f, -0.5f, 0) * trigSize),
+                new Vertex3d(new Vector3D<float>(0.5f, -0.5f, 0) * trigSize),
             };
 
             // ___
@@ -379,35 +380,14 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             _context.GraphicsCommandBuffers[_context.ImageIndex] = commandBuffer;
             //we started the frame!
 
-            //TODO: Test code to draw
-            _objectShaderSetup.ObjectShaderUse(_context, _context.ObjectShader);
-
-            var vertexBuffers = new Buffer[] { _context.ObjectVertexBuffer.Handle };
-            //bind vertex buffer at offset
-            var offsets = new ulong[] { 0 };
-
-            fixed (ulong* offsetsPtr = offsets)
-            fixed (Buffer* vertexBuffersPtr = vertexBuffers)
-            {
-                _context.Vk.CmdBindVertexBuffers(commandBuffer.Handle, 0, 1, vertexBuffersPtr, offsetsPtr);
-            }
-
-            //bind index buffer at offset
-            _context.Vk.CmdBindIndexBuffer(commandBuffer.Handle, _context.ObjectIndexBuffer.Handle, 0, IndexType.Uint32);
-
-            //issue the draw. hardcode to 3 indices for now
-            _context.Vk.CmdDrawIndexed(commandBuffer.Handle, 3U, 1, 0, 0, 0);
-            //drawCall++
-            //end temp test code
-
             return true;
         }
 
-        public bool EndFrame(double deltaTime)
+        public void EndFrame(double deltaTime)
         {
             if (_context == null)
             {
-                return false;
+                return;
             }
 
             var commandBuffer = _context.GraphicsCommandBuffers![_context.ImageIndex];
@@ -458,7 +438,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             if (!VulkanUtils.ResultIsSuccess(submitResult))
             {
                 _logger.LogError($"QueueSubmit failed: {VulkanUtils.FormattedResult(submitResult)}");
-                return false;
+                return;
             }
 
             commandBuffer = _commandBufferSetup.CommandBufferUpdateSubmitted(_context, commandBuffer);
@@ -467,7 +447,44 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
 
             _swapchainSetup.Present(_context, _context.Swapchain, _context.Device.GraphicsQueue, _context.Device.PresentQueue, signalSemaphores, _context.ImageIndex);
 
-            return true;
+            return;
+        }
+
+        public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, System.Drawing.Color ambientColor, int mode)
+        {
+            var commandBuffer = _context!.GraphicsCommandBuffers![_context.ImageIndex];
+
+            _objectShaderSetup.ObjectShaderUse(_context, _context.ObjectShader);
+
+            //update the view and projection
+            var objectShader = _context.ObjectShader;
+            objectShader.GlobalUbo.Projection = projection;
+            objectShader.GlobalUbo.View = view;
+            //TODO: other ubo properties
+
+            _context.SetupBuiltinShaders(objectShader);
+
+            _objectShaderSetup.UpdateGlobalState(_context, _context.ObjectShader);
+
+            //TODO: Test code to draw
+
+            var vertexBuffers = new Buffer[] { _context.ObjectVertexBuffer.Handle };
+            //bind vertex buffer at offset
+            var offsets = new ulong[] { 0 };
+
+            fixed (ulong* offsetsPtr = offsets)
+            fixed (Buffer* vertexBuffersPtr = vertexBuffers)
+            {
+                _context.Vk.CmdBindVertexBuffers(commandBuffer.Handle, 0, 1, vertexBuffersPtr, offsetsPtr);
+            }
+
+            //bind index buffer at offset
+            _context.Vk.CmdBindIndexBuffer(commandBuffer.Handle, _context.ObjectIndexBuffer.Handle, 0, IndexType.Uint32);
+
+            //issue the draw. hardcode to 3 indices for now
+            _context.Vk.CmdDrawIndexed(commandBuffer.Handle, 3U, 1, 0, 0, 0);
+            //drawCall++
+            //end temp test code
         }
 
         private void PopulateDebugMessengerCreateInfo(ref DebugUtilsMessengerCreateInfoEXT createInfo)
@@ -747,7 +764,7 @@ namespace DragonFoxGameEngine.Core.Rendering.Vulkan
             context.SetupBufferOffsets(0, 0);
         }
 
-        void UploadDataRange<T>(VulkanContext context, CommandPool pool, Fence fence, Queue queue, VulkanBuffer buffer, ulong offset, ulong size, Span<T> data)
+        private void UploadDataRange<T>(VulkanContext context, CommandPool pool, Fence fence, Queue queue, VulkanBuffer buffer, ulong offset, ulong size, Span<T> data)
         {
             //Create a host visible staging buffer to upload to. Mark it as the source of the transfer
             var flags = MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit;
