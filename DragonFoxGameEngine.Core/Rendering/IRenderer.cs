@@ -1,4 +1,5 @@
-﻿using Silk.NET.Maths;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+using Silk.NET.Maths;
 using System.Drawing;
 
 namespace DragonGameEngine.Core.Rendering
@@ -15,5 +16,7 @@ namespace DragonGameEngine.Core.Rendering
         public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode);
 
         public void EndFrame(double deltaTime);
+
+        public void UpdateObject(Matrix4X4<float> model);
     }
 }

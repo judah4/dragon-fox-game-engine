@@ -222,9 +222,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 new Vertex3d(new Vector3D<float>(0.5f, -0.5f, 0) * trigSize),
             };
 
-            // ___
-            // | /
-            // |/
+            // ____
+            // \  /
+            //  \/
 
             var indices = new uint[]
             {
@@ -453,9 +453,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, System.Drawing.Color ambientColor, int mode)
         {
-            var commandBuffer = _context!.GraphicsCommandBuffers![_context.ImageIndex];
-
-            _objectShaderSetup.ObjectShaderUse(_context, _context.ObjectShader);
+            _objectShaderSetup.ObjectShaderUse(_context!, _context!.ObjectShader);
 
             //update the view and projection
             var objectShader = _context.ObjectShader;
@@ -466,6 +464,13 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _context.SetupBuiltinShaders(objectShader);
 
             _objectShaderSetup.UpdateGlobalState(_context, _context.ObjectShader);
+        }
+
+        public void UpdateObject(Matrix4X4<float> model)
+        {
+            _objectShaderSetup.UpdateObject(_context!, model);
+
+            var commandBuffer = _context!.GraphicsCommandBuffers![_context.ImageIndex];
 
             //TODO: Test code to draw
 

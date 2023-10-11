@@ -1,4 +1,5 @@
 ﻿using DragonGameEngine.Core.Rendering;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using System.Drawing;
@@ -38,6 +39,11 @@ namespace DragonGameEngine.Core.Rendering.Headless
 
         public void Shutdown()
         {
+        }
+
+        public void UpdateObject(Matrix4X4<float> model)
+        {
+            //might want to use this for interest area later
         }
 
     }

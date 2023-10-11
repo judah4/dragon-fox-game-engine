@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System.Drawing;
@@ -52,6 +53,11 @@ namespace DragonGameEngine.Core.Rendering
         public void EndFrame(double deltaTime)
         {
             _renderer.EndFrame(deltaTime);
+        }
+
+        public void UpdateObject( Matrix4X4<float> model)
+        {
+            _renderer.UpdateObject(model);
         }
     }
 }

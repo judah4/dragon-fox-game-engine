@@ -16,6 +16,7 @@ namespace DragonGameEngine.Core.Rendering
         private readonly ILogger _logger;
         private readonly IRenderer _rendererBackend;
         private float posZ = -1.0f;
+        private float rotationAngle = 0f;
 
         public RendererFrontend(ApplicationConfig config, IWindow window, ILogger logger, IRenderer renderer)
         {
@@ -51,9 +52,14 @@ namespace DragonGameEngine.Core.Rendering
             {
                 var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45f), (float)1280f / 720, 0.1f, 1000.0f);
                 posZ += -1.0f * (float)packet.DeltaTime;
+                //view is camera's position and orientation. Simple for now
                 var view = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 0, posZ));
-                //var view = Matrix4X4.CreateLookAt(CameraPosition, CameraPosition + CameraFront, CameraUp);
                 _rendererBackend.UpdateGlobalState(projection, view, Vector3D<float>.Zero, Color.White, 0);
+                rotationAngle += 1f * (float)packet.DeltaTime;
+                var rotation = Quaternion<float>.CreateFromAxisAngle(new Vector3D<float>(0, 0, 1), rotationAngle);
+                // model is the object's matrix. Postion, rotation, and scale
+                var model = Matrix4X4.CreateFromQuaternion(rotation);
+                _rendererBackend.UpdateObject(model);
 
                 _rendererBackend.EndFrame(packet.DeltaTime);
             }

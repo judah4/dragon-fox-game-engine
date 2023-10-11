@@ -1,9 +1,8 @@
 ﻿using DragonGameEngine.Core.Maths;
-using DragonGameEngine.Core.Rendering;
-using DragonGameEngine.Core.Rendering.Vulkan;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using Microsoft.Extensions.Logging;
+using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 using System;
 
@@ -249,6 +248,17 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             {
                 context.Vk.UpdateDescriptorSets(context.Device.LogicalDevice, (uint)descriptorWrites.Length, descriptorWritesPtr, 0, default);
             }
+        }
+
+        public void UpdateObject(VulkanContext context, Matrix4X4<float> model)
+        {
+            var imageIndex = context.ImageIndex;
+            CommandBuffer commandBuffer = context.GraphicsCommandBuffers![imageIndex].Handle;
+
+            // Used to push data that changes often that is usaged in all the shaders.
+            // I think I can use this for time of day later
+            // 128 bytes limited. Maybe not then for time of day
+            context.Vk.CmdPushConstants<Matrix4X4<float>>(commandBuffer, context.ObjectShader.Pipeline.PipelineLayout, ShaderStageFlags.VertexBit, 0, (uint)sizeof(Matrix4X4<float>), ref model);
         }
     }
 }
