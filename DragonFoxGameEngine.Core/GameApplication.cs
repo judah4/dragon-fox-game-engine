@@ -50,8 +50,17 @@ namespace DragonGameEngine.Core
 
         public void Init()
         {
-            _renderer.Init();
-            _game.Initialize(_window);
+            try
+            {
+                _renderer.Init();
+                _game.Initialize(_window);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, e.Message);
+                throw;
+            }
+
         }
 
         private void OnResize(Vector2D<int> size)
@@ -68,7 +77,14 @@ namespace DragonGameEngine.Core
 
         public void Shutdown()
         {
-            _game.Shutdown();
+            try
+            {
+                _game.Shutdown();
+            }
+            catch(Exception e)
+            {
+                _logger.LogError(e, e.Message);
+            }
             _renderer.Shutdown();
         }
 

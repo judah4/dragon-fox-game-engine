@@ -45,9 +45,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 MemoryTypeIndex = memoryIndex,
             };
             DeviceMemory memory = default;
-            if (context.Vk.AllocateMemory(context.Device.LogicalDevice, allocateInfo, null, &memory) != Result.Success)
+            var allocMemoryResult = context.Vk.AllocateMemory(context.Device.LogicalDevice, allocateInfo, context.Allocator, &memory);
+            if (allocMemoryResult != Result.Success)
             {
-                throw new Exception("Failed to allocate buffer memory!");
+                throw new Exception($"Failed to allocate buffer memory! {allocMemoryResult}");
             }
 
             var vulkanBuffer = new VulkanBuffer()

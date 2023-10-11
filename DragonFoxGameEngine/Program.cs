@@ -77,13 +77,6 @@ namespace DragonFoxGameEngine
                 var dataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
                 var logPath = Path.Combine(dataPath, "dragonfox/game1/output.log");
                 //https://github.com/nreco/logging
-#if DEBUG
-                builder.AddFile("app.log", fileLoggerOpts => {
-                    fileLoggerOpts.Append = false;
-                    fileLoggerOpts.MinLevel = LogLevel.Debug;
-                    fileLoggerOpts.FormatLogEntry = LoggingOptions.FormatLogMessage;
-                });
-#endif
                 builder.AddFile(logPath, fileLoggerOpts => {
                     fileLoggerOpts.Append = false;
                     fileLoggerOpts.MinLevel = LogLevel.Debug;

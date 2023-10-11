@@ -45,6 +45,10 @@ namespace DragonGameEngine.Core
             _nameIndex = EngineRandom.Random.Next(GAME_ENGINE_NAMES.Length);
         }
 
+        /// <summary>
+        /// Get the game engine name.
+        /// </summary>
+        /// <returns></returns>
         public static string GetGameEngineName()
         {
             return GAME_ENGINE_NAMES[_nameIndex];

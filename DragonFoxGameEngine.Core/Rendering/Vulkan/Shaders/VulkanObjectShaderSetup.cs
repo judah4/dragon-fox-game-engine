@@ -165,9 +165,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 
                 fixed (DescriptorSet* descriptorSetsPtr = objectShader.GlobalDescriptorSets)
                 {
-                    if (context.Vk.AllocateDescriptorSets(context.Device.LogicalDevice, allocateInfo, descriptorSetsPtr) != Result.Success)
+                    var allocDescriptorSetsResult = context.Vk.AllocateDescriptorSets(context.Device.LogicalDevice, allocateInfo, descriptorSetsPtr);
+                    if (allocDescriptorSetsResult != Result.Success)
                     {
-                        throw new Exception("Failed to allocate descriptor sets!");
+                        throw new Exception($"Failed to allocate descriptor sets! {allocDescriptorSetsResult}");
                     }
                 }
             }
