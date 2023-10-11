@@ -1,6 +1,7 @@
 ﻿using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
+using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 using System;
 
@@ -124,7 +125,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     InputRate = VertexInputRate.Vertex, //move to next data entry for each vertext
                 };
 
-
                 //attributes
                 PipelineVertexInputStateCreateInfo vertexInputInfo = new()
                 {
@@ -143,7 +143,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     PrimitiveRestartEnable = false,
                 };
 
-                //pipeline layout
+                // Descriptor set layouts
                 PipelineLayoutCreateInfo pipelineLayoutInfo = new()
                 {
                     SType = StructureType.PipelineLayoutCreateInfo,
@@ -151,6 +151,18 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     PSetLayouts = descriptorSetLayoutsPtr,
                 };
 
+                //Push constants
+                PushConstantRange pushConstant = new PushConstantRange()
+                {
+                    StageFlags = ShaderStageFlags.VertexBit,
+                    Offset = (uint)sizeof(Matrix4X4<float>) * 0,
+                    Size = (uint)sizeof(Matrix4X4<float>) * 2,
+                };
+
+                pipelineLayoutInfo.PushConstantRangeCount = 1;
+                pipelineLayoutInfo.PPushConstantRanges = &pushConstant;
+
+                //pipeline layout
                 if (context.Vk.CreatePipelineLayout(context.Device.LogicalDevice, pipelineLayoutInfo, context.Allocator, out var pipelineLayout) != Result.Success)
                 {
                     throw new Exception("Failed to create pipeline layout!");
