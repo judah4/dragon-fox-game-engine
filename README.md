@@ -38,6 +38,6 @@ Kitsune Engine
 
 ```SHELL
 
-dotnet publish -c Release -r win-x64 --self-contained true
+dotnet publish -c Release -r win-x64 -p:PublishSingleFile=true --self-contained true
 
 ```

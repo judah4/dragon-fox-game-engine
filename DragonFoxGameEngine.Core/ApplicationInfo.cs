@@ -47,7 +47,7 @@ namespace DragonGameEngine.Core
 
         public static string GetGameEngineName()
         {
-            return GAME_ENGINE_NAMES[EngineRandom.Random.Next(_nameIndex)];
+            return GAME_ENGINE_NAMES[_nameIndex];
         }
     }
 }
