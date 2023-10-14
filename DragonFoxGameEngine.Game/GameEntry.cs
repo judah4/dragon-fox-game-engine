@@ -29,6 +29,10 @@ namespace DragonFoxGameEngine.Game
         private Vector3D<float> _cameraEuler;
         private bool _cameraViewDirty;
 
+        //Used to track change in mouse movement to allow for moving of the Camera
+        private Vector2D<float> _lastMousePosition;
+        private float _lastDeltaTime;
+
         public GameEntry(ILogger logger)
         {
             _logger = logger;
@@ -43,6 +47,12 @@ namespace DragonFoxGameEngine.Game
             _gamepad = input.Gamepads.FirstOrDefault();
 
             _keyboard.KeyDown += KeyDown;
+            for (int i = 0; i < input.Mice.Count; i++)
+            {
+                input.Mice[i].Cursor.CursorMode = CursorMode.Raw;
+                input.Mice[i].MouseMove += OnMouseMove;
+            }
+            //so much temp input
 
             _cameraPosition = new Vector3D<float>(0, 0, 10);
             _cameraEuler = Vector3D<float>.Zero;
@@ -54,6 +64,7 @@ namespace DragonFoxGameEngine.Game
 
         public void Update(double deltaTime)
         {
+            _lastDeltaTime = (float)deltaTime;
             var rotateSpeedRad = 2.5f * (float)deltaTime;
 
             var moveSpeed = 5f * (float)deltaTime;
@@ -147,6 +158,27 @@ namespace DragonFoxGameEngine.Game
             }
         }
 
+        private void OnMouseMove(IMouse mouse, System.Numerics.Vector2 position)
+        {
+            var rotateSpeedRad = 2.5f * _lastDeltaTime;
+
+            var mousePos = new Vector2D<float>(position.X, position.Y);
+            if (_lastMousePosition == default)
+            {
+                _lastMousePosition = mousePos;
+            }
+            else
+            {
+                var xOffset = (position.X - _lastMousePosition.X) * rotateSpeedRad;
+                var yOffset = (position.Y - _lastMousePosition.Y) * rotateSpeedRad;
+                _lastMousePosition = mousePos;
+                if(mouse.IsButtonPressed(MouseButton.Right))
+                {
+                    RotateCamera(new Vector3D<float>(-yOffset, -xOffset, 0));
+                }
+            }
+        }
+
         private void RecalculateCameraViewMatrix()
         {
             if(!_cameraViewDirty)
@@ -154,7 +186,6 @@ namespace DragonFoxGameEngine.Game
                 return;
             }
 
-            //todo: X and Y might need to be flipped
             var rotation = Matrix4X4.CreateFromYawPitchRoll(_cameraEuler.Y, _cameraEuler.X, _cameraEuler.Z);
             var translation = Matrix4X4.CreateTranslation(_cameraPosition);
 
