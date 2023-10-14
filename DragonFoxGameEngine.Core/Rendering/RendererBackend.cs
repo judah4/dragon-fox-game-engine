@@ -1,7 +1,9 @@
-using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+using DragonGameEngine.Core.Resources;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
+using System;
 using System.Drawing;
 
 namespace DragonGameEngine.Core.Rendering
@@ -18,6 +20,8 @@ namespace DragonGameEngine.Core.Rendering
         private readonly ILogger _logger;
         private readonly IRenderer _renderer;
 
+        public Texture DefaultDiffuse => _renderer.DefaultDiffuse;
+
         public RendererBackend(IWindow window, ILogger logger, IRenderer renderer)
         {
             _window = window;
@@ -25,9 +29,9 @@ namespace DragonGameEngine.Core.Rendering
             _renderer = renderer;
         }
 
-        public void Init()
+        public void Init(Texture defaultTexture)
         {
-            _renderer.Init();
+            _renderer.Init(defaultTexture);
         }
 
         public void Shutdown()

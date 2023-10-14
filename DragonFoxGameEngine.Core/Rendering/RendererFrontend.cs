@@ -21,17 +21,33 @@ namespace DragonGameEngine.Core.Rendering
 
         private readonly ILogger _logger;
         private readonly IRenderer _rendererBackend;
-        private float posZ = -1.0f;
+
         private RenderSystemState _systemState;
         private float rotationAngle = 0f;
 
-        private Texture? _defaultTexture;
+        private readonly Texture _defaultTexture;
+        private readonly Texture _testDiffuse; //temp texture
+        private int _testTextureChoice;
+
         public RendererFrontend(ApplicationConfig config, IWindow window, ILogger logger, IRenderer renderer)
         {
             _config = config;
             _window = window;
             _logger = logger;
             _rendererBackend = renderer;
+
+            _defaultTexture = new Texture(
+                0, //id
+                default,
+                EntityIdService.INVALID_ID);
+            //manually set to invalid generation for default
+
+            //TODO: Load other textures
+            _testDiffuse = new Texture(
+                1,
+                default,
+                EntityIdService.INVALID_ID);
+
         }
 
         public RendererFrontend(ApplicationConfig config, IWindow window, ILogger logger)
@@ -41,7 +57,8 @@ namespace DragonGameEngine.Core.Rendering
 
         public void Init()
         {
-            _rendererBackend.Init();
+            _rendererBackend.Init(_defaultTexture);
+
             var initialView = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 0, 10));
             Matrix4X4.Invert(initialView, out initialView);
 
@@ -53,6 +70,7 @@ namespace DragonGameEngine.Core.Rendering
 
         public void Shutdown()
         {
+            DestroyTexture(_testDiffuse);
             DestroyTexture(_defaultTexture);
             _rendererBackend.Shutdown();
         }
@@ -143,8 +161,7 @@ namespace DragonGameEngine.Core.Rendering
                     }
                 }
             }
-            _defaultTexture = new Texture(
-                0, //id
+            _defaultTexture.UpdateTexture(
                 CreateTexture(
                     "default",
                     false,
@@ -155,11 +172,6 @@ namespace DragonGameEngine.Core.Rendering
                 EntityIdService.INVALID_ID);
             //manually set to invalid generation for default
 
-            //TODO: Load other textures
-            _testDiffuse = new Texture(
-                1,
-                default,
-                EntityIdService.INVALID_ID);
         }
 
         private Result<bool> LoadTexture(string textureName, Texture texture)
@@ -227,5 +239,22 @@ namespace DragonGameEngine.Core.Rendering
             return new RendererBackend(window, logger, renderer);
         }
 
+        public void CycleTestTexture()
+        {
+            var textureNames = new string[]
+            {
+                "cobblestone",
+                "paving",
+                "paving2",
+                "CoffeeDragon",
+            };
+
+            _testTextureChoice++;
+            _testTextureChoice %= textureNames.Length;
+
+            LoadTexture(textureNames[_testTextureChoice], _testDiffuse);
+
+            throw new NotImplementedException();
+        }
     }
 }

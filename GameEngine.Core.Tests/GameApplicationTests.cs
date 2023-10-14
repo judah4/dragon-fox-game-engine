@@ -1,5 +1,6 @@
 using DragonGameEngine.Core;
 using DragonGameEngine.Core.Rendering;
+using DragonGameEngine.Core.Resources;
 using Silk.NET.Input;
 using Silk.NET.Windowing;
 
@@ -23,7 +24,7 @@ namespace GameEngine.Core.Tests
 
             gameApp.Init();
 
-            rendererMock.Verify((renderer) => renderer.Init(), Times.Once());
+            rendererMock.Verify((renderer) => renderer.Init(It.IsAny<Texture>()), Times.Once());
             gameEntryMock.Verify((gameEntry) => gameEntry.Initialize(It.IsAny<IWindow>(), It.IsAny<RendererFrontend>()), Times.Once());
         }
 

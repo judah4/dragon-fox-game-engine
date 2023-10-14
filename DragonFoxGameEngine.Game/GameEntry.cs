@@ -141,6 +141,10 @@ namespace DragonFoxGameEngine.Game
             {
                 _window!.Close();
             }
+            if(key == Key.T)
+            {
+                _renderer!.CycleTestTexture();
+            }
         }
 
         private void RecalculateCameraViewMatrix()

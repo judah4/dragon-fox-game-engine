@@ -1,4 +1,4 @@
-﻿using DragonGameEngine.Core.Ecs;
+using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Exceptions.Vulkan;
 using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
@@ -215,11 +215,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             objectShader.Pipeline = vulkanPipeline;
 
             //create global uniform buffer
+            MemoryPropertyFlags deviceLocalBits = context.Device.SupportsDeviceLocalHostVisible ? MemoryPropertyFlags.DeviceLocalBit : MemoryPropertyFlags.None;
             var globalUboBuffer = _bufferSetup.BufferCreate(
                 context,
                 (ulong)(sizeof(GlobalUniformObject) * 3), //make this large enough for each frame
                 BufferUsageFlags.TransferDstBit | BufferUsageFlags.UniformBufferBit,
-                MemoryPropertyFlags.DeviceLocalBit | MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit,
+                MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit | deviceLocalBits,
                 true);
             objectShader.GlobalUniformBuffer = globalUboBuffer;
 
@@ -255,7 +256,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 context,
                 (ulong)sizeof(ObjectUniformObject),
                 BufferUsageFlags.TransferDstBit | BufferUsageFlags.UniformBufferBit,
-                MemoryPropertyFlags.DeviceLocalBit | MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit,
+                MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit,
                 true);
             objectShader.ObjectUniformBuffer = localUboBuffer;
 

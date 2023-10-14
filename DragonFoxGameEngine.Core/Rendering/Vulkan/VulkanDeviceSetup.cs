@@ -299,6 +299,17 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 var features = context.Vk.GetPhysicalDeviceFeatures(pDevice);
                 var memoryProperties = context.Vk.GetPhysicalDeviceMemoryProperties(pDevice);
 
+                bool supportsDeviceLocalHostVisible = false;
+                for(int cnt = 0; cnt < memoryProperties.MemoryTypeCount;cnt++)
+                {
+                    if (((memoryProperties.MemoryTypes[cnt].PropertyFlags & MemoryPropertyFlags.HostVisibleBit) != 0) 
+                        && ((memoryProperties.MemoryTypes[cnt].PropertyFlags & MemoryPropertyFlags.DeviceLocalBit) != 0))
+                    {
+                        supportsDeviceLocalHostVisible = true;
+                        break;
+                    }
+                }
+
                 var result = DeviceMeetsRequirements(pDevice, context, context.Surface!.Value, properties, features, requirements);
                 if (!result.HasValue)
                 {
@@ -331,6 +342,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     Properties = properties,
                     Features = features,
                     Memory = memoryProperties,
+                    SupportsDeviceLocalHostVisible = supportsDeviceLocalHostVisible,
                 });
                 return; //we have a device!
 

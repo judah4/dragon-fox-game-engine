@@ -1,4 +1,5 @@
 using DragonGameEngine.Core.Rendering;
+using DragonGameEngine.Core.Resources;
 using Silk.NET.Windowing;
 
 namespace GameEngine.Core.Tests
@@ -18,7 +19,7 @@ namespace GameEngine.Core.Tests
 
             frontend.Init();
 
-            rendererMock.Verify((renderer) => renderer.Init(), Times.Once());
+            rendererMock.Verify((renderer) => renderer.Init(It.IsAny<Texture>()), Times.Once());
         }
 
         [TestMethod]

@@ -24,7 +24,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         private readonly string _applicationName;
         private readonly IWindow _window;
 
-        private VulkanContext? _context;
         private readonly VulkanDeviceSetup _deviceSetup;
         private readonly VulkanSwapchainSetup _swapchainSetup;
         private readonly VulkanImageSetup _imageSetup;
@@ -48,7 +47,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             "VK_LAYER_KHRONOS_validation"
         };
 
+        private VulkanContext? _context;
+        private Texture? _defaultTexture;
+
         private uint _tempIndiciesCount;
+
+        public Texture DefaultDiffuse => _defaultTexture!;
 
         public VulkanBackendRenderer(string applicationName, IWindow window, ILogger logger)
         {
@@ -71,12 +75,13 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         }
 
-        public void Init()
+        public void Init(Texture defaultTexture)
         {
             if (_context != null)
             {
                 throw new EngineException("Vulkan is already initialized!");
             }
+            _defaultTexture = defaultTexture;
 
             var vk = Vk.GetApi();
 
@@ -599,7 +604,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             //default some values again;
             texture.ResetGeneration();
-            return;
+            texture.UpdateTexture(default, texture.Generation);
         }
 
         private void PopulateDebugMessengerCreateInfo(ref DebugUtilsMessengerCreateInfoEXT createInfo)

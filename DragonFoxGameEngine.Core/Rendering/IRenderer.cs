@@ -1,4 +1,4 @@
-using DragonGameEngine.Core.Resources;
+﻿using DragonGameEngine.Core.Resources;
 using Silk.NET.Maths;
 using System;
 using System.Drawing;
@@ -7,7 +7,16 @@ namespace DragonGameEngine.Core.Rendering
 {
     public interface IRenderer
     {
-        public void Init();
+        public Texture DefaultDiffuse { get; }
+
+        /// <summary>
+        /// Init renderer
+        /// </summary>
+        /// <remarks>
+        /// I'll probably make a config for stuff to pass in here like the textures.
+        /// </remarks>
+        /// <param name="defaultTexture"></param>
+        public void Init(Texture defaultTexture);
         public void Shutdown();
 
         public void Resized(Vector2D<uint> size);
