@@ -262,7 +262,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             DestroyBuffers(_context);
 
-            _objectShaderSetup.Destroy(_context, _context.ObjectShader);
+            _objectShaderSetup.Destroy(_context, _context.ObjectShader!);
 
             DestroySemaphoresAndFences();
 
@@ -471,14 +471,14 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _objectShaderSetup.ShaderUse(_context!, _context!.ObjectShader!);
 
             //update the view and projection
-            var objectShader = _context.ObjectShader;
+            var objectShader = _context.ObjectShader!;
             objectShader.GlobalUbo.Projection = projection;
             objectShader.GlobalUbo.View = view;
             //TODO: other ubo properties
 
             _context.SetupBuiltinShaders(objectShader);
 
-            _objectShaderSetup.UpdateGlobalState(_context, _context.ObjectShader, _context.FrameDeltaTime);
+            _objectShaderSetup.UpdateGlobalState(_context, objectShader, _context.FrameDeltaTime);
         }
 
         public void UpdateObject(GeometryRenderData data)

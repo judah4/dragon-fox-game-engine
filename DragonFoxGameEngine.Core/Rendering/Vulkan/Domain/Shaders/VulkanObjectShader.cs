@@ -52,8 +52,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
 
         public Texture DefaultDiffuse { get; init; }
 
-        public VulkanObjectShader()
+        public VulkanObjectShader(Texture defaultDiffuse)
         {
+            DefaultDiffuse = defaultDiffuse;
             ShaderStages = new VulkanShaderStage[OBJECT_SHADER_STAGE_COUNT];
             GlobalDescriptorSets = new DescriptorSet[3];
             ObjectStates = new VulkanObjectShaderObjectState[MAX_OBJECT_COUNT];

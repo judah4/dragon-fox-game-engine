@@ -9,9 +9,9 @@ namespace DragonGameEngine.Core.Rendering.Headless
     public class HeadlessRenderer : IRenderer
     {
         private readonly ILogger _logger;
-        private Texture _defaultTexture;
+        private Texture? _defaultTexture;
 
-        public Texture DefaultDiffuse => _defaultTexture;
+        public Texture DefaultDiffuse => _defaultTexture!;
 
         public HeadlessRenderer(ILogger logger)
         {

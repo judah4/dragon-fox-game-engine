@@ -36,10 +36,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             var stageTypesNames = new string[VulkanObjectShader.OBJECT_SHADER_STAGE_COUNT] { "vert", "frag" };
             var stageTypes = new ShaderStageFlags[VulkanObjectShader.OBJECT_SHADER_STAGE_COUNT] { ShaderStageFlags.VertexBit, ShaderStageFlags.FragmentBit };
 
-            var objectShader = new VulkanObjectShader() 
-            {
-                DefaultDiffuse = defaultDiffuse,
-            };
+            var objectShader = new VulkanObjectShader(defaultDiffuse);
             for (int cnt = 0; cnt < VulkanObjectShader.OBJECT_SHADER_STAGE_COUNT; cnt++)
             {
                 var shaderModuleResult = _shaderSetup.CreateShaderModule(context, BUILTIN_SHADER_NAME_OBJECT, stageTypesNames[cnt], stageTypes[cnt], cnt);
@@ -491,7 +488,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 
         public uint AcquireResources(VulkanContext context)
         {
-            var shader = context.ObjectShader;
+            var shader = context.ObjectShader!;
             var objectId = shader.ObjectUniformBufferIndex;
             shader.ObjectUniformBufferIndex++;
             context.SetupBuiltinShaders(shader);
@@ -538,7 +535,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
         }
         public void ReleaseResources(VulkanContext context, uint objectId)
         {
-            var shader = context.ObjectShader;
+            var shader = context.ObjectShader!;
             var objectState = shader.ObjectStates[objectId];
 
             var result = context.Vk.FreeDescriptorSets(context.Device.LogicalDevice, shader.ObjectDescriptorPool, (uint)objectState.DescriptorSets.Length, objectState.DescriptorSets);
