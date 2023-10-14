@@ -32,6 +32,7 @@ namespace DragonFoxGameEngine.Game
         //Used to track change in mouse movement to allow for moving of the Camera
         private Vector2D<float> _lastMousePosition;
         private float _lastDeltaTime;
+        private const float THUMBSTICK_DEADZONE = 0.01f;
 
         public GameEntry(ILogger logger)
         {
@@ -49,7 +50,7 @@ namespace DragonFoxGameEngine.Game
             _keyboard.KeyDown += KeyDown;
             for (int i = 0; i < input.Mice.Count; i++)
             {
-                input.Mice[i].Cursor.CursorMode = CursorMode.Raw;
+                input.Mice[i].Cursor.CursorMode = CursorMode.Normal;
                 input.Mice[i].MouseMove += OnMouseMove;
             }
             //so much temp input
@@ -57,6 +58,11 @@ namespace DragonFoxGameEngine.Game
             _cameraPosition = new Vector3D<float>(0, 0, 10);
             _cameraEuler = Vector3D<float>.Zero;
             _cameraViewDirty = true;
+
+            if(_gamepad != null)
+            {
+                _gamepad.ThumbstickMoved += OnThumbstickMoved;
+            }
 
 
             _logger.LogDebug("Game initialized!");
@@ -80,6 +86,12 @@ namespace DragonFoxGameEngine.Game
                 var backward = -MathUtils.ForwardFromMatrix(_view);
                 velocity += backward;
             }
+            if (_gamepad != null && Math.Abs(_gamepad.Thumbsticks[0].Y) > THUMBSTICK_DEADZONE)
+            {
+                //pad is inverted I guess
+                var forward = MathUtils.ForwardFromMatrix(_view);
+                velocity += (forward * -_gamepad.Thumbsticks[0].Y);
+            }
             if (_keyboard!.IsKeyPressed(Key.A))
             {
                 var left = -MathUtils.RightFromMatrix(_view);
@@ -90,6 +102,12 @@ namespace DragonFoxGameEngine.Game
                 var right = MathUtils.RightFromMatrix(_view);
                 velocity += right;
             }
+            if (_gamepad != null && Math.Abs(_gamepad.Thumbsticks[0].X) > THUMBSTICK_DEADZONE)
+            {
+                //pad is inverted I guess
+                var right = MathUtils.RightFromMatrix(_view);
+                velocity += (right * _gamepad.Thumbsticks[0].X);
+            }
 
             if (_keyboard.IsKeyPressed(Key.Space))
             {
@@ -98,6 +116,18 @@ namespace DragonFoxGameEngine.Game
             if (_keyboard.IsKeyPressed(Key.ControlLeft))
             {
                 velocity.Y += -1.0f;
+            }
+
+            if(_gamepad != null && _gamepad.Triggers.Count >= 2)
+            {
+                if (_gamepad.Triggers[1].Position > THUMBSTICK_DEADZONE)
+                {
+                    velocity.Y += _gamepad.Triggers[1].Position;
+                }
+                if (_gamepad.Triggers[0].Position > THUMBSTICK_DEADZONE)
+                {
+                    velocity.Y -= _gamepad.Triggers[0].Position;
+                }
             }
 
             if (velocity != Vector3D<float>.Zero)
@@ -120,6 +150,15 @@ namespace DragonFoxGameEngine.Game
             if (_keyboard.IsKeyPressed(Key.Down))
             {
                 RotateCamera(new Vector3D<float>(-rotateSpeedRad, 0, 0));
+            }
+            if (_gamepad != null && _gamepad.Thumbsticks[1].Position > THUMBSTICK_DEADZONE)
+            {
+                var thumbstick = _gamepad.Thumbsticks[1];
+                _logger.LogDebug("Thumb {thumbIndex} X:{x}, Y:{y}, Pos:{thumbPos}", thumbstick.Index, thumbstick.X, thumbstick.Y, thumbstick.Position);
+
+                var xOffset = thumbstick.X * rotateSpeedRad;
+                var yOffset = thumbstick.Y * rotateSpeedRad;
+                RotateCamera(new Vector3D<float>(-yOffset, -xOffset, 0));
             }
 
             RecalculateCameraViewMatrix();
@@ -174,8 +213,33 @@ namespace DragonFoxGameEngine.Game
                 _lastMousePosition = mousePos;
                 if(mouse.IsButtonPressed(MouseButton.Right))
                 {
+                    mouse.Cursor.CursorMode = CursorMode.Raw;
                     RotateCamera(new Vector3D<float>(-yOffset, -xOffset, 0));
                 }
+                else
+                {
+                    //this needs to be in state at some point
+                    mouse.Cursor.CursorMode = CursorMode.Normal;
+                }
+            }
+        }
+
+
+        private void OnThumbstickMoved(IGamepad gamepad, Thumbstick thumbstick)
+        {
+            var rotateSpeedRad = 2.5f * _lastDeltaTime;
+            _logger.LogDebug("Thumb {thumbIndex} X:{x}, Y:{y}, Pos:{thumbPos}", thumbstick.Index, thumbstick.X, thumbstick.Y, thumbstick.Position);
+            if(thumbstick.Position < THUMBSTICK_DEADZONE)
+            {
+                _logger.LogDebug("In Deadzone");
+                return;
+            }
+            var velocity = Vector3D<float>.Zero;
+            if(thumbstick.Index == 1)
+            {
+                var xOffset = thumbstick.X * rotateSpeedRad;
+                var yOffset = thumbstick.Y * rotateSpeedRad;
+                //RotateCamera(new Vector3D<float>(yOffset, xOffset, 0));
             }
         }
 
