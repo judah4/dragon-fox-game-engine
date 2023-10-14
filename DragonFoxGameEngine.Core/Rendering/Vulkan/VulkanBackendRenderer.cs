@@ -1,7 +1,10 @@
 using DragonGameEngine.Core;
+using DragonGameEngine.Core.Exceptions;
+using DragonGameEngine.Core.Exceptions.Vulkan;
 using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonGameEngine.Core.Rendering.Vulkan.Shaders;
+using DragonGameEngine.Core.Resources;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
@@ -44,6 +47,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 {
             "VK_LAYER_KHRONOS_validation"
         };
+
+        private uint _tempIndiciesCount;
 
         public VulkanBackendRenderer(string applicationName, IWindow window, ILogger logger)
         {
@@ -202,7 +207,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             CreateSemaphoresAndFences();
 
-            var objectShader = _objectShaderSetup.ObjectShaderCreate(_context);
+            var objectShader = _objectShaderSetup.Create(_context, DefaultDiffuse);
             _context.SetupBuiltinShaders(objectShader);
 
             CreateBuffers(_context);
@@ -234,6 +239,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //update UpdateObject indicies if adding more
             UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectVertexBuffer, 0, (ulong)(sizeof(Vertex3d) * verts.LongLength), verts.AsSpan());
             UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectIndexBuffer, 0, (ulong)(sizeof(uint) * indices.LongLength), indices.AsSpan());
+            
+            var objectId = _objectShaderSetup.AcquireResources(_context);
+            
             //todo: end test code.
 
             _logger.LogInformation($"Vulkan initialized.");
@@ -249,7 +257,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             DestroyBuffers(_context);
 
-            _objectShaderSetup.ObjectShaderDestroy(_context, _context.ObjectShader);
+            _objectShaderSetup.Destroy(_context, _context.ObjectShader);
 
             DestroySemaphoresAndFences();
 
@@ -455,7 +463,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, System.Drawing.Color ambientColor, int mode)
         {
-            _objectShaderSetup.ObjectShaderUse(_context!, _context!.ObjectShader);
+            _objectShaderSetup.ShaderUse(_context!, _context!.ObjectShader);
 
             //update the view and projection
             var objectShader = _context.ObjectShader;
@@ -493,6 +501,105 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _context.Vk.CmdDrawIndexed(commandBuffer.Handle, _tempIndiciesCount, 1, 0, 0, 0);
             //drawCall++
             //end temp test code
+        }
+
+        public InnerTexture CreateTexture(string name, bool autoRelease, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
+        {
+            if(_context == null)
+            {
+                return default;
+            }
+            var imageSize = size.X * size.Y * channelCount;
+
+            //Assume 8 bits per channel
+            var imageFormat = Format.R8G8B8A8Unorm;
+
+            var usage = BufferUsageFlags.TransferSrcBit;
+            var memFlags = MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit;
+            var staging = _bufferSetup.BufferCreate(_context, imageSize, usage, memFlags, true);
+
+            _bufferSetup.BufferLoadData(_context, staging, 0, imageSize, 0, pixels);
+
+            //lots of assumptions
+            var image = _imageSetup.ImageCreate(
+                _context,
+                ImageType.Type2D,
+                size, imageFormat,
+                ImageTiling.Optimal,
+                ImageUsageFlags.TransferSrcBit | ImageUsageFlags.TransferDstBit | ImageUsageFlags.SampledBit | ImageUsageFlags.ColorAttachmentBit,
+                MemoryPropertyFlags.DeviceLocalBit,
+                true,
+                ImageAspectFlags.ColorBit);
+
+            var pool = _context.Device.GraphicsCommandPool;
+            var queue = _context.Device.GraphicsQueue;
+            var tempBuffer = _commandBufferSetup.CommandBufferAllocateAndBeginSingleUse(_context, pool);
+
+            _imageSetup.TransitionLayout(_context, tempBuffer, image, imageFormat, ImageLayout.Undefined, ImageLayout.TransferDstOptimal);
+
+            //copy from the buffer
+            _imageSetup.CopyFromBuffer(_context, image, staging.Handle, tempBuffer);
+
+
+            //transition from optimal for data reciept to shader read only optimal layout
+            _imageSetup.TransitionLayout(_context, tempBuffer, image, imageFormat, ImageLayout.TransferDstOptimal, ImageLayout.ShaderReadOnlyOptimal);
+
+            _commandBufferSetup.CommandBufferEndSingleUse(_context, pool, tempBuffer, queue);
+
+            _bufferSetup.BufferDestroy(_context, staging);
+
+            SamplerCreateInfo samplerInfo = new()
+            {
+                SType = StructureType.SamplerCreateInfo,
+                MagFilter = Filter.Linear,
+                MinFilter = Filter.Linear,
+                AddressModeU = SamplerAddressMode.Repeat,
+                AddressModeV = SamplerAddressMode.Repeat,
+                AddressModeW = SamplerAddressMode.Repeat,
+                AnisotropyEnable = true,
+                MaxAnisotropy = 16,
+                BorderColor = BorderColor.IntOpaqueBlack,
+                UnnormalizedCoordinates = false,
+                CompareEnable = false,
+                CompareOp = CompareOp.Always,
+                MipmapMode = SamplerMipmapMode.Linear,
+            };
+
+            Sampler sampler;
+            var samplerResult = _context.Vk.CreateSampler(_context.Device.LogicalDevice, samplerInfo, _context.Allocator, &sampler);
+            if (samplerResult != Result.Success)
+            {
+                throw new VulkanResultException(samplerResult, "Failed to create texture sampler!");
+            }
+
+            var data = new VulkanTextureData(image, sampler);
+
+            var textureData = new InnerTexture(size, channelCount, hasTransparency, data);
+            return textureData;
+        }
+
+        public void DestroyTexture(Texture texture)
+        {
+            if(_context == null)
+            {
+                return;
+            }
+            if (texture.Data.InternalData is not VulkanTextureData)
+            {
+                return;
+            }
+
+            _context.Vk.DeviceWaitIdle(_context.Device.LogicalDevice);
+
+            var data = (VulkanTextureData)texture.Data.InternalData;
+            
+            _imageSetup.ImageDestroy(_context, data.Image);
+
+            _context.Vk.DestroySampler(_context.Device.LogicalDevice, data.Sampler, _context.Allocator);
+
+            //default some values again;
+            texture.ResetGeneration();
+            return;
         }
 
         private void PopulateDebugMessengerCreateInfo(ref DebugUtilsMessengerCreateInfoEXT createInfo)

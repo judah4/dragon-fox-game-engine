@@ -1,4 +1,4 @@
-﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -55,9 +55,18 @@ namespace DragonGameEngine.Core.Rendering
             _renderer.EndFrame(deltaTime);
         }
 
-        public void UpdateObject( Matrix4X4<float> model)
+        public void UpdateObject(GeometryRenderData data)
         {
-            _renderer.UpdateObject(model);
+            _renderer.UpdateObject(data);
+        }
+
+        public InnerTexture CreateTexture(string name, bool autoRelease, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
+        {
+            return _renderer.CreateTexture(name, autoRelease, size, channelCount, pixels, hasTransparency);
+        }
+
+        public void DestroyTexture(Texture texture)
+        {
         }
     }
 }

@@ -1,4 +1,4 @@
-using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
+﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using Foxis.Library;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
@@ -57,7 +57,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public bool RecreatingSwapchain { get; private set; }
 
         //shaders
-        public VulkanObjectShader ObjectShader { get; private set; }
+        public VulkanObjectShader? ObjectShader { get; private set; }
 
         public ulong GeometryVertexOffset { get; private set; }
         public ulong GeometryIndexOffset { get; private set; }

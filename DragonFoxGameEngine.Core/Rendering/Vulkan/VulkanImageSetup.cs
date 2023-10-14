@@ -1,3 +1,5 @@
+﻿using DragonGameEngine.Core.Exceptions;
+using DragonGameEngine.Core.Exceptions.Vulkan;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
@@ -134,7 +136,92 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 }
             }
 
-            throw new Exception("Failed to find suitable memory type!");
+            throw new EngineException($"Failed to find suitable memory type! {properties}");
+        }
+
+        /// <summary>
+        /// Transitions the provided image from the old layout to the new layout.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="commandBuffer"></param>
+        /// <param name="image"></param>
+        /// <param name="format"></param>
+        /// <param name="oldLayout"></param>
+        /// <param name="newLayout"></param>
+        public void TransitionLayout(VulkanContext context, VulkanCommandBuffer commandBuffer, VulkanImage image, Format format, ImageLayout oldLayout, ImageLayout newLayout)
+        {
+            ImageMemoryBarrier barrier = new()
+            {
+                SType = StructureType.ImageMemoryBarrier,
+                OldLayout = oldLayout,
+                NewLayout = newLayout,
+                SrcQueueFamilyIndex = context.Device.QueueFamilyIndices.GraphicsFamilyIndex,
+                DstQueueFamilyIndex = context.Device.QueueFamilyIndices.GraphicsFamilyIndex,
+                Image = image.Handle,
+                SubresourceRange =
+                {
+                    AspectMask = ImageAspectFlags.ColorBit,
+                    BaseMipLevel = 0,
+                    LevelCount = 1,
+                    BaseArrayLayer = 0,
+                    LayerCount = 1,
+                }
+            };
+
+            PipelineStageFlags sourceStage;
+            PipelineStageFlags destinationStage;
+
+            if (oldLayout == ImageLayout.Undefined && newLayout == ImageLayout.TransferDstOptimal)
+            {
+                barrier.SrcAccessMask = 0;
+                barrier.DstAccessMask = AccessFlags.TransferWriteBit;
+
+                sourceStage = PipelineStageFlags.TopOfPipeBit;
+                destinationStage = PipelineStageFlags.TransferBit;
+            }
+            else if (oldLayout == ImageLayout.TransferDstOptimal && newLayout == ImageLayout.ShaderReadOnlyOptimal)
+            {
+                barrier.SrcAccessMask = AccessFlags.TransferWriteBit;
+                barrier.DstAccessMask = AccessFlags.ShaderReadBit;
+
+                sourceStage = PipelineStageFlags.TransferBit;
+                destinationStage = PipelineStageFlags.FragmentShaderBit;
+            }
+            else
+            {
+                throw new EngineException("Unsupported layout transition!");
+            }
+
+            context.Vk.CmdPipelineBarrier(commandBuffer.Handle, sourceStage, destinationStage, 0, 0, null, 0, null, 1, barrier);
+        }
+
+        /// <summary>
+        /// Copies data in buffer to provided image
+        /// </summary>
+        /// <param name="context">Vulkan Context</param>
+        /// <param name="image">The image to copy the buffer's data to.</param>
+        /// <param name="buffer">The buffer whose data will be copied.</param>
+        /// <param name="commandBuffer"></param>
+        public void CopyFromBuffer(VulkanContext context, VulkanImage image, Silk.NET.Vulkan.Buffer buffer, VulkanCommandBuffer commandBuffer)
+        {
+            BufferImageCopy region = new()
+            {
+                BufferOffset = 0,
+                BufferRowLength = 0,
+                BufferImageHeight = 0,
+                ImageSubresource =
+                {
+                    AspectMask = ImageAspectFlags.ColorBit,
+                    MipLevel = 0,
+                    BaseArrayLayer = 0,
+                    LayerCount = 1,
+                },
+                ImageOffset = new Offset3D(0, 0, 0),
+                ImageExtent = new Extent3D(image.Size.X, image.Size.Y, 1),
+
+            };
+
+            context.Vk.CmdCopyBufferToImage(commandBuffer.Handle, buffer, image.Handle, ImageLayout.TransferDstOptimal, 1, region);
         }
     }
 }

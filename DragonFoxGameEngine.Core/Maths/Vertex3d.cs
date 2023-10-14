@@ -6,13 +6,14 @@ namespace DragonGameEngine.Core.Maths
 {
     public struct Vertex3d
     {
-        public Vector3D<float> Position;
+        public readonly Vector3D<float> Position;
         //public Vector3D<float> Color;
-        //public Vector2D<float> TextureCoordinate;
+        public readonly Vector2D<float> TextureCoordinate;
 
-        public Vertex3d(Vector3D<float> position)
+        public Vertex3d(Vector3D<float> position, Vector2D<float> textureCoordinate)
         {
             Position = position;
+            TextureCoordinate = textureCoordinate;
         }
 
         public static VertexInputAttributeDescription[] GetAttributeDescriptions()
@@ -33,13 +34,13 @@ namespace DragonGameEngine.Core.Maths
                 //    Format = Format.R32G32B32Sfloat,
                 //    Offset = (uint)Marshal.OffsetOf<Vertex3d>(nameof(Color)),
                 //},
-                //new VertexInputAttributeDescription()
-                //{
-                //    Binding = 0,
-                //    Location = 2,
-                //    Format = Format.R32G32Sfloat,
-                //    Offset = (uint)Marshal.OffsetOf<Vertex3d>(nameof(TextureCoordinate)),
-                //}
+                new VertexInputAttributeDescription()
+                {
+                    Binding = 0,
+                    Location = 1,
+                    Format = Format.R32G32Sfloat,
+                    Offset = (uint)Marshal.OffsetOf<Vertex3d>(nameof(TextureCoordinate)),
+                }
             };
 
             return attributeDescriptions;
