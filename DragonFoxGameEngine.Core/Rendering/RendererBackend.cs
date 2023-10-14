@@ -71,6 +71,7 @@ namespace DragonGameEngine.Core.Rendering
 
         public void DestroyTexture(Texture texture)
         {
+            _renderer.DestroyTexture(texture);
         }
     }
 }

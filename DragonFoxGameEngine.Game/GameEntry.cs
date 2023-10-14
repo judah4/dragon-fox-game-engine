@@ -141,7 +141,7 @@ namespace DragonFoxGameEngine.Game
             {
                 _window!.Close();
             }
-            if(key == Key.T)
+            else if(key == Key.T)
             {
                 _renderer!.CycleTestTexture();
             }
@@ -157,6 +157,7 @@ namespace DragonFoxGameEngine.Game
             //todo: X and Y might need to be flipped
             var rotation = Matrix4X4.CreateFromYawPitchRoll(_cameraEuler.Y, _cameraEuler.X, _cameraEuler.Z);
             var translation = Matrix4X4.CreateTranslation(_cameraPosition);
+
             var view = rotation * translation;
             Matrix4X4.Invert(view, out _view); //invert to make it a proper view matrix
 

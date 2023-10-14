@@ -305,45 +305,42 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             CommandBuffer commandBuffer = context.GraphicsCommandBuffers![imageIndex].Handle;
             var globalDescriptor = shader.GlobalDescriptorSets[imageIndex];
 
-            if (!shader.DescriptorUpdated[imageIndex])
+            //configure
+            uint range = (uint)sizeof(GlobalUniformObject);
+            ulong offset = range * imageIndex; //might not need this per buffer
+
+            Span<GlobalUniformObject> uboData = stackalloc GlobalUniformObject[1];
+            uboData[0] = shader.GlobalUbo;
+
+            //copy data
+            _bufferSetup.BufferLoadData(context, shader.GlobalUniformBuffer, offset, range, 0, uboData);
+
+            DescriptorBufferInfo bufferInfo = new()
             {
-                //configure
-                uint range = (uint)sizeof(GlobalUniformObject);
-                ulong offset = range * imageIndex;
+                Buffer = shader.GlobalUniformBuffer.Handle,
+                Offset = offset,
+                Range = range,
+            };
 
-                Span<GlobalUniformObject> uboData = stackalloc GlobalUniformObject[1];
-                uboData[0] = shader.GlobalUbo;
-
-                //copy data
-                _bufferSetup.BufferLoadData(context, shader.GlobalUniformBuffer, offset, range, 0, uboData);
-
-                DescriptorBufferInfo bufferInfo = new()
+            var descriptorWrites = new WriteDescriptorSet[]
+            {
+                new()
                 {
-                    Buffer = shader.GlobalUniformBuffer.Handle,
-                    Offset = offset,
-                    Range = range,
-                };
+                    SType = StructureType.WriteDescriptorSet,
+                    DstSet = shader.GlobalDescriptorSets[imageIndex],
+                    DstBinding = 0,
+                    DstArrayElement = 0,
+                    DescriptorType = DescriptorType.UniformBuffer,
+                    DescriptorCount = 1,
+                    PBufferInfo = &bufferInfo,
+                },
+            };
 
-                var descriptorWrites = new WriteDescriptorSet[]
-                {
-                    new()
-                    {
-                        SType = StructureType.WriteDescriptorSet,
-                        DstSet = shader.GlobalDescriptorSets[imageIndex],
-                        DstBinding = 0,
-                        DstArrayElement = 0,
-                        DescriptorType = DescriptorType.UniformBuffer,
-                        DescriptorCount = 1,
-                        PBufferInfo = &bufferInfo,
-                    },
-                };
-
-                fixed (WriteDescriptorSet* descriptorWritesPtr = descriptorWrites)
-                {
-                    context.Vk.UpdateDescriptorSets(context.Device.LogicalDevice, (uint)descriptorWrites.Length, descriptorWritesPtr, 0, default);
-                }
-                shader.DescriptorUpdated[imageIndex]= true;
+            fixed (WriteDescriptorSet* descriptorWritesPtr = descriptorWrites)
+            {
+                context.Vk.UpdateDescriptorSets(context.Device.LogicalDevice, (uint)descriptorWrites.Length, descriptorWritesPtr, 0, default);
             }
+            
 
             //bind the global descriptor set to be updated
             context.Vk.CmdBindDescriptorSets(commandBuffer, PipelineBindPoint.Graphics, shader.Pipeline.PipelineLayout, 0, 1, globalDescriptor, 0, default);
