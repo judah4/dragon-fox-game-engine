@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using DragonGameEngine.Core.Exceptions;
+using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -26,7 +27,7 @@ namespace DragonGameEngine.Core.Platforms
         {
             if (_window != null)
             {
-                throw new Exception("Window is already created!");
+                throw new EngineException("Window is already created!");
             }
 
             _logger.LogInformation("{gameEngineName} {engineVersion}", ApplicationInfo.GetGameEngineName(), ApplicationInfo.EngineVersion);
@@ -56,7 +57,7 @@ namespace DragonGameEngine.Core.Platforms
 
             if (_window.VkSurface is null)
             {
-                throw new Exception("Windowing platform doesn't support Vulkan.");
+                throw new EngineException("Windowing platform doesn't support Vulkan.");
             }
 
             _logger.LogInformation("Window initialized.");

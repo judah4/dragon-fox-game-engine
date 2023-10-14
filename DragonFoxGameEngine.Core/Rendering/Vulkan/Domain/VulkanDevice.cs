@@ -13,6 +13,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public Queue PresentQueue;
         public Queue TransferQueue;
         public Queue? ComputeQueue;
+        public bool SupportsDeviceLocalHostVisible { get; init; }
 
         public CommandPool GraphicsCommandPool;
 

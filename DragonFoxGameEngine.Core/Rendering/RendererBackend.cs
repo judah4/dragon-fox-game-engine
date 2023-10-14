@@ -1,7 +1,9 @@
 ﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+using DragonGameEngine.Core.Resources;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
+using System;
 using System.Drawing;
 
 namespace DragonGameEngine.Core.Rendering
@@ -18,6 +20,8 @@ namespace DragonGameEngine.Core.Rendering
         private readonly ILogger _logger;
         private readonly IRenderer _renderer;
 
+        public Texture DefaultDiffuse => _renderer.DefaultDiffuse;
+
         public RendererBackend(IWindow window, ILogger logger, IRenderer renderer)
         {
             _window = window;
@@ -25,9 +29,9 @@ namespace DragonGameEngine.Core.Rendering
             _renderer = renderer;
         }
 
-        public void Init()
+        public void Init(Texture defaultTexture)
         {
-            _renderer.Init();
+            _renderer.Init(defaultTexture);
         }
 
         public void Shutdown()
@@ -55,9 +59,19 @@ namespace DragonGameEngine.Core.Rendering
             _renderer.EndFrame(deltaTime);
         }
 
-        public void UpdateObject( Matrix4X4<float> model)
+        public void UpdateObject(GeometryRenderData data)
         {
-            _renderer.UpdateObject(model);
+            _renderer.UpdateObject(data);
+        }
+
+        public InnerTexture CreateTexture(string name, bool autoRelease, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
+        {
+            return _renderer.CreateTexture(name, autoRelease, size, channelCount, pixels, hasTransparency);
+        }
+
+        public void DestroyTexture(Texture texture)
+        {
+            _renderer.DestroyTexture(texture);
         }
     }
 }

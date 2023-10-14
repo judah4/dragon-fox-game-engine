@@ -1,4 +1,5 @@
-﻿using DragonGameEngine.Core.Maths;
+﻿using DragonGameEngine.Core.Exceptions.Vulkan;
+using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
@@ -163,9 +164,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 pipelineLayoutInfo.PPushConstantRanges = &pushConstant;
 
                 //pipeline layout
-                if (context.Vk.CreatePipelineLayout(context.Device.LogicalDevice, pipelineLayoutInfo, context.Allocator, out var pipelineLayout) != Result.Success)
+                var createPipeline = context.Vk.CreatePipelineLayout(context.Device.LogicalDevice, pipelineLayoutInfo, context.Allocator, out var pipelineLayout);
+                if (createPipeline != Result.Success)
                 {
-                    throw new Exception("Failed to create pipeline layout!");
+                    throw new VulkanResultException(createPipeline, "Failed to create pipeline layout!");
                 }
 
                 //Pipeline create
@@ -190,9 +192,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     BasePipelineIndex = -1,
                 };
 
-                if (context.Vk.CreateGraphicsPipelines(context.Device.LogicalDevice, default, 1, pipelineCreateInfo, context.Allocator, out var graphicsPipeline) != Result.Success)
+                var createGraphicsResult = context.Vk.CreateGraphicsPipelines(context.Device.LogicalDevice, default, 1, pipelineCreateInfo, context.Allocator, out var graphicsPipeline);
+                if (createGraphicsResult != Result.Success)
                 {
-                    throw new Exception("failed to create graphics pipeline!");
+                    throw new VulkanResultException(createGraphicsResult, "failed to create graphics pipeline!");
                 }
 
                 var vulkanPipeline = new VulkanPipeline()

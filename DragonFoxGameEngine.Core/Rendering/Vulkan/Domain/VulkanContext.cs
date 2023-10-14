@@ -27,6 +27,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 
         public VulkanDevice Device { get; private set; }
 
+        public double FrameDeltaTime { get; private set; }
+
         public Vector2D<uint> FramebufferSize { get; private set; }
         public ulong FramebufferSizeGeneration { get; private set; }
         public ulong FramebufferSizeGenerationLastGeneration { get; private set; }
@@ -55,7 +57,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public bool RecreatingSwapchain { get; private set; }
 
         //shaders
-        public VulkanObjectShader ObjectShader { get; private set; }
+        public VulkanObjectShader? ObjectShader { get; private set; }
 
         public ulong GeometryVertexOffset { get; private set; }
         public ulong GeometryIndexOffset { get; private set; }
@@ -134,6 +136,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public void SetCurrentFrame(uint currentFrame)
         {
             CurrentFrame = currentFrame;
+        }
+
+        public void SetFrameDeltaTime(double deltaTime)
+        {
+            FrameDeltaTime = deltaTime;
         }
 
         public void SetFramebufferSize(Vector2D<uint> size, ulong framebufferSizeGeneration)

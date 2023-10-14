@@ -17,8 +17,9 @@
     /// </summary>
     public class EntityIdService : IEntityIdService
     {
+        public const uint INVALID_ID = uint.MaxValue;
         private readonly static object s_syncRoot = new object();
-        private uint _nextEntityId = 1;
+        private uint _nextEntityId = 0;
 
         public uint GetNextEntityId()
         {

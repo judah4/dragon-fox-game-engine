@@ -1,4 +1,5 @@
-﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Exceptions.Vulkan;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
@@ -61,7 +62,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             }
             else if (result != Result.Success && result != Result.SuboptimalKhr)
             {
-                throw new Exception("failed to acquire swap chain image!");
+                throw new VulkanResultException(result, "failed to acquire swap chain image!");
             }
 
             return imageIndex;
@@ -90,7 +91,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             }
             else if (result != Result.Success)
             {
-                throw new Exception("failed to present swap chain image!");
+                throw new VulkanResultException(result, "Failed to present swap chain image!");
             }
 
             //Increment and loop the index
@@ -171,9 +172,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 swapchain.KhrSwapchain = khrSwapchain;
             }
 
-            if (swapchain.KhrSwapchain.CreateSwapchain(context.Device.LogicalDevice, creatInfo, context.Allocator, out SwapchainKHR swapchainKhr) != Result.Success)
+            var createSwapchainResult = swapchain.KhrSwapchain.CreateSwapchain(context.Device.LogicalDevice, creatInfo, context.Allocator, out SwapchainKHR swapchainKhr);
+            if (createSwapchainResult != Result.Success)
             {
-                throw new Exception("Failed to create swap chain!");
+                throw new VulkanResultException(createSwapchainResult, "Failed to create swap chain!");
             }
 
             swapchain.Swapchain = swapchainKhr;
@@ -214,9 +216,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     }
                 };
 
-                if (context.Vk!.CreateImageView(context.Device.LogicalDevice, createInfo, context.Allocator, out ImageView imageView) != Result.Success)
+                var createResult = context.Vk!.CreateImageView(context.Device.LogicalDevice, createInfo, context.Allocator, out ImageView imageView);
+                if (createResult != Result.Success)
                 {
-                    throw new Exception("Failed to create image views!");
+                    throw new VulkanResultException(createResult, "Failed to create image views!");
                 }
                 swapchain.ImageViews[cnt] = imageView;
             }
