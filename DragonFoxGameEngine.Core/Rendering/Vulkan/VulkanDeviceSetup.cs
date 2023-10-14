@@ -1,4 +1,6 @@
-﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Exceptions;
+using DragonGameEngine.Core.Exceptions.Vulkan;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
@@ -140,10 +142,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 EnabledLayerCount = 0,
             };
 
-
-            if (context.Vk.CreateDevice(context.Device.PhysicalDevice, in createInfo, null, out var device) != Result.Success)
+            var createDeviceResult = context.Vk.CreateDevice(context.Device.PhysicalDevice, in createInfo, context.Allocator, out var device);
+            if (createDeviceResult != Result.Success)
             {
-                throw new Exception("failed to create logical device!");
+                throw new VulkanResultException(createDeviceResult, "Failed to create logical device!");
             }
 
             SilkMarshal.Free((nint)createInfo.PpEnabledExtensionNames);
@@ -171,9 +173,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 Flags = CommandPoolCreateFlags.ResetCommandBufferBit,
             };
 
-            if (context.Vk.CreateCommandPool(vDevice.LogicalDevice, poolInfo, context.Allocator, out var commandPool) != Result.Success)
+            var createCommandPoolResult = context.Vk.CreateCommandPool(vDevice.LogicalDevice, poolInfo, context.Allocator, out var commandPool);
+            if (createCommandPoolResult != Result.Success)
             {
-                throw new Exception("failed to create command pool!");
+                throw new VulkanResultException(createCommandPoolResult, "Failed to create command pool!");
             }
             vDevice.GraphicsCommandPool = commandPool;
 
@@ -271,7 +274,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 }
             }
 
-            throw new Exception("failed to find supported format!");
+            throw new EngineException($"Failed to find supported format! Tiling: {tiling} Features: {features}");
         }
 
         private void SelectPhysicalDevice(VulkanContext context, PhysicalDeviceRequirements requirements)
@@ -281,7 +284,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             if (devicedCount == 0)
             {
-                throw new Exception("failed to find GPUs with Vulkan support!");
+                throw new EngineException("failed to find GPUs with Vulkan support!");
             }
 
             var devices = new PhysicalDevice[devicedCount];
@@ -333,7 +336,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             }
 
-            throw new Exception("No physical device found which meet the requirements!");
+            throw new EngineException("No physical device found which meet the requirements!");
         }
 
         private (PhysicalDeviceQueueFamilyInfo, VulkanSwapchainSupportInfo)? DeviceMeetsRequirements(

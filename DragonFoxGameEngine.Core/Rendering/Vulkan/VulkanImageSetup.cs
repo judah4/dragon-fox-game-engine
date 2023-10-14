@@ -1,4 +1,4 @@
-﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
@@ -43,9 +43,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 SharingMode = SharingMode.Exclusive, //TODO: configurable sharing mode.
             };
 
-            if (context.Vk.CreateImage(context.Device.LogicalDevice, imageCreateInfo, context.Allocator, &vulkanImage.Handle) != Result.Success)
+            var createImageResult = context.Vk.CreateImage(context.Device.LogicalDevice, imageCreateInfo, context.Allocator, &vulkanImage.Handle);
+            if (createImageResult != Result.Success)
             {
-                throw new Exception("Failed to create image!");
+                throw new VulkanResultException(createImageResult, "Failed to create image!");
             }
 
             context.Vk.GetImageMemoryRequirements(context.Device.LogicalDevice, vulkanImage.Handle, out MemoryRequirements memRequirements);
@@ -61,9 +62,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 MemoryTypeIndex = memoryType,
             };
 
-            if (context.Vk.AllocateMemory(context.Device.LogicalDevice, allocInfo, context.Allocator, &vulkanImage.Memory) != Result.Success)
+            var allocateResult = context.Vk.AllocateMemory(context.Device.LogicalDevice, allocInfo, context.Allocator, &vulkanImage.Memory);
+            if (allocateResult != Result.Success)
             {
-                throw new Exception("Failed to allocate image memory!");
+                throw new VulkanResultException(allocateResult, "Failed to allocate image memory!");
             }
 
             //bind the memory
@@ -98,9 +100,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     }
             };
 
-            if (context.Vk!.CreateImageView(context.Device.LogicalDevice, createInfo, context.Allocator, out ImageView imageView) != Result.Success)
+            var createImageResult = context.Vk!.CreateImageView(context.Device.LogicalDevice, createInfo, context.Allocator, out ImageView imageView);
+            if (createImageResult != Result.Success)
             {
-                throw new Exception("Failed to create image views!");
+                throw new VulkanResultException(createImageResult, "Failed to create image views!");
             }
             vulkanImage.ImageView = imageView;
             return vulkanImage;

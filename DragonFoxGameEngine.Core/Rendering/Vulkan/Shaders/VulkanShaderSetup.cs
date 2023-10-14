@@ -1,16 +1,15 @@
-﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Exceptions.Vulkan;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
-using Foxis.Library;
 using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
-using System;
 using System.IO;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 {
     public unsafe class VulkanShaderSetup
     {
-        public Result<VulkanShaderStage> CreateShaderModule(VulkanContext context, string shaderName, string stageTypeName, ShaderStageFlags shaderStageFlags, int index)
+        public VulkanShaderStage CreateShaderModule(VulkanContext context, string shaderName, string stageTypeName, ShaderStageFlags shaderStageFlags, int index)
         {
             //Build file name.
             var fileName = Path.Combine("Shaders/", $"{shaderName}.{stageTypeName}.spv");
@@ -29,9 +28,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             {
                 createInfo.PCode = (uint*)codePtr;
 
-                if (context.Vk.CreateShaderModule(context.Device.LogicalDevice, createInfo, context.Allocator, out shaderModule) != Silk.NET.Vulkan.Result.Success)
+                var createShaderResult = context.Vk.CreateShaderModule(context.Device.LogicalDevice, createInfo, context.Allocator, out shaderModule);
+                if (createShaderResult != Silk.NET.Vulkan.Result.Success)
                 {
-                    throw new Exception("Shader was not able to be created!");
+                    throw new VulkanResultException(createShaderResult, $"Unable to create {stageTypeName} shader module for {shaderName}");
                 }
             }
 
@@ -52,7 +52,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 ShaderStageCreateInfo = shaderStageInfo,
             };
 
-            return Foxis.Library.Result.Ok(shaderStage);
+            return shaderStage;
         }
     }
 }

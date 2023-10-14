@@ -20,7 +20,7 @@ namespace DragonGameEngine.Core
         private long _frame;
 
         //Debug fps stuff
-        private readonly TimeSpan _fpsDisplayTime = TimeSpan.FromSeconds(0.1);
+        private readonly TimeSpan _fpsDisplayTime = TimeSpan.FromSeconds(0.5);
         private readonly TimeSpan _fpsFrameStatsTime = TimeSpan.FromSeconds(10.0);
         private readonly FrameStats _frameStats;
         private DateTime _lastFpsTime = DateTime.UtcNow;
@@ -44,7 +44,8 @@ namespace DragonGameEngine.Core
             _frameStats = new FrameStats();
         }
 
-        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger) : this(config, game, window, logger, new RendererFrontend(config, window, logger))
+        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger)
+            : this(config, game, window, logger, new RendererFrontend(config, window, logger))
         {
         }
 
@@ -53,7 +54,7 @@ namespace DragonGameEngine.Core
             try
             {
                 _renderer.Init();
-                _game.Initialize(_window);
+                _game.Initialize(_window, _renderer);
             }
             catch (Exception e)
             {

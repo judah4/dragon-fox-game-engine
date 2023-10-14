@@ -1,4 +1,4 @@
-﻿using DragonGameEngine.Core.Platforms;
+using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core.Rendering.Headless;
 using DragonGameEngine.Core.Rendering.Vulkan;
 using Microsoft.Extensions.Logging;
@@ -50,11 +50,8 @@ namespace DragonGameEngine.Core.Rendering
         {
             if (_rendererBackend.BeginFrame(packet.DeltaTime))
             {
-                var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45f), (float)1280f / 720, 0.1f, 1000.0f);
-                posZ += -1.0f * (float)packet.DeltaTime;
-                //view is camera's position and orientation. Simple for now
-                var view = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 0, posZ));
-                _rendererBackend.UpdateGlobalState(projection, view, Vector3D<float>.Zero, Color.White, 0);
+                _rendererBackend.UpdateGlobalState(_systemState.Projection, _systemState.View, Vector3D<float>.Zero, Color.White, 0);
+
                 rotationAngle += 1f * (float)packet.DeltaTime;
                 var rotation = Quaternion<float>.CreateFromAxisAngle(new Vector3D<float>(0, 0, 1), rotationAngle);
                 // model is the object's matrix. Postion, rotation, and scale
@@ -63,6 +60,18 @@ namespace DragonGameEngine.Core.Rendering
 
                 _rendererBackend.EndFrame(packet.DeltaTime);
             }
+        }
+
+        public void SetView(Matrix4X4<float> view)
+        {
+            _systemState = _systemState.UpdateView(view);
+        }
+
+        private RenderSystemState RegenProjectionMatrix(float nearClip, float farClip)
+        {
+            var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45f), (float)_window.Size.X / (float)_window.Size.Y, nearClip, farClip);
+            var renderSystemState = new RenderSystemState(projection, _systemState.View, farClip, nearClip);
+            return renderSystemState;
         }
 
         private static IRenderer SetupRenderer(ApplicationConfig config, IWindow window, ILogger logger)

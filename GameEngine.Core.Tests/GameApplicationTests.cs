@@ -24,7 +24,7 @@ namespace GameEngine.Core.Tests
             gameApp.Init();
 
             rendererMock.Verify((renderer) => renderer.Init(), Times.Once());
-            gameEntryMock.Verify((gameEntry) => gameEntry.Initialize(It.IsAny<IWindow>()), Times.Once());
+            gameEntryMock.Verify((gameEntry) => gameEntry.Initialize(It.IsAny<IWindow>(), It.IsAny<RendererFrontend>()), Times.Once());
         }
 
         [TestMethod]

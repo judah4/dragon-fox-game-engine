@@ -70,15 +70,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         {
             if (_context != null)
             {
-                throw new Exception("Vulkan is already initialized!");
+                throw new EngineException("Vulkan is already initialized!");
             }
 
             var vk = Vk.GetApi();
-
-            //if (EnableValidationLayers && !CheckValidationLayerSupport())
-            //{
-            //    throw new Exception("validation layers requested, but not available!");
-            //}
 
             var gameVersion = ApplicationInfo.GameVersion;
             var engineVersion = ApplicationInfo.EngineVersion;
@@ -133,7 +128,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                             }
                             if (!found)
                             {
-                                throw new Exception($"Required Validation Layer is missing: {layer}");
+                                throw new EngineException($"Required Validation Layer is missing: {layer}");
                             }
                             _logger.LogDebug("Validation Layer {layer} added.", layer);
                         }
@@ -155,9 +150,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             }
 
             AllocationCallbacks* allocator = null; //null for now. Might deal with it later
-            if (vk.CreateInstance(createInfo, allocator, out var instance) != Result.Success)
+            var createInstanceResult = vk.CreateInstance(createInfo, allocator, out var instance);
+            if (createInstanceResult != Result.Success)
             {
-                throw new Exception("failed to create Vulkan instance!");
+                throw new VulkanResultException(createInstanceResult, "failed to create Vulkan instance!");
             }
             ExtDebugUtils? debugUtils = null;
             DebugUtilsMessengerEXT debugMessenger = default;
@@ -217,20 +213,25 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             var verts = new Vertex3d[]
             {
-                new Vertex3d(new Vector3D<float>(0, 0.5f, 0) * trigSize),
-                new Vertex3d(new Vector3D<float>(-0.5f, -0.5f, 0) * trigSize),
-                new Vertex3d(new Vector3D<float>(0.5f, -0.5f, 0) * trigSize),
+                new Vertex3d(new Vector3D<float>(-0.5f, -0.5f, 0) * trigSize, new Vector2D<float>(0,0)),
+                new Vertex3d(new Vector3D<float>(0.5f, 0.5f, 0) * trigSize, new Vector2D<float>(1f,1f)),
+                new Vertex3d(new Vector3D<float>(-0.5f, 0.5f, 0) * trigSize, new Vector2D<float>(0,1f)),
+                new Vertex3d(new Vector3D<float>(0.5f, -0.5f, 0) * trigSize, new Vector2D<float>(1f,0)),
             };
 
-            // ____
-            // \  /
-            //  \/
+            // 2_____1
+            //  |  /|
+            //  | / |
+            //  |/  |
+            // 0-----3
 
             var indices = new uint[]
             {
                 0,1,2,
+                0,3,1,
             };
-
+            _tempIndiciesCount = (uint)indices.Length;
+            //update UpdateObject indicies if adding more
             UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectVertexBuffer, 0, (ulong)(sizeof(Vertex3d) * verts.LongLength), verts.AsSpan());
             UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectIndexBuffer, 0, (ulong)(sizeof(uint) * indices.LongLength), indices.AsSpan());
             //todo: end test code.
@@ -300,6 +301,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             {
                 return false;
             }
+            _context.SetFrameDeltaTime(deltaTime);
             var device = _context.Device;
             if (_context.RecreatingSwapchain)
             {
@@ -463,12 +465,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             _context.SetupBuiltinShaders(objectShader);
 
-            _objectShaderSetup.UpdateGlobalState(_context, _context.ObjectShader);
+            _objectShaderSetup.UpdateGlobalState(_context, _context.ObjectShader, _context.FrameDeltaTime);
         }
 
-        public void UpdateObject(Matrix4X4<float> model)
+        public void UpdateObject(GeometryRenderData data)
         {
-            _objectShaderSetup.UpdateObject(_context!, model);
+            _objectShaderSetup.UpdateObject(_context!, data);
 
             var commandBuffer = _context!.GraphicsCommandBuffers![_context.ImageIndex];
 
@@ -488,7 +490,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _context.Vk.CmdBindIndexBuffer(commandBuffer.Handle, _context.ObjectIndexBuffer.Handle, 0, IndexType.Uint32);
 
             //issue the draw. hardcode to 3 indices for now
-            _context.Vk.CmdDrawIndexed(commandBuffer.Handle, 3U, 1, 0, 0, 0);
+            _context.Vk.CmdDrawIndexed(commandBuffer.Handle, _tempIndiciesCount, 1, 0, 0, 0);
             //drawCall++
             //end temp test code
         }
@@ -526,9 +528,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             DebugUtilsMessengerCreateInfoEXT createInfo = new();
             PopulateDebugMessengerCreateInfo(ref createInfo);
 
-            if (debugUtils!.CreateDebugUtilsMessenger(instance, in createInfo, null, out debugMessenger) != Result.Success)
+            var createDebugResult = debugUtils!.CreateDebugUtilsMessenger(instance, in createInfo, null, out debugMessenger);
+            if (createDebugResult != Result.Success)
             {
-                throw new Exception("failed to set up debug messenger!");
+                throw new VulkanResultException(createDebugResult, "failed to set up debug messenger!");
             }
             _logger.LogDebug($"Debug messenger setup.");
             return (debugUtils, debugMessenger);
@@ -600,7 +603,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         {
             if (_context == null)
             {
-                throw new Exception("Context is not set up. Was RegenerateFramebuffers called before Vulkan is initialized?");
+                throw new EngineException("Context is not set up. Was RegenerateFramebuffers called before Vulkan is initialized?");
             }
             if (swapchain.ImageViews == null)
             {
@@ -647,10 +650,15 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             for (var i = 0; i < _context.Swapchain.MaxFramesInFlight; i++)
             {
-                if (_context.Vk.CreateSemaphore(_context.Device.LogicalDevice, semaphoreInfo, _context.Allocator, out imageAvailableSemaphores[i]) != Result.Success ||
-                    _context.Vk.CreateSemaphore(_context.Device.LogicalDevice, semaphoreInfo, _context.Allocator, out renderFinishedSemaphores[i]) != Result.Success)
+                var semaphoreResult = _context.Vk.CreateSemaphore(_context.Device.LogicalDevice, semaphoreInfo, _context.Allocator, out imageAvailableSemaphores[i]);
+                if (semaphoreResult != Result.Success)
                 {
-                    throw new Exception("Failed to create synchronization objects for a frame!");
+                    throw new VulkanResultException(semaphoreResult, "Failed to create image available semaphore for a frame!");
+                }
+                semaphoreResult = _context.Vk.CreateSemaphore(_context.Device.LogicalDevice, semaphoreInfo, _context.Allocator, out renderFinishedSemaphores[i]);
+                if (semaphoreResult != Result.Success)
+                {
+                    throw new VulkanResultException(semaphoreResult, "Failed to create rendered finished semaphore for a frame!");
                 }
                 inFlightFences[i] = _fenceSetup.FenceCreate(_context, true);
             }

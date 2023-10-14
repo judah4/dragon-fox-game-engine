@@ -14,6 +14,8 @@ namespace DragonFoxGameEngine
 {
     internal class Program
     {
+        private static string? _logPath;
+
         private static void Main(string[] args)
         {
             //var host = SetupHost(args);
@@ -22,6 +24,11 @@ namespace DragonFoxGameEngine
             var logger = loggerFactory.CreateLogger("Engine");
             //host.Run();
             //return;
+
+            if (!string.IsNullOrEmpty(_logPath))
+            {
+                logger.LogDebug($"Logging file path: {_logPath}");
+            }
 
             bool headlessMode = false;
             if (args.Any(x => x == "--headless"))
@@ -75,9 +82,9 @@ namespace DragonFoxGameEngine
                     options.ColorBehavior = LoggerColorBehavior.Enabled;
                 });
                 var dataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
-                var logPath = Path.Combine(dataPath, "dragonfox/game1/output.log");
+                _logPath = Path.Combine(dataPath, "dragonfox/game1/output.log");
                 //https://github.com/nreco/logging
-                builder.AddFile(logPath, fileLoggerOpts => {
+                builder.AddFile(_logPath, fileLoggerOpts => {
                     fileLoggerOpts.Append = false;
                     fileLoggerOpts.MinLevel = LogLevel.Debug;
                     fileLoggerOpts.FormatLogEntry = LoggingOptions.FormatLogMessage;

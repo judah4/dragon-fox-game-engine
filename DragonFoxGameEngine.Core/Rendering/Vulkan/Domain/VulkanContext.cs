@@ -1,4 +1,4 @@
-﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using Foxis.Library;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
@@ -26,6 +26,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public SurfaceKHR? Surface { get; private set; }
 
         public VulkanDevice Device { get; private set; }
+
+        public double FrameDeltaTime { get; private set; }
 
         public Vector2D<uint> FramebufferSize { get; private set; }
         public ulong FramebufferSizeGeneration { get; private set; }
@@ -134,6 +136,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public void SetCurrentFrame(uint currentFrame)
         {
             CurrentFrame = currentFrame;
+        }
+
+        public void SetFrameDeltaTime(double deltaTime)
+        {
+            FrameDeltaTime = deltaTime;
         }
 
         public void SetFramebufferSize(Vector2D<uint> size, ulong framebufferSizeGeneration)
