@@ -2,7 +2,7 @@
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
 {
-    public struct VulkanObjectShaderObjectState
+    public struct VulkanMaterialShaderObjectState
     {
         /// <summary>
         /// The descriptor count per object
@@ -10,8 +10,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         public const int DESCRIPTOR_COUNT = 2;
 
         //per frame
-        public DescriptorSet[] DescriptorSets;
+        public DescriptorSet[] DescriptorSets { get; init; }
 
-        public VulkanDescriptorState[] DescriptorStates;
+        public VulkanDescriptorState[] DescriptorStates { get; init; }
     }
 }

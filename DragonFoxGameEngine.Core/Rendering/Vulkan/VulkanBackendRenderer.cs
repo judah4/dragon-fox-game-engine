@@ -31,8 +31,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         private readonly VulkanCommandBufferSetup _commandBufferSetup;
         private readonly VulkanFramebufferSetup _framebufferSetup;
         private readonly VulkanFenceSetup _fenceSetup;
-        private readonly VulkanShaderSetup _shaderSetup;
-        private readonly VulkanObjectShaderSetup _objectShaderSetup;
+        private readonly VulkanShaderManager _shaderManager;
+        private readonly VulkanMaterialShaderManager _objectShaderManager;
         private readonly VulkanPipelineSetup _pipelineSetup;
         private readonly VulkanBufferSetup _bufferSetup;
 
@@ -69,9 +69,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _bufferSetup = new VulkanBufferSetup(_imageSetup, _commandBufferSetup, logger);
 
             //shaders
-            _shaderSetup = new VulkanShaderSetup();
+            _shaderManager = new VulkanShaderManager();
             _pipelineSetup = new VulkanPipelineSetup(logger);
-            _objectShaderSetup = new VulkanObjectShaderSetup(logger, _shaderSetup, _pipelineSetup, _bufferSetup);
+            _objectShaderManager = new VulkanMaterialShaderManager(logger, _shaderManager, _pipelineSetup, _bufferSetup);
 
         }
 
@@ -212,8 +212,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             CreateSemaphoresAndFences();
 
-            var objectShader = _objectShaderSetup.Create(_context, DefaultDiffuse);
-            _context.SetupBuiltinShaders(objectShader);
+            var materialShader = _objectShaderManager.Create(_context, DefaultDiffuse);
+            _context.SetupBuiltinShaders(materialShader);
 
             CreateBuffers(_context);
 
@@ -245,7 +245,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectVertexBuffer, 0, (ulong)(sizeof(Vertex3d) * verts.LongLength), verts.AsSpan());
             UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectIndexBuffer, 0, (ulong)(sizeof(uint) * indices.LongLength), indices.AsSpan());
             
-            var objectId = _objectShaderSetup.AcquireResources(_context);
+            var objectId = _objectShaderManager.AcquireResources(_context);
             
             //todo: end test code.
 
@@ -262,7 +262,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             DestroyBuffers(_context);
 
-            _objectShaderSetup.Destroy(_context, _context.ObjectShader!);
+            _objectShaderManager.Destroy(_context, _context.MaterialShader!);
 
             DestroySemaphoresAndFences();
 
@@ -468,22 +468,22 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, System.Drawing.Color ambientColor, int mode)
         {
-            _objectShaderSetup.ShaderUse(_context!, _context!.ObjectShader!);
+            _objectShaderManager.ShaderUse(_context!, _context!.MaterialShader!);
 
             //update the view and projection
-            var objectShader = _context.ObjectShader!;
-            objectShader.GlobalUbo.Projection = projection;
-            objectShader.GlobalUbo.View = view;
+            var materialShader = _context.MaterialShader!;
+            materialShader.GlobalUbo.Projection = projection;
+            materialShader.GlobalUbo.View = view;
             //TODO: other ubo properties
 
-            _context.SetupBuiltinShaders(objectShader);
+            _context.SetupBuiltinShaders(materialShader);
 
-            _objectShaderSetup.UpdateGlobalState(_context, objectShader, _context.FrameDeltaTime);
+            _objectShaderManager.UpdateGlobalState(_context, materialShader, _context.FrameDeltaTime);
         }
 
         public void UpdateObject(GeometryRenderData data)
         {
-            _objectShaderSetup.UpdateObject(_context!, data);
+            _objectShaderManager.UpdateObject(_context!, data);
 
             var commandBuffer = _context!.GraphicsCommandBuffers![_context.ImageIndex];
 

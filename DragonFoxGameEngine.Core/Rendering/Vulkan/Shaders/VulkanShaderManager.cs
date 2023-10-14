@@ -7,7 +7,7 @@ using System.IO;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 {
-    public unsafe class VulkanShaderSetup
+    public unsafe class VulkanShaderManager
     {
         public VulkanShaderStage CreateShaderModule(VulkanContext context, string shaderName, string stageTypeName, ShaderStageFlags shaderStageFlags, int index)
         {

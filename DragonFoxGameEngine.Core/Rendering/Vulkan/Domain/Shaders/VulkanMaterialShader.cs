@@ -4,7 +4,7 @@ using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
 {
-    public class VulkanObjectShader
+    public class VulkanMaterialShader
     {
         public const int OBJECT_SHADER_STAGE_COUNT = 2;
         public const int MAX_OBJECT_COUNT = 1024;
@@ -48,20 +48,20 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         public uint ObjectUniformBufferIndex;
 
         //TODO: make dynamic
-        public VulkanObjectShaderObjectState[] ObjectStates;
+        public VulkanMaterialShaderObjectState[] ObjectStates;
 
         public Texture DefaultDiffuse { get; init; }
 
-        public VulkanObjectShader(Texture defaultDiffuse)
+        public VulkanMaterialShader(Texture defaultDiffuse)
         {
             DefaultDiffuse = defaultDiffuse;
             ShaderStages = new VulkanShaderStage[OBJECT_SHADER_STAGE_COUNT];
             GlobalDescriptorSets = new DescriptorSet[3];
-            ObjectStates = new VulkanObjectShaderObjectState[MAX_OBJECT_COUNT];
-            Array.Fill(ObjectStates, new VulkanObjectShaderObjectState()
+            ObjectStates = new VulkanMaterialShaderObjectState[MAX_OBJECT_COUNT];
+            Array.Fill(ObjectStates, new VulkanMaterialShaderObjectState()
             {
                 DescriptorSets = new DescriptorSet[3],
-                DescriptorStates = new VulkanDescriptorState[VulkanObjectShaderObjectState.DESCRIPTOR_COUNT],
+                DescriptorStates = new VulkanDescriptorState[VulkanMaterialShaderObjectState.DESCRIPTOR_COUNT],
             });
         }
     }

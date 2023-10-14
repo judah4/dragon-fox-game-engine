@@ -57,7 +57,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public bool RecreatingSwapchain { get; private set; }
 
         //shaders
-        public VulkanObjectShader? ObjectShader { get; private set; }
+        public VulkanMaterialShader? MaterialShader { get; private set; }
 
         public ulong GeometryVertexOffset { get; private set; }
         public ulong GeometryIndexOffset { get; private set; }
@@ -165,9 +165,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
             FramebufferSizeGenerationLastGeneration = framebufferSizeGeneration;
         }
 
-        public void SetupBuiltinShaders(VulkanObjectShader objectShader)
+        public void SetupBuiltinShaders(VulkanMaterialShader materialShader)
         {
-            ObjectShader = objectShader;
+            MaterialShader = materialShader;
         }
 
         public void SetupBuffers(VulkanBuffer objectVertexBuffer, VulkanBuffer objectIndexBuffer)
