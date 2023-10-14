@@ -1,4 +1,5 @@
-﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Exceptions.Vulkan;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
@@ -8,7 +9,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe class VulkanFramebufferSetup
     {
-        ILogger _logger;
+        private readonly ILogger _logger;
 
         public VulkanFramebufferSetup(ILogger logger)
         {
@@ -40,9 +41,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     Layers = 1,
                 };
 
-                if (context.Vk.CreateFramebuffer(context.Device.LogicalDevice, framebufferInfo, context.Allocator, out var framebuffer) != Result.Success)
+                var frameBufferResult = context.Vk.CreateFramebuffer(context.Device.LogicalDevice, framebufferInfo, context.Allocator, out var framebuffer);
+                if (frameBufferResult != Result.Success)
                 {
-                    throw new Exception("Failed to create framebuffer!");
+                    throw new VulkanResultException(frameBufferResult, "Failed to create framebuffer!");
                 }
                 vulkanFramebuffer.Framebuffer = framebuffer;
             }
@@ -53,7 +55,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         public VulkanFramebuffer FramebufferDestroy(VulkanContext context, VulkanFramebuffer vulkanFramebuffer)
         {
             context.Vk.DestroyFramebuffer(context.Device.LogicalDevice, vulkanFramebuffer.Framebuffer, context.Allocator);
-            vulkanFramebuffer.Attachments = new ImageView[0];
+            vulkanFramebuffer.Attachments = Array.Empty<ImageView>();
             vulkanFramebuffer.Framebuffer = default;
             vulkanFramebuffer.Renderpass = default;
             _logger.LogDebug($"Framebuffer destroyed");

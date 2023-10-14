@@ -1,4 +1,5 @@
-﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Exceptions.Vulkan;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Foxis.Library;
 using Microsoft.Extensions.Logging;
 using Silk.NET.OpenAL;
@@ -35,9 +36,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 fenceInfo.Flags = FenceCreateFlags.SignaledBit;
             }
 
-            if (context.Vk.CreateFence(context.Device.LogicalDevice, fenceInfo, context.Allocator, out var fence) != Silk.NET.Vulkan.Result.Success)
+            var fenceResult = context.Vk.CreateFence(context.Device.LogicalDevice, fenceInfo, context.Allocator, out var fence);
+            if (fenceResult != Silk.NET.Vulkan.Result.Success)
             {
-                throw new Exception("Failed to create fence!");
+                throw new VulkanResultException(fenceResult, "Failed to create fence!");
             }
             vulkanFence.Handle = fence;
 

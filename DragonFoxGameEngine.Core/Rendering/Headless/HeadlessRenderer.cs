@@ -1,21 +1,26 @@
-﻿using DragonGameEngine.Core.Rendering;
-using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Resources;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
+using System;
 using System.Drawing;
 
 namespace DragonGameEngine.Core.Rendering.Headless
 {
     public class HeadlessRenderer : IRenderer
     {
-        public ILogger _logger;
+        private readonly ILogger _logger;
+        private Texture? _defaultTexture;
+
+        public Texture DefaultDiffuse => _defaultTexture!;
+
         public HeadlessRenderer(ILogger logger)
         {
             _logger = logger;
         }
 
-        public void Init()
+        public void Init(Texture defaultTexture)
         {
+            _defaultTexture = defaultTexture;
             _logger.LogInformation("Headless Renderer setup.");
         }
 
@@ -41,10 +46,19 @@ namespace DragonGameEngine.Core.Rendering.Headless
         {
         }
 
-        public void UpdateObject(Matrix4X4<float> model)
+        public void UpdateObject(GeometryRenderData data)
         {
             //might want to use this for interest area later
         }
 
+        public InnerTexture CreateTexture(string name, bool autoRelease, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
+        {
+            return new InnerTexture(size, channelCount, hasTransparency, new object());
+        }
+
+        public void DestroyTexture(Texture texture)
+        {
+            texture.ResetGeneration();
+        }
     }
 }

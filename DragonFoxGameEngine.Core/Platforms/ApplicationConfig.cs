@@ -5,8 +5,8 @@ namespace DragonGameEngine.Core.Platforms
 {
     public readonly struct ApplicationConfig
     {
-        public const int WIDTH = 800;
-        public const int HEIGHT = 600;
+        public const int WIDTH = 1280;
+        public const int HEIGHT = 720;
         public const int GOOD_MAX_FPS = 1024;
 
         public readonly Vector2D<int> StartingPos;

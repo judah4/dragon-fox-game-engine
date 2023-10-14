@@ -1,4 +1,5 @@
-﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain;
+﻿using DragonGameEngine.Core.Exceptions.Vulkan;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.OpenAL;
 using Silk.NET.Vulkan;
@@ -109,9 +110,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     PDependencies = &dependency,
                 };
 
-                if (context.Vk.CreateRenderPass(context.Device.LogicalDevice, renderPassInfo, context.Allocator, out var renderPass) != Result.Success)
+                var createRenderPassResult = context.Vk.CreateRenderPass(context.Device.LogicalDevice, renderPassInfo, context.Allocator, out var renderPass);
+                if (createRenderPassResult != Result.Success)
                 {
-                    throw new Exception("Failed to create render pass!");
+                    throw new VulkanResultException(createRenderPassResult, "Failed to create render pass!");
                 }
                 vulkanRenderpass.Handle = renderPass;
                 vulkanRenderpass.State = RenderpassState.Ready;
