@@ -44,7 +44,7 @@ namespace DragonGameEngine.Core.Rendering
 
             //TODO: Load other textures
             _testDiffuse = new Texture(
-                1,
+                0,
                 default,
                 EntityIdService.INVALID_ID);
 
@@ -253,8 +253,6 @@ namespace DragonGameEngine.Core.Rendering
             _testTextureChoice %= textureNames.Length;
 
             LoadTexture(textureNames[_testTextureChoice], _testDiffuse);
-
-            throw new NotImplementedException();
         }
     }
 }

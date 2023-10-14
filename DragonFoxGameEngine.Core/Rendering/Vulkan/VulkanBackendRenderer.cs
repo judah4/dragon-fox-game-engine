@@ -468,7 +468,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, System.Drawing.Color ambientColor, int mode)
         {
-            _objectShaderSetup.ShaderUse(_context!, _context!.ObjectShader);
+            _objectShaderSetup.ShaderUse(_context!, _context!.ObjectShader!);
 
             //update the view and projection
             var objectShader = _context.ObjectShader;

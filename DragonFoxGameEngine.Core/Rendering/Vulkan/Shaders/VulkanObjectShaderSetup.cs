@@ -1,4 +1,4 @@
-using DragonGameEngine.Core.Ecs;
+﻿using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Exceptions.Vulkan;
 using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
@@ -431,7 +431,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 
                 // if the texture hasn't been loaded yet, use the default.
                 // TODO: Determine which use the texture has and pull appropriate default based on that.
-                if(t.Generation == EntityIdService.INVALID_ID)
+                if (t.Generation == EntityIdService.INVALID_ID)
                 {
                     t = shader.DefaultDiffuse;
 
@@ -480,7 +480,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             {
                 fixed (WriteDescriptorSet* descriptorWritesPtr = descriptorWrites)
                 {
-                    context.Vk.UpdateDescriptorSets(context.Device.LogicalDevice, (uint)descriptorWrites.Length, descriptorWritesPtr, 0, default);
+                    context.Vk.UpdateDescriptorSets(context.Device.LogicalDevice, descriptorCount, descriptorWritesPtr, 0, default);
                 }
             }
 
