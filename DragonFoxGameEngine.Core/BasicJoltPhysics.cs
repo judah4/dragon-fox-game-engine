@@ -1,0 +1,353 @@
+﻿using JoltPhysicsSharp;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Numerics;
+using System.Threading.Tasks;
+
+namespace DragonGameEngine.Core
+{
+    public class BasicJoltPhysics
+    {
+        private const uint MaxBodies = 1024;
+
+        private const uint NumBodyMutexes = 0;
+        private const uint MaxBodyPairs = 1024;
+        private const uint MaxContactConstraints = 1024;
+
+        static class Layers
+        {
+            public const byte NonMoving = 0;
+            public const byte Moving = 1;
+            public const int NumLayers = 2;
+        };
+
+        static class BroadPhaseLayers
+        {
+            public const byte NonMoving = 0;
+            public const byte Moving = 1;
+            public const int NumLayers = 2;
+        };
+
+        class BPLayerInterfaceImpl : BroadPhaseLayerInterface
+        {
+            private readonly BroadPhaseLayer[] _objectToBroadPhase = new BroadPhaseLayer[Layers.NumLayers];
+
+            public BPLayerInterfaceImpl()
+            {
+                // Create a mapping table from object to broad phase layer
+                _objectToBroadPhase[Layers.NonMoving] = BroadPhaseLayers.NonMoving;
+                _objectToBroadPhase[Layers.Moving] = BroadPhaseLayers.Moving;
+            }
+
+            protected override int GetNumBroadPhaseLayers()
+            {
+                return BroadPhaseLayers.NumLayers;
+            }
+
+            protected override BroadPhaseLayer GetBroadPhaseLayer(ObjectLayer layer)
+            {
+                Debug.Assert(layer < Layers.NumLayers);
+                return _objectToBroadPhase[layer];
+            }
+
+            protected override string GetBroadPhaseLayerName(BroadPhaseLayer layer)
+            {
+                switch ((byte)layer)
+                {
+                    case BroadPhaseLayers.NonMoving: return "NON_MOVING";
+                    case BroadPhaseLayers.Moving: return "MOVING";
+                    default:
+                        Debug.Assert(false);
+                        return "INVALID";
+                }
+            }
+        }
+
+        class ObjectVsBroadPhaseLayerFilterImpl : ObjectVsBroadPhaseLayerFilter
+        {
+            protected override bool ShouldCollide(ObjectLayer layer1, BroadPhaseLayer layer2)
+            {
+                switch (layer1)
+                {
+                    case Layers.NonMoving:
+                        return layer2 == BroadPhaseLayers.Moving;
+                    case Layers.Moving:
+                        return true;
+                    default:
+                        Debug.Assert(false);
+                        return false;
+                }
+            }
+        }
+
+        class ObjectLayerPairFilterImpl : ObjectLayerPairFilter
+        {
+            protected override bool ShouldCollide(ObjectLayer object1, ObjectLayer object2)
+            {
+                switch (object1)
+                {
+                    case Layers.NonMoving:
+                        return object2 == Layers.Moving;
+                    case Layers.Moving:
+                        return true;
+                    default:
+                        Debug.Assert(false);
+                        return false;
+                }
+            }
+        }
+
+        private static float WorldScale = 1.0f;
+
+        private static Body CreateFloor(in BodyInterface bodyInterface, float size = 200.0f)
+        {
+            float scale = WorldScale;
+
+            Body floor = bodyInterface.CreateBody(new BodyCreationSettings(
+                new BoxShapeSettings(scale * new Vector3(0.5f * size, 1.0f, 0.5f * size), 0.0f),
+                scale * new Double3(0.0, -1.0, 0.0),
+                Quaternion.Identity,
+                MotionType.Static,
+                Layers.NonMoving)
+                );
+            bodyInterface.AddBody(floor.ID, Activation.DontActivate);
+            return floor;
+        }
+
+        private static void StackTest(in BodyInterface bodyInterface)
+        {
+            // Floor
+            CreateFloor(bodyInterface);
+
+            ReadOnlySpan<Vector3> box = new [] 
+            {
+                new Vector3(5, 6, 7),
+                new Vector3(5, 6, 14),
+                new Vector3(5, 12, 7),
+                new Vector3(5, 12, 14),
+                new Vector3(10, 6, 7),
+                new Vector3(10, 6, 14),
+                new Vector3(10, 12, 7),
+                new Vector3(10, 12, 14)
+            };
+
+            const float cDensity = 1.5f;
+            ConvexHullShapeSettings settings = new ConvexHullShapeSettings(box);
+            settings.Density = cDensity;
+
+            using ConvexHullShape shape = new(settings);
+            Vector3 com = shape.CenterOfMass;
+            CHECK_APPROX_EQUAL(new Vector3(7.5f, 9.0f, 10.5f), com, 1.0e-5f);
+
+            // Calculate reference value of mass and inertia of a box
+            MassProperties reference = default;
+            reference.SetMassAndInertiaOfSolidBox(new Vector3(5, 6, 7), cDensity);
+
+            // Mass is easy to calculate, double check if SetMassAndInertiaOfSolidBox calculated it correctly
+            CHECK_APPROX_EQUAL(5.0f * 6.0f * 7.0f * cDensity, reference.Mass, 1.0e-6f);
+
+            /// Get calculated inertia tensor
+            MassProperties m = shape.MassProperties;
+            CHECK_APPROX_EQUAL(reference.Mass, m.Mass, 1.0e-6f);
+            //CHECK_APPROX_EQUAL(reference.Inertia, m.Inertia, 1.0e-4f);
+            //
+            // Check inner radius
+            CHECK_APPROX_EQUAL(shape.InnerRadius, 2.5f);
+
+            Shape boxShape = new BoxShape(new Vector3(0.5f, 1.0f, 2.0f));
+
+            // Dynamic body stack
+            for (int i = 0; i < 10; ++i)
+            {
+                Quaternion rotation;
+                if ((i & 1) != 0)
+                    rotation = Quaternion.CreateFromAxisAngle(Vector3.UnitY, 0.5f * (float)Math.PI);
+                else
+                    rotation = Quaternion.Identity;
+                Body stack = bodyInterface.CreateBody(new BodyCreationSettings(boxShape, new Vector3(10, 1.0f + i * 2.1f, 0), rotation, MotionType.Dynamic, Layers.Moving));
+                bodyInterface.AddBody(stack.ID, Activation.Activate);
+            }
+        }
+
+        private static void CHECK_APPROX_EQUAL(float inLHS, float inRHS, float inTolerance = 1.0e-6f)
+        {
+            Debug.Assert(MathF.Abs(inRHS - inLHS) <= inTolerance);
+        }
+
+        private static void CHECK_APPROX_EQUAL(in Vector3 inLHS, in Vector3 inRHS, float inTolerance = 1.0e-6f)
+        {
+            Debug.Assert(IsClose(inLHS, inRHS, inTolerance * inTolerance));
+        }
+
+        private static bool IsClose(in Vector3 inV1, in Vector3 inV2, float inMaxDistSq = 1.0e-12f)
+        {
+            return (inV2 - inV1).LengthSquared() <= inMaxDistSq;
+        }
+
+        private static MeshShapeSettings CreateTorusMesh(float inTorusRadius, float inTubeRadius, int inTorusSegments = 16, int inTubeSegments = 16)
+        {
+            int cNumVertices = inTorusSegments * inTubeSegments;
+
+            // Create torus
+            int triangleIndex = 0;
+            Span<Vector3> triangleVertices = stackalloc Vector3[cNumVertices];
+            Span<IndexedTriangle> indexedTriangles = stackalloc IndexedTriangle[cNumVertices * 2];
+
+            for (int torus_segment = 0; torus_segment < inTorusSegments; ++torus_segment)
+            {
+                Matrix4x4 rotation = Matrix4x4.CreateFromAxisAngle(Vector3.UnitY, (float)torus_segment * 2.0f * (float)Math.PI / inTorusSegments);
+                for (int tube_segment = 0; tube_segment < inTubeSegments; ++tube_segment)
+                {
+                    // Create vertices
+                    float tube_angle = (float)tube_segment * 2.0f * (float)Math.PI / inTubeSegments;
+                    Vector3 pos = Vector3.Transform(
+                        new Vector3(inTorusRadius + inTubeRadius * (float)Math.Sin(tube_angle), inTubeRadius * (float)Math.Cos(tube_angle), 0),
+                        rotation);
+                    triangleVertices[triangleIndex] = pos;
+
+                    // Create indices
+                    int start_idx = torus_segment * inTubeSegments + tube_segment;
+                    indexedTriangles[triangleIndex] = new(start_idx, (start_idx + 1) % cNumVertices, (start_idx + inTubeSegments) % cNumVertices);
+                    indexedTriangles[triangleIndex + 1] = new((start_idx + 1) % cNumVertices, (start_idx + inTubeSegments + 1) % cNumVertices, (start_idx + inTubeSegments) % cNumVertices);
+
+                    triangleIndex++;
+                }
+            }
+
+            return new MeshShapeSettings(triangleVertices, indexedTriangles);
+        }
+
+        public static void Run()
+        {
+            if (!Foundation.Init(true))
+            {
+                return;
+            }
+
+            {
+                // Malloc
+                //using TempAllocator tempAllocator = new();
+                using TempAllocator tempAllocator = new(10 * 1024 * 1024);
+                using JobSystemThreadPool jobSystem = new(Foundation.MaxPhysicsJobs, Foundation.MaxPhysicsBarriers);
+                using BPLayerInterfaceImpl broadPhaseLayer = new();
+                using ObjectVsBroadPhaseLayerFilterImpl objectVsBroadphaseLayerFilter = new();
+                using ObjectLayerPairFilterImpl objectVsObjectLayerFilter = new();
+
+                using PhysicsSystem physicsSystem = new();
+                physicsSystem.Init(MaxBodies, NumBodyMutexes, MaxBodyPairs, MaxContactConstraints,
+                    broadPhaseLayer,
+                    objectVsBroadphaseLayerFilter,
+                    objectVsObjectLayerFilter);
+
+                // ContactListener
+                physicsSystem.OnContactValidate += OnContactValidate;
+                physicsSystem.OnContactAdded += OnContactAdded;
+                physicsSystem.OnContactPersisted += OnContactPersisted;
+                physicsSystem.OnContactRemoved += OnContactRemoved;
+                // BodyActivationListener
+                physicsSystem.OnBodyActivated += OnBodyActivated;
+                physicsSystem.OnBodyDeactivated += OnBodyDeactivated;
+
+                BodyInterface bodyInterface = physicsSystem.BodyInterface;
+
+                // Next we can create a rigid body to serve as the floor, we make a large box
+                // Create the settings for the collision volume (the shape). 
+                // Note that for simple shapes (like boxes) you can also directly construct a BoxShape.
+                BoxShapeSettings floorShapeSettings = new(new Vector3(100.0f, 1.0f, 100.0f));
+
+                BodyCreationSettings floorSettings = new(floorShapeSettings, new Double3(0.0f, -1.0f, 0.0f), Quaternion.Identity, MotionType.Static, Layers.NonMoving);
+
+                // Create the actual rigid body
+                Body floor = bodyInterface.CreateBody(floorSettings);
+
+                // Add it to the world
+                bodyInterface.AddBody(floor, Activation.DontActivate);
+
+                BodyCreationSettings spherSettings = new(new SphereShape(0.5f), new Double3(0.0f, 2.0f, 0.0f), Quaternion.Identity, MotionType.Dynamic, Layers.Moving);
+                BodyID sphereID = bodyInterface.CreateAndAddBody(spherSettings, Activation.Activate);
+
+                // Now you can interact with the dynamic body, in this case we're going to give it a velocity.
+                // (note that if we had used CreateBody then we could have set the velocity straight on the body before adding it to the physics system)
+                bodyInterface.SetLinearVelocity(sphereID, new Vector3(0.0f, -5.0f, 0.0f));
+
+                StackTest(bodyInterface);
+
+                MeshShapeSettings meshShape = CreateTorusMesh(3.0f, 1.0f);
+                BodyCreationSettings settings = new(meshShape, new Double3(0, 10, 0), Quaternion.Identity, MotionType.Dynamic, Layers.Moving);
+
+                // We simulate the physics world in discrete time steps. 60 Hz is a good rate to update the physics system.
+                const float deltaTime = 1.0f / 60.0f;
+
+                // Optional step: Before starting the physics simulation you can optimize the broad phase. This improves collision detection performance (it's pointless here because we only have 2 bodies).
+                // You should definitely not call this every frame or when e.g. streaming in a new level section as it is an expensive operation.
+                // Instead insert all new objects in batches instead of 1 at a time to keep the broad phase efficient.
+                physicsSystem.OptimizeBroadPhase();
+
+                uint step = 0;
+                while (bodyInterface.IsActive(sphereID))
+                {
+                    // Next step
+                    ++step;
+
+                    // Output current position and velocity of the sphere
+                    Vector3 position = bodyInterface.GetCenterOfMassPosition(sphereID);
+                    Vector3 velocity = bodyInterface.GetLinearVelocity(sphereID);
+                    Console.WriteLine($"Step {step} : Position = ({position}), Velocity = ({velocity})");
+
+                    // If you take larger steps than 1 / 60th of a second you need to do multiple collision steps in order to keep the simulation stable. Do 1 collision step per 1 / 60th of a second (round up).
+                    const int collisionSteps = 1;
+
+                    // Step the world
+                    PhysicsUpdateError error = physicsSystem.Update(deltaTime, collisionSteps, tempAllocator, jobSystem);
+                    Debug.Assert(error == PhysicsUpdateError.None);
+                }
+
+                // Remove the sphere from the physics system. Note that the sphere itself keeps all of its state and can be re-added at any time.
+                bodyInterface.RemoveBody(sphereID);
+
+                // Destroy the sphere. After this the sphere ID is no longer valid.
+                bodyInterface.DestroyBody(sphereID);
+
+                // Remove and destroy the floor
+                bodyInterface.RemoveBody(floor.ID);
+                bodyInterface.DestroyBody(floor.ID);
+            }
+
+            Foundation.Shutdown();
+        }
+
+        private static ValidateResult OnContactValidate(PhysicsSystem system, in Body body1, in Body body2, Double3 baseOffset, IntPtr collisionResult)
+        {
+            Console.WriteLine("Contact validate callback");
+
+            // Allows you to ignore a contact before it is created (using layers to not make objects collide is cheaper!)
+            return ValidateResult.AcceptAllContactsForThisBodyPair;
+        }
+
+        private static void OnContactAdded(PhysicsSystem system, in Body body1, in Body body2)
+        {
+            Console.WriteLine("A contact was added");
+        }
+
+        private static void OnContactPersisted(PhysicsSystem system, in Body body1, in Body body2)
+        {
+            Console.WriteLine("A contact was persisted");
+        }
+
+        private static void OnContactRemoved(PhysicsSystem system, ref SubShapeIDPair subShapePair)
+        {
+            Console.WriteLine("A contact was removed");
+        }
+
+        private static void OnBodyActivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
+        {
+            Console.WriteLine("A body got activated");
+        }
+
+        private static void OnBodyDeactivated(PhysicsSystem system, in BodyID bodyID, ulong bodyUserData)
+        {
+            Console.WriteLine("A body went to sleep");
+        }
+    }
+}
