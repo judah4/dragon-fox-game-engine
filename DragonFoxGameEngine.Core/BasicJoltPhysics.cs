@@ -1,12 +1,13 @@
 ﻿using JoltPhysicsSharp;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Numerics;
-using System.Threading.Tasks;
 
 namespace DragonGameEngine.Core
 {
+
+    //https://github.com/amerkoleci/JoltPhysicsSharp/
+    //https://github.com/jrouwe/JoltPhysics
     public class BasicJoltPhysics
     {
         private const uint MaxBodies = 1024;
