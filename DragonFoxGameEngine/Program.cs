@@ -1,4 +1,4 @@
-﻿using Silk.NET.Windowing;
+using Silk.NET.Windowing;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
@@ -85,6 +85,12 @@ namespace DragonFoxGameEngine
                 _logPath = Path.Combine(dataPath, "dragonfox/game1/output.log");
                 //https://github.com/nreco/logging
                 builder.AddFile(_logPath, fileLoggerOpts => {
+                    fileLoggerOpts.Append = false;
+                    fileLoggerOpts.MinLevel = LogLevel.Debug;
+                    fileLoggerOpts.FormatLogEntry = LoggingOptions.FormatLogMessage;
+                });
+                //inline logging for debugging for now
+                builder.AddFile("output.log", fileLoggerOpts => {
                     fileLoggerOpts.Append = false;
                     fileLoggerOpts.MinLevel = LogLevel.Debug;
                     fileLoggerOpts.FormatLogEntry = LoggingOptions.FormatLogMessage;

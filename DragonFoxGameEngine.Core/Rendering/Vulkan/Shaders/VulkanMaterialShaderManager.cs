@@ -215,7 +215,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             MemoryPropertyFlags deviceLocalBits = context.Device.SupportsDeviceLocalHostVisible ? MemoryPropertyFlags.DeviceLocalBit : MemoryPropertyFlags.None;
             var globalUboBuffer = _bufferSetup.BufferCreate(
                 context,
-                (ulong)(sizeof(GlobalUniformObject) * 3), //make this large enough for each frame
+                (ulong)sizeof(GlobalUniformObject),
                 BufferUsageFlags.TransferDstBit | BufferUsageFlags.UniformBufferBit,
                 MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit | deviceLocalBits,
                 true);
@@ -304,7 +304,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 
             //configure
             uint range = (uint)sizeof(GlobalUniformObject);
-            ulong offset = range * imageIndex; //might not need this per buffer
+            ulong offset = 0;
 
             Span<GlobalUniformObject> uboData = stackalloc GlobalUniformObject[1];
             uboData[0] = shader.GlobalUbo;
