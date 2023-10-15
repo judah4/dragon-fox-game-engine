@@ -1,4 +1,4 @@
-using Silk.NET.Windowing;
+﻿using Silk.NET.Windowing;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Configuration;
 using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core;
+using System.Threading;
 
 namespace DragonFoxGameEngine
 {
@@ -29,6 +30,8 @@ namespace DragonFoxGameEngine
             {
                 logger.LogDebug($"Logging file path: {_logPath}");
             }
+
+            Thread.Sleep(1000); //reading the log delay
 
             bool headlessMode = false;
             if (args.Any(x => x == "--headless"))
@@ -53,13 +56,20 @@ namespace DragonFoxGameEngine
             ApplicationRun(config, platform, window, game, logger);
         }
 
-        static void ApplicationRun(ApplicationConfig config, PlatformWindowing platform, IWindow window, IGameEntry game, ILogger logger)
+        static void ApplicationRun(ApplicationConfig config, PlatformWindowing platform, IWindow window, IGameEntry game, ILogger engineLogger)
         {
-            var application = new GameApplication(config, game, window, logger);
+            var application = new GameApplication(config, game, window, engineLogger);
 
-            application.Init();
+            try
+            {
+                application.Init();
 
-            application.Run(); //Do the thing
+                application.Run(); //Do the thing
+            }
+            catch (Exception e)
+            {
+                engineLogger.LogError(e, e.Message);
+            }
 
             application.Shutdown();
             platform.Cleanup();
