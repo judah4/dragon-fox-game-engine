@@ -8,7 +8,7 @@ using System;
 
 namespace DragonGameEngine.Core
 {
-    public class GameApplication
+    public sealed class GameApplication
     {
         public IWindow Window => _window;
         public RendererFrontend Renderer => _renderer;

@@ -4,7 +4,7 @@ using Silk.NET.Vulkan;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe class VulkanCommandBufferSetup
+    public unsafe sealed class VulkanCommandBufferSetup
     {
         private ILogger _logger;
 

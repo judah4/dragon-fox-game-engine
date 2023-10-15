@@ -4,7 +4,7 @@ using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
 {
-    public class VulkanMaterialShader
+    public sealed class VulkanMaterialShader
     {
         public const int OBJECT_SHADER_STAGE_COUNT = 2;
         public const int MAX_OBJECT_COUNT = 1024;

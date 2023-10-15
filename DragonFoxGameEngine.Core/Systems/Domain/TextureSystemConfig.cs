@@ -1,8 +1,8 @@
 ﻿namespace DragonGameEngine.Core.Systems.Domain
 {
-    public record TextureSystemConfig
+    public readonly struct TextureSystemConfig
     {
-        public readonly uint MaxTextureCount;
+        public uint MaxTextureCount { get; init; }
 
         public TextureSystemConfig(uint maxTextureCount)
         {

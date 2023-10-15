@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe class VulkanSwapchainSetup
+    public unsafe sealed class VulkanSwapchainSetup
     {
 
         private readonly ILogger _logger;

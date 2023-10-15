@@ -1,15 +1,13 @@
 ﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
-using Foxis.Library;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
-using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
-    public unsafe class VulkanContext
+    public unsafe sealed class VulkanContext
     {
         public Vk Vk { get; }
 

@@ -1,11 +1,11 @@
 ﻿namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
-    public struct PhysicalDeviceQueueFamilyInfo
+    public readonly struct PhysicalDeviceQueueFamilyInfo
     {
-        public readonly uint GraphicsFamilyIndex;
-        public readonly uint PresentFamilyIndex;
-        public readonly uint ComputeFamilyIndex;
-        public readonly uint TransferFamilyIndex;
+        public uint GraphicsFamilyIndex { get; init;}
+        public uint PresentFamilyIndex { get; init; }
+        public uint ComputeFamilyIndex { get; init; }
+        public uint TransferFamilyIndex { get; init; }
 
         public struct Builder
         {
@@ -24,10 +24,6 @@
                     );
             }
 
-        }
-
-        public PhysicalDeviceQueueFamilyInfo()
-        {
         }
 
         private PhysicalDeviceQueueFamilyInfo(uint graphicsFamilyIndex, uint presentFamilyIndex, uint computeFamilyIndex, uint transferFamilyIndex)

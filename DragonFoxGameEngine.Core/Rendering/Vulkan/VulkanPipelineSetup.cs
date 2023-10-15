@@ -8,7 +8,7 @@ using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe class VulkanPipelineSetup
+    public unsafe sealed class VulkanPipelineSetup
     {
         private readonly ILogger _logger;
 

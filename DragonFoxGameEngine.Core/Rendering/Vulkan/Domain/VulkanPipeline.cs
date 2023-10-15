@@ -2,9 +2,9 @@
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
-    public struct VulkanPipeline
+    public readonly struct VulkanPipeline
     {
-        public Pipeline Handle;
-        public PipelineLayout PipelineLayout;
+        public Pipeline Handle { get; init; }
+        public PipelineLayout PipelineLayout { get; init; }
     }
 }

@@ -6,7 +6,7 @@ using System.Drawing;
 
 namespace DragonGameEngine.Core.Rendering.Headless
 {
-    public class HeadlessRenderer : IRenderer
+    public sealed class HeadlessRenderer : IRenderer
     {
         private readonly ILogger _logger;
         private Texture? _defaultTexture;

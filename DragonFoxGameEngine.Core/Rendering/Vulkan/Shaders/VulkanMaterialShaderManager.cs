@@ -11,7 +11,7 @@ using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 {
-    public unsafe class VulkanMaterialShaderManager
+    public unsafe sealed class VulkanMaterialShaderManager
     {
         public const string BUILTIN_SHADER_NAME_OBJECT = "Builtin.MaterialShader";
 
@@ -352,7 +352,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             // Used to push data that changes often that is usaged in all the shaders.
             // I think I can use this for time of day later
             // 128 bytes limited. Maybe not then for time of day
-            context.Vk.CmdPushConstants<Matrix4X4<float>>(commandBuffer, shader.Pipeline.PipelineLayout, ShaderStageFlags.VertexBit, 0, (uint)sizeof(Matrix4X4<float>), ref data.Model);
+            var modelVal = data.Model;
+            context.Vk.CmdPushConstants<Matrix4X4<float>>(commandBuffer, shader.Pipeline.PipelineLayout, ShaderStageFlags.VertexBit, 0, (uint)sizeof(Matrix4X4<float>), ref modelVal);
         
             //obtain material data
             var objectState = shader.ObjectStates[data.ObjectId];

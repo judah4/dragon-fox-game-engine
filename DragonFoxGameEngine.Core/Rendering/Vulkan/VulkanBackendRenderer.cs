@@ -18,7 +18,7 @@ using Buffer = Silk.NET.Vulkan.Buffer;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public sealed unsafe class VulkanBackendRenderer : IRenderer
+    public unsafe sealed class VulkanBackendRenderer : IRenderer
     {
         private readonly ILogger _logger;
         private readonly string _applicationName;
@@ -389,7 +389,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _context.Vk.CmdSetScissor(commandBuffer.Handle, 0, 1, scissor);
 
             var renderPass = _context.MainRenderPass;
-            renderPass.Rect.Extent = scissor.Extent; //hacky but sets it at least
+            var rect = renderPass.Rect;
+            rect.Extent = scissor.Extent; //hacky but sets it at least
+            renderPass.Rect = rect;
             _context.SetupMainRenderpass(renderPass);
 
             commandBuffer = _renderpassSetup.BeginRenderpass(_context, commandBuffer, _context.MainRenderPass, _context.Swapchain.Framebuffers[_context.ImageIndex].Framebuffer);
@@ -472,8 +474,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             //update the view and projection
             var materialShader = _context.MaterialShader!;
-            materialShader.GlobalUbo.Projection = projection;
-            materialShader.GlobalUbo.View = view;
+            materialShader.GlobalUbo = new GlobalUniformObject()
+            {
+                Projection = projection,
+                View = view,
+            };
             //TODO: other ubo properties
 
             _context.SetupBuiltinShaders(materialShader);
@@ -832,8 +837,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _context.SetupSwapchain(swapchain);
 
             var renderPass = _context.MainRenderPass;
-            renderPass.Rect.Extent.Width = _context.FramebufferSize.X;
-            renderPass.Rect.Extent.Height = _context.FramebufferSize.Y;
+            var rect = renderPass.Rect;
+            rect.Extent.Width = _context.FramebufferSize.X;
+            rect.Extent.Height = _context.FramebufferSize.Y;
+            renderPass.Rect = rect;
+
             _context.SetupMainRenderpass(renderPass);
 
             //update framebuffer size generation
@@ -846,12 +854,14 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             DestroyFramebuffers(swapchain);
 
-            //something something struct later
+            //TODO: something something struct later
             renderPass = _context.MainRenderPass;
-            renderPass.Rect.Offset.X = 0;
-            renderPass.Rect.Offset.Y = 0;
-            renderPass.Rect.Extent.Width = _context.FramebufferSize.X;
-            renderPass.Rect.Extent.Height = _context.FramebufferSize.Y;
+            rect = renderPass.Rect;
+            rect.Offset.X = 0;
+            rect.Offset.Y = 0;
+            rect.Extent.Width = _context.FramebufferSize.X;
+            rect.Extent.Height = _context.FramebufferSize.Y;
+            renderPass.Rect = rect;
             _context.SetupMainRenderpass(renderPass);
 
             _context.SetupSwapchain(RegenerateFramebuffers(_context.Swapchain, _context.MainRenderPass));
