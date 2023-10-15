@@ -104,7 +104,14 @@ namespace DragonGameEngine.Core
                 _lastFpsFrameStatsTime = DateTime.UtcNow;
             }
 
-            _game.Update(deltaTime);
+            try
+            {
+                _game.Update(deltaTime);
+            }
+            catch(Exception e)
+            {
+                _logger.LogError(e, e.Message);
+            }
         }
 
         public void OnDrawFrame(double deltaTime)

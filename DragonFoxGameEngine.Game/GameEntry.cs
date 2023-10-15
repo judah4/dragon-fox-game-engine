@@ -44,10 +44,13 @@ namespace DragonFoxGameEngine.Game
             _window = window;
             _renderer = renderer;
             IInputContext input = window.CreateInput();
-            _keyboard = input.Keyboards[0];
+            _keyboard = input.Keyboards.FirstOrDefault();
             _gamepad = input.Gamepads.FirstOrDefault();
 
-            _keyboard.KeyDown += KeyDown;
+            if(_keyboard != null)
+            {
+                _keyboard.KeyDown += KeyDown;
+            }
             for (int i = 0; i < input.Mice.Count; i++)
             {
                 input.Mice[i].Cursor.CursorMode = CursorMode.Normal;
@@ -76,32 +79,46 @@ namespace DragonFoxGameEngine.Game
             var moveSpeed = 5f * (float)deltaTime;
 
             var velocity = Vector3D<float>.Zero;
-            if (_keyboard!.IsKeyPressed(Key.W))
+            if(_keyboard != null)
             {
-                var forward = MathUtils.ForwardFromMatrix(_view);
-                velocity += forward;
+                if (_keyboard.IsKeyPressed(Key.W))
+                {
+                    var forward = MathUtils.ForwardFromMatrix(_view);
+                    velocity += forward;
+                }
+                if (_keyboard.IsKeyPressed(Key.S))
+                {
+                    var backward = -MathUtils.ForwardFromMatrix(_view);
+                    velocity += backward;
+                }
+                if (_keyboard.IsKeyPressed(Key.A))
+                {
+                    var left = -MathUtils.RightFromMatrix(_view);
+                    velocity += left;
+                }
+                if (_keyboard.IsKeyPressed(Key.D))
+                {
+                    var right = MathUtils.RightFromMatrix(_view);
+                    velocity += right;
+                }
+
+                if (_keyboard.IsKeyPressed(Key.Space))
+                {
+                    velocity.Y += 1.0f;
+                }
+                if (_keyboard.IsKeyPressed(Key.ControlLeft))
+                {
+                    velocity.Y += -1.0f;
+                }
             }
-            if (_keyboard.IsKeyPressed(Key.S))
-            {
-                var backward = -MathUtils.ForwardFromMatrix(_view);
-                velocity += backward;
-            }
+
             if (_gamepad != null && Math.Abs(_gamepad.Thumbsticks[0].Y) > THUMBSTICK_DEADZONE)
             {
                 //pad is inverted I guess
                 var forward = MathUtils.ForwardFromMatrix(_view);
                 velocity += (forward * -_gamepad.Thumbsticks[0].Y);
             }
-            if (_keyboard!.IsKeyPressed(Key.A))
-            {
-                var left = -MathUtils.RightFromMatrix(_view);
-                velocity += left;
-            }
-            if (_keyboard.IsKeyPressed(Key.D))
-            {
-                var right = MathUtils.RightFromMatrix(_view);
-                velocity += right;
-            }
+
             if (_gamepad != null && Math.Abs(_gamepad.Thumbsticks[0].X) > THUMBSTICK_DEADZONE)
             {
                 //pad is inverted I guess
@@ -109,14 +126,6 @@ namespace DragonFoxGameEngine.Game
                 velocity += (right * _gamepad.Thumbsticks[0].X);
             }
 
-            if (_keyboard.IsKeyPressed(Key.Space))
-            {
-                velocity.Y += 1.0f;
-            }
-            if (_keyboard.IsKeyPressed(Key.ControlLeft))
-            {
-                velocity.Y += -1.0f;
-            }
 
             if(_gamepad != null && _gamepad.Triggers.Count >= 2)
             {
@@ -135,21 +144,24 @@ namespace DragonFoxGameEngine.Game
                 MoveCamera(velocity * moveSpeed);
             }
 
-            if (_keyboard.IsKeyPressed(Key.Q) || _keyboard.IsKeyPressed(Key.Left))
+            if (_keyboard != null)
             {
-                RotateCamera(new Vector3D<float>(0, rotateSpeedRad, 0));
-            }
-            if (_keyboard.IsKeyPressed(Key.E) || _keyboard.IsKeyPressed(Key.Right))
-            {
-                RotateCamera(new Vector3D<float>(0, -rotateSpeedRad, 0));
-            }
-            if (_keyboard.IsKeyPressed(Key.Up))
-            {
-                RotateCamera(new Vector3D<float>(rotateSpeedRad, 0, 0));
-            }
-            if (_keyboard.IsKeyPressed(Key.Down))
-            {
-                RotateCamera(new Vector3D<float>(-rotateSpeedRad, 0, 0));
+                if (_keyboard.IsKeyPressed(Key.Q) || _keyboard.IsKeyPressed(Key.Left))
+                {
+                    RotateCamera(new Vector3D<float>(0, rotateSpeedRad, 0));
+                }
+                if (_keyboard.IsKeyPressed(Key.E) || _keyboard.IsKeyPressed(Key.Right))
+                {
+                    RotateCamera(new Vector3D<float>(0, -rotateSpeedRad, 0));
+                }
+                if (_keyboard.IsKeyPressed(Key.Up))
+                {
+                    RotateCamera(new Vector3D<float>(rotateSpeedRad, 0, 0));
+                }
+                if (_keyboard.IsKeyPressed(Key.Down))
+                {
+                    RotateCamera(new Vector3D<float>(-rotateSpeedRad, 0, 0));
+                }
             }
             if (_gamepad != null && _gamepad.Thumbsticks[1].Position > THUMBSTICK_DEADZONE)
             {
