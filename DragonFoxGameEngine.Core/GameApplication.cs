@@ -10,6 +10,9 @@ namespace DragonGameEngine.Core
 {
     public class GameApplication
     {
+        public IWindow Window => _window;
+        public RendererFrontend Renderer => _renderer;
+
         private readonly ApplicationConfig _config;
         private readonly IGameEntry _game;
         private readonly IWindow _window;
@@ -18,6 +21,7 @@ namespace DragonGameEngine.Core
         private readonly EngineInternalInput _engineInternalInput;
 
         private long _frame;
+        private string _gameTitleData = string.Empty;
 
         //Debug fps stuff
         private readonly TimeSpan _fpsDisplayTime = TimeSpan.FromSeconds(0.5);
@@ -54,7 +58,7 @@ namespace DragonGameEngine.Core
             try
             {
                 _renderer.Init();
-                _game.Initialize(_window, _renderer);
+                _game.Initialize(this);
             }
             catch (Exception e)
             {
@@ -94,7 +98,7 @@ namespace DragonGameEngine.Core
             _frameStats.AddSample(_frame, _window.Time, deltaTime);
             if (_lastFpsTime < DateTime.UtcNow.Add(-_fpsDisplayTime))
             {
-                _window.Title = $"{_config.Title} ({_frameStats.GetCurrentFps().ToString("F0").PadLeft(4, '0')}) - ({deltaTime.ToString().PadLeft(9, '0')} s) - Min: {_frameStats.GetMinFps().ToString("F0")}, Max: {_frameStats.GetMaxFps().ToString("F0")}, 95th: {_frameStats.GetPercentile95thTime()} s";
+                _window.Title = $"{_config.Title} ({_frameStats.GetCurrentFps().ToString("F0").PadLeft(4, '0')}) - ({deltaTime.ToString().PadLeft(9, '0')} s) - Min: {_frameStats.GetMinFps().ToString("F0")}, Max: {_frameStats.GetMaxFps().ToString("F0")}, 95th: {_frameStats.GetPercentile95thTime()} s {_gameTitleData}";
                 _lastFpsTime = DateTime.UtcNow;
             }
 
@@ -124,6 +128,11 @@ namespace DragonGameEngine.Core
 
             //end, to the next frame
             _frame++;
+        }
+
+        public void UpdateWindowTitle(string title)
+        {
+            _gameTitleData = title;
         }
     }
 }

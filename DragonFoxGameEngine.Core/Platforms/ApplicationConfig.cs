@@ -48,7 +48,8 @@ namespace DragonGameEngine.Core.Platforms
 
         public string DefaultGameName()
         {
-            return $"{ApplicationInfo.GetGameEngineName()} Game";
+            //TODO: Make this a constant
+            return "Game";
         }
     }
 }

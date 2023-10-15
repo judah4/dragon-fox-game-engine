@@ -1,10 +1,8 @@
 ﻿using DragonGameEngine.Core;
-using DragonGameEngine.Core.Rendering;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.SDL;
-using Silk.NET.Windowing;
 using System;
 using System.Linq;
 
@@ -18,8 +16,7 @@ namespace DragonFoxGameEngine.Game
         public const string GAME_NAME = "";
         private readonly ILogger _logger;
 
-        private IWindow? _window;
-        private RendererFrontend? _renderer; //HACK: abstract this later. Keep this in the engine
+        private GameApplication? _gameApp;
         IKeyboard? _keyboard;
         IGamepad? _gamepad;
 
@@ -39,11 +36,10 @@ namespace DragonFoxGameEngine.Game
             _logger = logger;
         }
 
-        public void Initialize(IWindow window, RendererFrontend renderer)
+        public void Initialize(GameApplication gameApp)
         {
-            _window = window;
-            _renderer = renderer;
-            IInputContext input = window.CreateInput();
+            _gameApp = gameApp;
+            IInputContext input = _gameApp.Window.CreateInput();
             _keyboard = input.Keyboards.FirstOrDefault();
             _gamepad = input.Gamepads.FirstOrDefault();
 
@@ -58,9 +54,7 @@ namespace DragonFoxGameEngine.Game
             }
             //so much temp input
 
-            _cameraPosition = new Vector3D<float>(0, 0, 10);
-            _cameraEuler = Vector3D<float>.Zero;
-            _cameraViewDirty = true;
+            SetDefaultCameraPosition();
 
             _logger.LogDebug("Game initialized!");
         }
@@ -167,7 +161,10 @@ namespace DragonFoxGameEngine.Game
             }
 
             RecalculateCameraViewMatrix();
-            _renderer!.SetView(_view);
+            _gameApp!.Renderer.SetView(_view);
+
+            //debug set camera position in title
+            _gameApp.UpdateWindowTitle($"Pos:{_cameraPosition}");
         }
 
         public void Render(double deltaTime)
@@ -194,17 +191,22 @@ namespace DragonFoxGameEngine.Game
         {
             if (key == Key.Escape)
             {
-                _window!.Close();
+                _gameApp!.Window.Close();
             }
             else if(key == Key.T)
             {
-                _renderer!.CycleTestTexture();
+                _gameApp!.Renderer.CycleTestTexture();
+            }
+            else if (key == Key.R)
+            {
+                SetDefaultCameraPosition();
+                _logger.LogDebug("Camera position reset.");
             }
         }
 
         private void OnMouseMove(IMouse mouse, System.Numerics.Vector2 position)
         {
-            var rotateSpeedRad = 2.5f * _lastDeltaTime;
+            var rotateSpeedRad = 1.5f * _lastDeltaTime;
 
             var mousePos = new Vector2D<float>(position.X, position.Y);
             if (_lastMousePosition == default)
@@ -263,6 +265,14 @@ namespace DragonFoxGameEngine.Game
         private void MoveCamera(Vector3D<float> amount)
         {
             _cameraPosition += amount;
+            _cameraViewDirty = true;
+        }
+
+
+        private void SetDefaultCameraPosition()
+        {
+            _cameraPosition = new Vector3D<float>(0, 0, 10);
+            _cameraEuler = Vector3D<float>.Zero;
             _cameraViewDirty = true;
         }
     }

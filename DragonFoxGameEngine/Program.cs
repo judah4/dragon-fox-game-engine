@@ -19,20 +19,6 @@ namespace DragonFoxGameEngine
 
         private static void Main(string[] args)
         {
-            //var host = SetupHost(args);
-            //var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
-            var loggerFactory = SetupLogger(args);
-            var logger = loggerFactory.CreateLogger("Engine");
-            //host.Run();
-            //return;
-
-            if (!string.IsNullOrEmpty(_logPath))
-            {
-                logger.LogDebug($"Logging file path: {_logPath}");
-            }
-
-            Thread.Sleep(1000); //reading the log delay
-
             bool headlessMode = false;
             if (args.Any(x => x == "--headless"))
             {
@@ -45,6 +31,20 @@ namespace DragonFoxGameEngine
                 headlessMode,
                 ApplicationConfig.GOOD_MAX_FPS,
                 ApplicationConfig.GOOD_MAX_FPS);
+
+            //var host = SetupHost(args);
+            //var loggerFactory = host.Services.GetRequiredService<ILoggerFactory>();
+            var loggerFactory = SetupLogger(config, args);
+            var logger = loggerFactory.CreateLogger("Engine");
+            //host.Run();
+            //return;
+
+            if (!string.IsNullOrEmpty(_logPath))
+            {
+                logger.LogDebug($"Logging file path: {_logPath}");
+            }
+
+            Thread.Sleep(1000); //reading the log delay
 
             var platform = new PlatformWindowing(logger);
             var window = platform.InitWindow(config, null);
@@ -75,7 +75,7 @@ namespace DragonFoxGameEngine
             platform.Cleanup();
         }
 
-        static ILoggerFactory SetupLogger(string[] args)
+        static ILoggerFactory SetupLogger(ApplicationConfig config, string[] args)
         {
             IConfigurationBuilder configurationBuilder = new ConfigurationBuilder()
                 .AddJsonFile("appsettings.json");
@@ -92,17 +92,17 @@ namespace DragonFoxGameEngine
                     options.ColorBehavior = LoggerColorBehavior.Enabled;
                 });
                 var dataPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData, Environment.SpecialFolderOption.Create);
-                _logPath = Path.Combine(dataPath, "dragonfox/game1/output.log");
+                _logPath = Path.Combine(dataPath, $"dragonfox\\{config.Title}\\output.log");
                 //https://github.com/nreco/logging
                 builder.AddFile(_logPath, fileLoggerOpts => {
                     fileLoggerOpts.Append = false;
-                    fileLoggerOpts.MinLevel = LogLevel.Debug;
+                    fileLoggerOpts.MinLevel = LogLevel.Debug; //TODO: turn this off eventually for publish
                     fileLoggerOpts.FormatLogEntry = LoggingOptions.FormatLogMessage;
                 });
                 //inline logging for debugging for now
                 builder.AddFile("output.log", fileLoggerOpts => {
                     fileLoggerOpts.Append = false;
-                    fileLoggerOpts.MinLevel = LogLevel.Debug;
+                    fileLoggerOpts.MinLevel = LogLevel.Debug; //TODO: turn this off eventually for publish
                     fileLoggerOpts.FormatLogEntry = LoggingOptions.FormatLogMessage;
                 });
             });

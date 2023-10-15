@@ -40,7 +40,7 @@ namespace GameEngine.Core.Tests
 
             Assert.AreEqual(1, initCalls, "Expected init to be called once.");
             Assert.IsTrue(createTextureCalls >= 1, "Expected create texture to be called at least once.");
-            gameEntryMock.Verify((gameEntry) => gameEntry.Initialize(It.IsAny<IWindow>(), It.IsAny<RendererFrontend>()), Times.Once());
+            gameEntryMock.Verify((gameEntry) => gameEntry.Initialize(It.IsAny<GameApplication>()), Times.Once());
         }
 
         [TestMethod]
