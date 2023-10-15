@@ -5,6 +5,7 @@ using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonGameEngine.Core.Rendering.Vulkan.Shaders;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;
@@ -48,11 +49,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         };
 
         private VulkanContext? _context;
-        private Texture? _defaultTexture;
 
         private uint _tempIndiciesCount;
-
-        public Texture DefaultDiffuse => _defaultTexture!;
 
         public VulkanBackendRenderer(string applicationName, IWindow window, ILogger logger)
         {
@@ -75,13 +73,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         }
 
-        public void Init(Texture defaultTexture)
+        public void Init(TextureSystem textureSystem)
         {
             if (_context != null)
             {
                 throw new EngineException("Vulkan is already initialized!");
             }
-            _defaultTexture = defaultTexture;
 
             var vk = Vk.GetApi();
 
@@ -212,7 +209,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             CreateSemaphoresAndFences();
 
-            var materialShader = _objectShaderManager.Create(_context, DefaultDiffuse);
+            var materialShader = _objectShaderManager.Create(_context);
             _context.SetupBuiltinShaders(materialShader);
 
             CreateBuffers(_context);
@@ -513,7 +510,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //end temp test code
         }
 
-        public InnerTexture CreateTexture(string name, bool autoRelease, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
+        public InnerTexture CreateTexture(string name, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
         {
             if(_context == null)
             {

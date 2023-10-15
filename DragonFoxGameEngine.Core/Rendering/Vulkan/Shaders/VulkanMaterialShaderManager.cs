@@ -4,6 +4,7 @@ using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
@@ -19,24 +20,26 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
         private readonly VulkanShaderManager _shaderSetup;
         private readonly VulkanPipelineSetup _pipelineSetup;
         private readonly VulkanBufferSetup _bufferSetup;
+        private readonly TextureSystem _textureSystem;
 
         private float tempAccumulator = 0f;
 
-        public VulkanMaterialShaderManager(ILogger logger, VulkanShaderManager shaderSetup, VulkanPipelineSetup pipelineSetup, VulkanBufferSetup bufferSetup)
+        public VulkanMaterialShaderManager(ILogger logger, VulkanShaderManager shaderSetup, VulkanPipelineSetup pipelineSetup, VulkanBufferSetup bufferSetup, TextureSystem textureSystem)
         {
             _logger = logger;
             _shaderSetup = shaderSetup;
             _pipelineSetup = pipelineSetup;
             _bufferSetup = bufferSetup;
+            _textureSystem = textureSystem;
         }
 
-        public VulkanMaterialShader Create(VulkanContext context, Texture defaultDiffuse)
+        public VulkanMaterialShader Create(VulkanContext context)
         {
             // Shader module init per stage
             var stageTypesNames = new string[VulkanMaterialShader.OBJECT_SHADER_STAGE_COUNT] { "vert", "frag" };
             var stageTypes = new ShaderStageFlags[VulkanMaterialShader.OBJECT_SHADER_STAGE_COUNT] { ShaderStageFlags.VertexBit, ShaderStageFlags.FragmentBit };
 
-            var objectShader = new VulkanMaterialShader(defaultDiffuse);
+            var objectShader = new VulkanMaterialShader();
             for (int cnt = 0; cnt < VulkanMaterialShader.OBJECT_SHADER_STAGE_COUNT; cnt++)
             {
                 var shaderModuleResult = _shaderSetup.CreateShaderModule(context, BUILTIN_SHADER_NAME_OBJECT, stageTypesNames[cnt], stageTypes[cnt], cnt);
@@ -428,7 +431,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 // TODO: Determine which use the texture has and pull appropriate default based on that.
                 if (t.Generation == EntityIdService.INVALID_ID)
                 {
-                    t = shader.DefaultDiffuse;
+                    t = _textureSystem.GetDefaultTexture();
 
                     //reset the descriptor generation if using the default texture.
                     descriptorGeneration = EntityIdService.INVALID_ID;

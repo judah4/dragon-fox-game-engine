@@ -1,4 +1,5 @@
 ﻿using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using System;
@@ -9,18 +10,14 @@ namespace DragonGameEngine.Core.Rendering.Headless
     public sealed class HeadlessRenderer : IRenderer
     {
         private readonly ILogger _logger;
-        private Texture? _defaultTexture;
-
-        public Texture DefaultDiffuse => _defaultTexture!;
 
         public HeadlessRenderer(ILogger logger)
         {
             _logger = logger;
         }
 
-        public void Init(Texture defaultTexture)
+        public void Init(TextureSystem textureSystem)
         {
-            _defaultTexture = defaultTexture;
             _logger.LogInformation("Headless Renderer setup.");
         }
 
@@ -31,7 +28,6 @@ namespace DragonGameEngine.Core.Rendering.Headless
 
         public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode)
         {
-            throw new System.NotImplementedException();
         }
 
         public void EndFrame(double deltaTime)
@@ -51,7 +47,7 @@ namespace DragonGameEngine.Core.Rendering.Headless
             //might want to use this for interest area later
         }
 
-        public InnerTexture CreateTexture(string name, bool autoRelease, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
+        public InnerTexture CreateTexture(string name, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
         {
             return new InnerTexture(size, channelCount, hasTransparency, new object());
         }

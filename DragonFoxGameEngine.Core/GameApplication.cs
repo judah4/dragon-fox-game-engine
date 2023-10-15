@@ -1,5 +1,8 @@
-﻿using DragonGameEngine.Core.Platforms;
+﻿using DragonGameEngine.Core.Ecs;
+using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core.Rendering;
+using DragonGameEngine.Core.Systems;
+using DragonGameEngine.Core.Systems.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -19,6 +22,7 @@ namespace DragonGameEngine.Core
         private readonly RendererFrontend _renderer;
         private readonly ILogger _logger;
         private readonly EngineInternalInput _engineInternalInput;
+        private readonly TextureSystem _textureSystem;
 
         private long _frame;
         private string _gameTitleData = string.Empty;
@@ -30,7 +34,7 @@ namespace DragonGameEngine.Core
         private DateTime _lastFpsTime = DateTime.UtcNow;
         private DateTime _lastFpsFrameStatsTime = DateTime.UtcNow;
 
-        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, RendererFrontend rendererFrontend)
+        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, RendererFrontend rendererFrontend, TextureSystem textureSystem)
         {
             _config = config;
             _game = game;
@@ -42,22 +46,19 @@ namespace DragonGameEngine.Core
             _window.Resize += OnResize;
 
             _renderer = rendererFrontend;
+            _textureSystem = textureSystem;
 
             IInputContext input = window!.CreateInput();
             _engineInternalInput = new EngineInternalInput(input, window, logger);
             _frameStats = new FrameStats();
         }
 
-        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger)
-            : this(config, game, window, logger, new RendererFrontend(config, window, logger))
-        {
-        }
-
         public void Init()
         {
             try
             {
-                _renderer.Init();
+                _renderer.Init(_textureSystem);
+
                 _game.Initialize(this);
             }
             catch (Exception e)
@@ -90,6 +91,8 @@ namespace DragonGameEngine.Core
             {
                 _logger.LogError(e, e.Message);
             }
+
+            _textureSystem.Shutdown();
             _renderer.Shutdown();
         }
 
