@@ -62,12 +62,6 @@ namespace DragonFoxGameEngine.Game
             _cameraEuler = Vector3D<float>.Zero;
             _cameraViewDirty = true;
 
-            if(_gamepad != null)
-            {
-                _gamepad.ThumbstickMoved += OnThumbstickMoved;
-            }
-
-
             _logger.LogDebug("Game initialized!");
         }
 
@@ -166,7 +160,6 @@ namespace DragonFoxGameEngine.Game
             if (_gamepad != null && _gamepad.Thumbsticks[1].Position > THUMBSTICK_DEADZONE)
             {
                 var thumbstick = _gamepad.Thumbsticks[1];
-                _logger.LogDebug("Thumb {thumbIndex} X:{x}, Y:{y}, Pos:{thumbPos}", thumbstick.Index, thumbstick.X, thumbstick.Y, thumbstick.Position);
 
                 var xOffset = thumbstick.X * rotateSpeedRad;
                 var yOffset = thumbstick.Y * rotateSpeedRad;
@@ -233,25 +226,6 @@ namespace DragonFoxGameEngine.Game
                     //this needs to be in state at some point
                     mouse.Cursor.CursorMode = CursorMode.Normal;
                 }
-            }
-        }
-
-
-        private void OnThumbstickMoved(IGamepad gamepad, Thumbstick thumbstick)
-        {
-            var rotateSpeedRad = 2.5f * _lastDeltaTime;
-            _logger.LogDebug("Thumb {thumbIndex} X:{x}, Y:{y}, Pos:{thumbPos}", thumbstick.Index, thumbstick.X, thumbstick.Y, thumbstick.Position);
-            if(thumbstick.Position < THUMBSTICK_DEADZONE)
-            {
-                _logger.LogDebug("In Deadzone");
-                return;
-            }
-            var velocity = Vector3D<float>.Zero;
-            if(thumbstick.Index == 1)
-            {
-                var xOffset = thumbstick.X * rotateSpeedRad;
-                var yOffset = thumbstick.Y * rotateSpeedRad;
-                //RotateCamera(new Vector3D<float>(yOffset, xOffset, 0));
             }
         }
 
