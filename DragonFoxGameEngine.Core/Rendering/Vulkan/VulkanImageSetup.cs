@@ -79,7 +79,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 vulkanImage = ImageViewCreate(context, format, vulkanImage, viewAspectFlags);
             }
 
-            _logger.LogDebug("Image is created!");
+            _logger.LogDebug("Vulkan Image is created!");
 
             return vulkanImage;
         }
@@ -120,7 +120,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             vulkanImage.ImageView = default;
             vulkanImage.Memory = default;
             vulkanImage.Handle = default;
-            _logger.LogDebug("Image is destroyed.");
+            _logger.LogDebug("Vulkan Image is destroyed.");
             return vulkanImage;
         }
 

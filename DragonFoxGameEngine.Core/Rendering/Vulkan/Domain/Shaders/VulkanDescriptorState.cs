@@ -3,7 +3,7 @@
     public struct VulkanDescriptorState
     {
         //per frame
-        public uint[] Generation;
-
+        public uint[] Generation { get; set; }
+        public uint[] Ids { get; set; }
     }
 }
