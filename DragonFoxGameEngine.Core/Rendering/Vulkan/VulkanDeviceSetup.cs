@@ -206,39 +206,39 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         /// <returns></returns>
         public VulkanSwapchainSupportInfo QuerySwapChainSupport(PhysicalDevice physicalDevice, VulkanContext context)
         {
-            var details = new VulkanSwapchainSupportInfo();
             var surface = context.Surface!.Value;
-            context.KhrSurface!.GetPhysicalDeviceSurfaceCapabilities(physicalDevice, surface, out details.Capabilities);
+            context.KhrSurface!.GetPhysicalDeviceSurfaceCapabilities(physicalDevice, surface, out var capabilities);
             uint formatCount = 0;
             context.KhrSurface.GetPhysicalDeviceSurfaceFormats(physicalDevice, surface, ref formatCount, null);
 
+            var formats = Array.Empty<SurfaceFormatKHR>();;
             if (formatCount != 0)
             {
-                details.Formats = new SurfaceFormatKHR[formatCount];
-                fixed (SurfaceFormatKHR* formatsPtr = details.Formats)
+                formats = new SurfaceFormatKHR[formatCount];
+                fixed (SurfaceFormatKHR* formatsPtr = formats)
                 {
                     context.KhrSurface.GetPhysicalDeviceSurfaceFormats(physicalDevice, surface, ref formatCount, formatsPtr);
                 }
             }
-            else
-            {
-                details.Formats = Array.Empty<SurfaceFormatKHR>();
-            }
             uint presentModeCount = 0;
             context.KhrSurface.GetPhysicalDeviceSurfacePresentModes(physicalDevice, surface, ref presentModeCount, null);
 
+            var presentModes = Array.Empty<PresentModeKHR>();
             if (presentModeCount != 0)
             {
-                details.PresentModes = new PresentModeKHR[presentModeCount];
-                fixed (PresentModeKHR* formatsPtr = details.PresentModes)
+                presentModes = new PresentModeKHR[presentModeCount];
+                fixed (PresentModeKHR* presentModesPtr = presentModes)
                 {
-                    context.KhrSurface.GetPhysicalDeviceSurfacePresentModes(physicalDevice, surface, ref presentModeCount, formatsPtr);
+                    context.KhrSurface.GetPhysicalDeviceSurfacePresentModes(physicalDevice, surface, ref presentModeCount, presentModesPtr);
                 }
             }
-            else
+
+            var details = new VulkanSwapchainSupportInfo()
             {
-                details.PresentModes = Array.Empty<PresentModeKHR>();
-            }
+                Capabilities = capabilities,
+                Formats = formats,
+                PresentModes = presentModes,
+            };
 
             return details;
         }

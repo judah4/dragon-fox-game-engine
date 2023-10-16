@@ -7,7 +7,7 @@ using Buffer = Silk.NET.Vulkan.Buffer;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe class VulkanBufferSetup
+    public unsafe sealed class VulkanBufferSetup
     {
         private readonly VulkanImageSetup _imageSetup;
         private readonly VulkanCommandBufferSetup _commandBufferSetup;

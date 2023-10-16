@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace DragonGameEngine.Core
 {
-    public class EngineInternalInput
+    public sealed class EngineInternalInput
     {
 
         private readonly ILogger _logger;

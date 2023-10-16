@@ -3,7 +3,7 @@ using Silk.NET.Maths;
 
 namespace DragonGameEngine.Core.Resources
 {
-    public class Texture
+    public sealed class Texture
     {
         public uint Id { get; }
         public InnerTexture Data { get; private set; }

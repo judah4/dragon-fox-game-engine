@@ -3,7 +3,7 @@ using System.IO.Compression;
 
 namespace Foxis.Library.RandomNameGenerator
 {
-    public class FileCompressor
+    public sealed class FileCompressor
     {
         public void CompressStringToFile(string sourceText, string outputFilePath)
         {

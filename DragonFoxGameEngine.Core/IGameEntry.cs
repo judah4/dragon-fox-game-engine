@@ -1,6 +1,4 @@
-﻿using DragonGameEngine.Core.Rendering;
-using Silk.NET.Maths;
-using Silk.NET.Windowing;
+﻿using Silk.NET.Maths;
 
 namespace DragonGameEngine.Core
 {
@@ -9,7 +7,7 @@ namespace DragonGameEngine.Core
     /// </summary>
     public interface IGameEntry
     {
-        void Initialize(IWindow window, RendererFrontend renderer);
+        void Initialize(GameApplication gameApp);
         void Update(double deltaTime);
         void Render(double deltaTime);
         void OnResize(Vector2D<uint> size);

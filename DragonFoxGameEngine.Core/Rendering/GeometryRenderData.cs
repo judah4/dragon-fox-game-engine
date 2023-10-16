@@ -8,8 +8,8 @@ namespace DragonGameEngine.Core.Rendering
     /// </summary>
     public struct GeometryRenderData
     {
-        public uint ObjectId;
-        public Matrix4X4<float> Model;
-        public Texture[] Textures;
+        public uint ObjectId { get; init; }
+        public Matrix4X4<float> Model { get; init; }
+        public Texture[] Textures { get; init; }
     }
 }

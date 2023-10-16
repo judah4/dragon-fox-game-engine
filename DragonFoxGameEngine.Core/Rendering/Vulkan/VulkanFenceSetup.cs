@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe class VulkanFenceSetup
+    public unsafe sealed class VulkanFenceSetup
     {
         private readonly ILogger _logger;
         public VulkanFenceSetup(ILogger logger)

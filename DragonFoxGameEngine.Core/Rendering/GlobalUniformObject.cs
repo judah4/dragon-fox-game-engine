@@ -10,9 +10,9 @@ namespace DragonGameEngine.Core.Rendering
     /// </remarks>
     public struct GlobalUniformObject
     {
-        public Matrix4X4<float> Projection; //64 bytes
-        public Matrix4X4<float> View; //64 bytes
-        public Matrix4X4<float> Reserved1; //64 bytes, reserved for future
-        public Matrix4X4<float> Reserved2; //64 bytes, reserved for future
+        public Matrix4X4<float> Projection { get; init; } //64 bytes
+        public Matrix4X4<float> View { get; init; } //64 bytes
+        public Matrix4X4<float> Reserved1 { get; init; } //64 bytes, reserved for future
+        public Matrix4X4<float> Reserved2 { get; init; } //64 bytes, reserved for future
     }
 }

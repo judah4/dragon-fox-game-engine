@@ -16,9 +16,9 @@ namespace GameEngine.Core.Tests
 
             var backend = new RendererBackend(windowMock.Object, loggerMock.Object, rendererMock.Object);
 
-            backend.Init(new Texture(0, default, 0));
+            backend.Init();
 
-            rendererMock.Verify((renderer) => renderer.Init(It.IsAny<Texture>()), Times.Once());
+            rendererMock.Verify((renderer) => renderer.Init(), Times.Once());
         }
 
         [TestMethod]

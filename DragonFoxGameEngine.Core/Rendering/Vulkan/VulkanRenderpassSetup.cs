@@ -1,15 +1,12 @@
 ﻿using DragonGameEngine.Core.Exceptions.Vulkan;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
-using Silk.NET.OpenAL;
 using Silk.NET.Vulkan;
-using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe class VulkanRenderpassSetup
+    public unsafe sealed class VulkanRenderpassSetup
     {
         private readonly ILogger _logger;
 
@@ -31,14 +28,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         /// <remarks>Impure, set context MainRenderpass.</remarks>
         public VulkanRenderpass Create(VulkanContext context, Rect2D rect, System.Drawing.Color color, float depth, uint stencil)
         {
-            var vulkanRenderpass = new VulkanRenderpass()
-            {
-                Rect = rect,
-                Color = color,
-                Depth = depth,
-                Stencil = stencil,
-            };
-
             AttachmentDescription colorAttachment = new()
             {
                 Format = context.Swapchain.ImageFormat.Format, //TODO: configurable
@@ -97,6 +86,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             var attachments = new[] { colorAttachment, depthAttachment };
 
+            RenderPass renderPass;
             fixed (AttachmentDescription* attachmentsPtr = attachments)
             {
                 RenderPassCreateInfo renderPassInfo = new()
@@ -110,14 +100,22 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     PDependencies = &dependency,
                 };
 
-                var createRenderPassResult = context.Vk.CreateRenderPass(context.Device.LogicalDevice, renderPassInfo, context.Allocator, out var renderPass);
+                var createRenderPassResult = context.Vk.CreateRenderPass(context.Device.LogicalDevice, renderPassInfo, context.Allocator, out renderPass);
                 if (createRenderPassResult != Result.Success)
                 {
                     throw new VulkanResultException(createRenderPassResult, "Failed to create render pass!");
                 }
-                vulkanRenderpass.Handle = renderPass;
-                vulkanRenderpass.State = RenderpassState.Ready;
             }
+
+            var vulkanRenderpass = new VulkanRenderpass()
+            {
+                Rect = rect,
+                Color = color,
+                Depth = depth,
+                Stencil = stencil,
+                Handle = renderPass,
+                State = RenderpassState.Ready,
+            };
 
             context.SetupMainRenderpass(vulkanRenderpass);
             _logger.LogDebug("Render pass created!");
@@ -129,7 +127,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             if (renderpass.Handle.Handle != 0)
             {
                 context.Vk.DestroyRenderPass(context.Device.LogicalDevice, renderpass.Handle, context.Allocator);
-                renderpass.Handle = default;
+                //renderpass.Handle = default;
             }
             _logger.LogDebug("Render pass destroy.");
         }

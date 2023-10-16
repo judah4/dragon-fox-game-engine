@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Foxis.Library.RandomNameGenerator
 {
-    public class PersonNameGenerator : BaseNameGenerator, IPersonNameGenerator
+    public sealed class PersonNameGenerator : BaseNameGenerator, IPersonNameGenerator
     {
         private const string MaleFile = "dist.male.first.stripped";
         private const string FemaleFile = "dist.female.first.stripped";

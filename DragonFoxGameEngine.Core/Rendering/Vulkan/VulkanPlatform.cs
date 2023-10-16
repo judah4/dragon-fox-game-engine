@@ -11,7 +11,7 @@ using System.Linq;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe class VulkanPlatform
+    public unsafe static class VulkanPlatform
     {
         public static string[] GetRequiredExtensions(IWindow window)
         {

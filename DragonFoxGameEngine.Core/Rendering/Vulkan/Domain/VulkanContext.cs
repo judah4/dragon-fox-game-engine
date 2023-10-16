@@ -1,15 +1,13 @@
 ﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
-using Foxis.Library;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Vulkan.Extensions.KHR;
 using Silk.NET.Windowing;
-using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
-    public unsafe class VulkanContext
+    public unsafe sealed class VulkanContext
     {
         public Vk Vk { get; }
 
@@ -57,7 +55,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public bool RecreatingSwapchain { get; private set; }
 
         //shaders
-        public VulkanObjectShader? ObjectShader { get; private set; }
+        public VulkanMaterialShader? MaterialShader { get; private set; }
 
         public ulong GeometryVertexOffset { get; private set; }
         public ulong GeometryIndexOffset { get; private set; }
@@ -165,9 +163,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
             FramebufferSizeGenerationLastGeneration = framebufferSizeGeneration;
         }
 
-        public void SetupBuiltinShaders(VulkanObjectShader objectShader)
+        public void SetupBuiltinShaders(VulkanMaterialShader materialShader)
         {
-            ObjectShader = objectShader;
+            MaterialShader = materialShader;
         }
 
         public void SetupBuffers(VulkanBuffer objectVertexBuffer, VulkanBuffer objectIndexBuffer)

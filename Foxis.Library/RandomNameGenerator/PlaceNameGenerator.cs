@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Foxis.Library.RandomNameGenerator
 {
-    public class PlaceNameGenerator : BaseNameGenerator, IPlaceNameGenerator
+    public sealed class PlaceNameGenerator : BaseNameGenerator, IPlaceNameGenerator
     {
         private const string PlaceNameFile = "places2k.txt.stripped";
         private static string[] _placeNames = ReadResourceByLine(PlaceNameFile);

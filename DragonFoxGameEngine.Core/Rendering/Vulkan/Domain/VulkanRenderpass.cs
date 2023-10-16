@@ -14,12 +14,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 
     public struct VulkanRenderpass
     {
-        public RenderPass Handle;
-        public Rect2D Rect;
-        public System.Drawing.Color Color;
-        public float Depth;
-        public uint Stencil;
+        public RenderPass Handle { get; init; }
+        public Rect2D Rect { get; set; }
+        public System.Drawing.Color Color { get; init; }
+        public float Depth { get; init; }
+        public uint Stencil { get; init; }
 
-        public RenderpassState State;
+        public RenderpassState State { get; set; }
     }
 }

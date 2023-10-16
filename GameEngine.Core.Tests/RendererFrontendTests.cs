@@ -1,5 +1,8 @@
+using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Systems;
+using DragonGameEngine.Core.Systems.Domain;
 using GameEngine.Core.Tests.Mocks;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -16,25 +19,22 @@ namespace GameEngine.Core.Tests
             var windowMock = new Mock<IWindow>();
             var mockRenderer = new MockRenderer();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
-
-            var frontend = new RendererFrontend(config, windowMock.Object, loggerMock.Object, mockRenderer);
+            var textureSystem = new TextureSystem(
+                loggerMock.Object,
+                new TextureSystemState(
+                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
+                ));
+            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, mockRenderer);
 
             var initCalls = 0;
-            mockRenderer.OnInit += (texture) =>
+            mockRenderer.OnInit += () =>
             {
                 initCalls++;
-            };
-            var createTextureCalls = 0;
-            mockRenderer.OnCreateTexture += (string name, bool autoRelease, Vector2D<uint> size, byte channelCount, byte[] pixels, bool hasTransparency) =>
-            {
-                createTextureCalls++;
-                return new InnerTexture(size, channelCount, hasTransparency, new object());
             };
 
             frontend.Init();
 
             Assert.AreEqual(1, initCalls, "Expected init to be called once.");
-            Assert.IsTrue(createTextureCalls >= 1, "Expected create texture to be called at least once.");
         }
 
         [TestMethod]
@@ -45,7 +45,13 @@ namespace GameEngine.Core.Tests
             var rendererMock = new Mock<IRenderer>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
-            var frontend = new RendererFrontend(config, windowMock.Object, loggerMock.Object, rendererMock.Object);
+            var textureSystem = new TextureSystem(
+                loggerMock.Object,
+                new TextureSystemState(
+                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
+                ));
+
+            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, rendererMock.Object);
 
             frontend.Shutdown();
 

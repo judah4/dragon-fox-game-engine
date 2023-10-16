@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace DragonGameEngine.Core
 {
-    public class FrameStats
+    public sealed class FrameStats
     {
         public const int FrameRangeSeconds = 30;
 

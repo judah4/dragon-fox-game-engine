@@ -1,5 +1,8 @@
-﻿using DragonGameEngine.Core.Platforms;
+﻿using DragonGameEngine.Core.Ecs;
+using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core.Rendering;
+using DragonGameEngine.Core.Systems;
+using DragonGameEngine.Core.Systems.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -8,16 +11,21 @@ using System;
 
 namespace DragonGameEngine.Core
 {
-    public class GameApplication
+    public sealed class GameApplication
     {
+        public IWindow Window => _window;
+        public RendererFrontend Renderer => _renderer;
+
         private readonly ApplicationConfig _config;
         private readonly IGameEntry _game;
         private readonly IWindow _window;
         private readonly RendererFrontend _renderer;
         private readonly ILogger _logger;
         private readonly EngineInternalInput _engineInternalInput;
+        private readonly TextureSystem _textureSystem;
 
         private long _frame;
+        private string _gameTitleData = string.Empty;
 
         //Debug fps stuff
         private readonly TimeSpan _fpsDisplayTime = TimeSpan.FromSeconds(0.5);
@@ -26,7 +34,7 @@ namespace DragonGameEngine.Core
         private DateTime _lastFpsTime = DateTime.UtcNow;
         private DateTime _lastFpsFrameStatsTime = DateTime.UtcNow;
 
-        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, RendererFrontend rendererFrontend)
+        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, RendererFrontend rendererFrontend, TextureSystem textureSystem)
         {
             _config = config;
             _game = game;
@@ -38,15 +46,11 @@ namespace DragonGameEngine.Core
             _window.Resize += OnResize;
 
             _renderer = rendererFrontend;
+            _textureSystem = textureSystem;
 
             IInputContext input = window!.CreateInput();
             _engineInternalInput = new EngineInternalInput(input, window, logger);
             _frameStats = new FrameStats();
-        }
-
-        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger)
-            : this(config, game, window, logger, new RendererFrontend(config, window, logger))
-        {
         }
 
         public void Init()
@@ -54,7 +58,10 @@ namespace DragonGameEngine.Core
             try
             {
                 _renderer.Init();
-                _game.Initialize(_window, _renderer);
+
+                _textureSystem.Init(_renderer.Renderer);
+
+                _game.Initialize(this);
             }
             catch (Exception e)
             {
@@ -86,6 +93,8 @@ namespace DragonGameEngine.Core
             {
                 _logger.LogError(e, e.Message);
             }
+
+            _textureSystem.Shutdown();
             _renderer.Shutdown();
         }
 
@@ -94,7 +103,7 @@ namespace DragonGameEngine.Core
             _frameStats.AddSample(_frame, _window.Time, deltaTime);
             if (_lastFpsTime < DateTime.UtcNow.Add(-_fpsDisplayTime))
             {
-                _window.Title = $"{_config.Title} ({_frameStats.GetCurrentFps().ToString("F0").PadLeft(4, '0')}) - ({deltaTime.ToString().PadLeft(9, '0')} s) - Min: {_frameStats.GetMinFps().ToString("F0")}, Max: {_frameStats.GetMaxFps().ToString("F0")}, 95th: {_frameStats.GetPercentile95thTime()} s";
+                _window.Title = $"{_config.Title} ({_frameStats.GetCurrentFps().ToString("F0").PadLeft(4, '0')}) - ({deltaTime.ToString().PadLeft(9, '0')} s) - Min: {_frameStats.GetMinFps().ToString("F0")}, Max: {_frameStats.GetMaxFps().ToString("F0")}, 95th: {_frameStats.GetPercentile95thTime()} s {_gameTitleData}";
                 _lastFpsTime = DateTime.UtcNow;
             }
 
@@ -104,7 +113,14 @@ namespace DragonGameEngine.Core
                 _lastFpsFrameStatsTime = DateTime.UtcNow;
             }
 
-            _game.Update(deltaTime);
+            try
+            {
+                _game.Update(deltaTime);
+            }
+            catch(Exception e)
+            {
+                _logger.LogError(e, e.Message);
+            }
         }
 
         public void OnDrawFrame(double deltaTime)
@@ -117,6 +133,11 @@ namespace DragonGameEngine.Core
 
             //end, to the next frame
             _frame++;
+        }
+
+        public void UpdateWindowTitle(string title)
+        {
+            _gameTitleData = title;
         }
     }
 }
