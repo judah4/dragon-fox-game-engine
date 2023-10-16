@@ -4,7 +4,7 @@ using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems;
 using DragonGameEngine.Core.Systems.Domain;
 using GameEngine.Core.Tests.Mocks;
-using Silk.NET.Windowing;
+using Silk.NET.Maths;
 
 namespace GameEngine.Core.Tests
 {
@@ -12,37 +12,36 @@ namespace GameEngine.Core.Tests
     public class TextureSystemTests
     {
         [TestMethod]
-        public void RendererFrontend_Init_Test()
+        public void TextureSystem_Init_Test()
         {
             var loggerMock = new Mock<ILogger>();
-            var windowMock = new Mock<IWindow>();
             var mockRenderer = new MockRenderer();
-            var config = ApplicationConfigTestProvider.CreateTestConfig();
+            var textureSystemState = new TextureSystemState(
+                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
+                );
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
-                ));
-            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, mockRenderer);
+                textureSystemState
+                );
 
-            var initCalls = 0;
-            mockRenderer.OnInit += () =>
+            var createTextureCalls = 0;
+            var innerData = 100;
+            mockRenderer.OnCreateTexture += (string name, Vector2D<uint> size, byte channelCount, byte[] pixels, bool hasTransparency) =>
             {
-                initCalls++;
+                createTextureCalls++;
+                return new InnerTexture(size, channelCount, hasTransparency, innerData);
             };
 
-            frontend.Init();
+            textureSystem.Init(mockRenderer);
 
-            Assert.AreEqual(1, initCalls, "Expected init to be called once.");
+            Assert.AreEqual(1, createTextureCalls, "Expected creae texture to be called once for the default texture.");
+            Assert.AreEqual(innerData, textureSystemState.DefaultTexture.Data.InternalData);
         }
 
         [TestMethod]
-        public void RendererFrontend_Shutdown_Test()
+        public void TextureSystem_Shutdown_Test()
         {
             var loggerMock = new Mock<ILogger>();
-            var windowMock = new Mock<IWindow>();
-            var rendererMock = new Mock<IRenderer>();
-            var config = ApplicationConfigTestProvider.CreateTestConfig();
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
@@ -50,11 +49,8 @@ namespace GameEngine.Core.Tests
                     new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
                 ));
 
-            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, rendererMock.Object);
+            textureSystem.Shutdown();
 
-            frontend.Shutdown();
-
-            rendererMock.Verify((renderer) => renderer.Shutdown(), Times.Once());
         }
     }
 }
