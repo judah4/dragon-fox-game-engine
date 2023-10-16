@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using SixLabors.ImageSharp.PixelFormats;
 using System;
-using System.Collections.Generic;
 using System.IO;
 
 namespace DragonGameEngine.Core.Systems
@@ -20,17 +19,17 @@ namespace DragonGameEngine.Core.Systems
         private readonly ILogger _logger;
 
         private TextureSystemState _state;
-        private IRenderer _renderer;
+        private IRenderer? _renderer;
 
-        public TextureSystem(ILogger logger, IRenderer renderer, TextureSystemState state)
+        public TextureSystem(ILogger logger, TextureSystemState state)
         {
             _logger = logger;
-            _renderer = renderer;
             _state = state;
         }
 
-        public void Initialize()
+        public void Init(IRenderer renderer)
         {
+            _renderer = renderer;
             var textures = CreateDefaultTextures();
             _state.DefaultTexture.UpdateTexture(textures, EntityIdService.INVALID_ID);
         }
@@ -48,7 +47,7 @@ namespace DragonGameEngine.Core.Systems
                 {
                     continue;
                 }
-                _renderer.DestroyTexture(textureRefPair.Value.TextureHandle);
+                _renderer?.DestroyTexture(textureRefPair.Value.TextureHandle);
             }
             _state.Textures.Clear();
 
@@ -137,7 +136,7 @@ namespace DragonGameEngine.Core.Systems
             if (textureRef.ReferenceCount == 0 && textureRef.AutoRelease)
             {
                 //release texture
-                _renderer.DestroyTexture(textureRef.TextureHandle);
+                _renderer?.DestroyTexture(textureRef.TextureHandle);
 
                 textureRef.TextureHandle.ResetGeneration();
                 _state.Textures.Remove(name);
@@ -159,6 +158,10 @@ namespace DragonGameEngine.Core.Systems
 
         private InnerTexture CreateDefaultTextures()
         {
+            if(_renderer == null)
+            {
+                throw new EngineException("Renderer not initialized!");
+            }
             // NOTE: Create default texture, a 256x256 blue/white checkerboard pattern.
             // This is done in code to eliminate asset dependencies.
             _logger.LogDebug("Creating default texture...");
@@ -210,11 +213,15 @@ namespace DragonGameEngine.Core.Systems
             {
                 return;
             }
-            _renderer.DestroyTexture(_state.DefaultTexture);
+            _renderer?.DestroyTexture(_state.DefaultTexture);
         }
 
         private Result<bool> LoadTexture(string textureName, Texture texture)
         {
+            if(_renderer == null)
+            {
+                throw new EngineException("Renderer not initialized!");
+            }
             //TODO: should be able to be located anywhere.
             var path = "Assets/Textures/";
             const int requiredChannelCount = 4;

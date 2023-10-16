@@ -28,9 +28,9 @@ namespace DragonGameEngine.Core.Rendering
             _renderer = renderer;
         }
 
-        public void Init(TextureSystem textureSystem)
+        public void Init()
         {
-            _renderer.Init(textureSystem);
+            _renderer.Init();
         }
 
         public void Shutdown()

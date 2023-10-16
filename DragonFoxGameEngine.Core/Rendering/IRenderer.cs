@@ -1,5 +1,4 @@
 ﻿using DragonGameEngine.Core.Resources;
-using DragonGameEngine.Core.Systems;
 using Silk.NET.Maths;
 using System;
 using System.Drawing;
@@ -11,11 +10,7 @@ namespace DragonGameEngine.Core.Rendering
         /// <summary>
         /// Init renderer
         /// </summary>
-        /// <remarks>
-        /// I'll probably make a config for stuff to pass in here like the textures.
-        /// </remarks>
-        /// <param name="textureSystem"></param>
-        public void Init(TextureSystem textureSystem);
+        public void Init();
         public void Shutdown();
 
         public void Resized(Vector2D<uint> size);

@@ -8,17 +8,16 @@ namespace GameEngine.Core.Tests.Mocks
     public class MockRenderer : IRenderer
     {
 
-        public Action<Texture>? OnInit { get; set; }
-        public Func<string, bool, Vector2D<uint>, byte, byte[], bool, InnerTexture>? OnCreateTexture { get; set; }
-        public Texture DefaultDiffuse => throw new NotImplementedException();
+        public Action? OnInit { get; set; }
+        public Func<string, Vector2D<uint>, byte, byte[], bool, InnerTexture>? OnCreateTexture { get; set; }
 
-        public void Init(Texture defaultTexture)
+        public void Init()
         {
             if(OnInit == null)
             {
                 return;
             }
-            OnInit(defaultTexture);
+            OnInit();
         }
 
         public bool BeginFrame(double deltaTime)
@@ -26,13 +25,13 @@ namespace GameEngine.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public InnerTexture CreateTexture(string name, bool autoRelease, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
+        public InnerTexture CreateTexture(string name, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
         {
             if (OnCreateTexture == null)
             {
                 return default;
             }
-            return OnCreateTexture(name, autoRelease, size, channelCount, pixels.ToArray(), hasTransparency);
+            return OnCreateTexture(name, size, channelCount, pixels.ToArray(), hasTransparency);
         }
 
         public void DestroyTexture(Texture texture)

@@ -52,7 +52,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         private uint _tempIndiciesCount;
 
-        public VulkanBackendRenderer(string applicationName, IWindow window, ILogger logger)
+        public VulkanBackendRenderer(string applicationName, IWindow window,TextureSystem textureSystem, ILogger logger)
         {
             _applicationName = applicationName;
             _window = window;
@@ -69,11 +69,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //shaders
             _shaderManager = new VulkanShaderManager();
             _pipelineSetup = new VulkanPipelineSetup(logger);
-            _objectShaderManager = new VulkanMaterialShaderManager(logger, _shaderManager, _pipelineSetup, _bufferSetup);
+            _objectShaderManager = new VulkanMaterialShaderManager(logger, _shaderManager, _pipelineSetup, _bufferSetup, textureSystem);
 
         }
 
-        public void Init(TextureSystem textureSystem)
+        public void Init()
         {
             if (_context != null)
             {

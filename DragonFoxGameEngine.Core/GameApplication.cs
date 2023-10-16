@@ -57,7 +57,9 @@ namespace DragonGameEngine.Core
         {
             try
             {
-                _renderer.Init(_textureSystem);
+                _renderer.Init();
+
+                _textureSystem.Init(_renderer.Renderer);
 
                 _game.Initialize(this);
             }

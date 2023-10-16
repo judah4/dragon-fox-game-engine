@@ -1,6 +1,9 @@
 using DragonGameEngine.Core;
+using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Systems.Domain;
+using DragonGameEngine.Core.Systems;
 using GameEngine.Core.Tests.Mocks;
 using Silk.NET.Input;
 using Silk.NET.Maths;
@@ -20,21 +23,27 @@ namespace GameEngine.Core.Tests
             var gameEntryMock = new Mock<IGameEntry>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
+            var textureSystem = new TextureSystem(
+                loggerMock.Object,
+                new TextureSystemState(
+                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
+                ));
+
             var initCalls = 0;
-            mockRenderer.OnInit += (texture) =>
+            mockRenderer.OnInit += () =>
             {
                 initCalls++;
             };
             var createTextureCalls = 0;
-            mockRenderer.OnCreateTexture += (string name, bool autoRelease, Vector2D<uint> size, byte channelCount, byte[] pixels, bool hasTransparency) =>
+            mockRenderer.OnCreateTexture += (string name, Vector2D<uint> size, byte channelCount, byte[] pixels, bool hasTransparency) =>
             {
                 createTextureCalls++;
                 return new InnerTexture(size, channelCount, hasTransparency, new object());
             };
 
-            var frontend = new RendererFrontend(config, windowMock.Object, loggerMock.Object, mockRenderer);
+            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, mockRenderer);
 
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, frontend);
+            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, frontend, textureSystem);
 
             gameApp.Init();
 
@@ -52,9 +61,15 @@ namespace GameEngine.Core.Tests
             var gameEntryMock = new Mock<IGameEntry>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
-            var frontend = new RendererFrontend(config, windowMock.Object, loggerMock.Object, rendererMock.Object);
+            var textureSystem = new TextureSystem(
+                loggerMock.Object,
+                new TextureSystemState(
+                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
+                ));
 
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, frontend);
+            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, rendererMock.Object);
+
+            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, frontend, textureSystem);
 
             gameApp.Shutdown();
 

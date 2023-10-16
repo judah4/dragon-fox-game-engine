@@ -16,7 +16,7 @@ namespace DragonGameEngine.Core.Rendering.Headless
             _logger = logger;
         }
 
-        public void Init(TextureSystem textureSystem)
+        public void Init()
         {
             _logger.LogInformation("Headless Renderer setup.");
         }

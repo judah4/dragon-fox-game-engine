@@ -16,10 +16,12 @@ namespace DragonGameEngine.Core.Rendering
     {
         public IRenderer Renderer => _rendererBackend;
 
-        private readonly IWindow _window;
         private readonly ApplicationConfig _config;
+        private readonly IWindow _window;
+        private readonly TextureSystem _textureSystem;
 
         private readonly ILogger _logger;
+
         private readonly IRenderer _rendererBackend;
 
         private RenderSystemState _systemState;
@@ -28,25 +30,23 @@ namespace DragonGameEngine.Core.Rendering
         private Texture? _testDiffuse; //temp texture
         private int _testTextureChoice;
 
-        private TextureSystem? _textureSystem;
-
-        public RendererFrontend(ApplicationConfig config, IWindow window, ILogger logger, IRenderer renderer)
+        public RendererFrontend(ApplicationConfig config, IWindow window, TextureSystem textureSystem, ILogger logger, IRenderer renderer)
         {
             _config = config;
             _window = window;
+            _textureSystem = textureSystem;
             _logger = logger;
             _rendererBackend = renderer;
         }
 
-        public RendererFrontend(ApplicationConfig config, IWindow window, ILogger logger)
-            : this(config, window, logger, SetupRenderer(config, window, logger))
+        public RendererFrontend(ApplicationConfig config, IWindow window, TextureSystem textureSystem, ILogger logger)
+            : this(config, window, textureSystem, logger, SetupRenderer(config, window, textureSystem, logger))
         {
         }
 
-        public void Init(TextureSystem textureSystem)
+        public void Init()
         {
-            _textureSystem = textureSystem;
-            _rendererBackend.Init(textureSystem);
+            _rendererBackend.Init();
 
             var initialView = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 0, 10));
             Matrix4X4.Invert(initialView, out initialView);
@@ -142,12 +142,12 @@ namespace DragonGameEngine.Core.Rendering
             _textureSystem.Release(oldName);
         }
 
-        private static IRenderer SetupRenderer(ApplicationConfig config, IWindow window, ILogger logger)
+        private static IRenderer SetupRenderer(ApplicationConfig config, IWindow window, TextureSystem textureSystem, ILogger logger)
         {
             IRenderer renderer;
             if (!config.HeadlessMode)
             {
-                renderer = new VulkanBackendRenderer(config.Title, window, logger);
+                renderer = new VulkanBackendRenderer(config.Title, window, textureSystem, logger);
             }
             else
             {

@@ -12,6 +12,7 @@ using DragonGameEngine.Core;
 using System.Threading;
 using DragonGameEngine.Core.Systems.Domain;
 using DragonGameEngine.Core.Ecs;
+using DragonGameEngine.Core.Rendering;
 
 namespace DragonFoxGameEngine
 {
@@ -60,14 +61,14 @@ namespace DragonFoxGameEngine
 
         static void ApplicationRun(ApplicationConfig config, PlatformWindowing platform, IWindow window, IGameEntry game, ILogger engineLogger)
         {
-            var rendererFrontend = new DragonGameEngine.Core.Rendering.RendererFrontend(config, window, engineLogger);
-            var application = new GameApplication(config, game, window, engineLogger, rendererFrontend,
-                new DragonGameEngine.Core.Systems.TextureSystem(
-                    engineLogger, 
-                    rendererFrontend.Renderer, 
-                    new TextureSystemState(
-                        new TextureSystemConfig(65536), new DragonGameEngine.Core.Resources.Texture(0, default, EntityIdService.INVALID_ID)
-                    )));
+            var textureSystem = new DragonGameEngine.Core.Systems.TextureSystem(
+                engineLogger,
+                new TextureSystemState(
+                    new TextureSystemConfig(65536), new DragonGameEngine.Core.Resources.Texture(0, default, EntityIdService.INVALID_ID)
+                ));
+
+            var rendererFrontend = new DragonGameEngine.Core.Rendering.RendererFrontend(config, window, textureSystem, engineLogger);
+            var application = new GameApplication(config, game, window, engineLogger, rendererFrontend, textureSystem);
 
             try
             {
