@@ -36,7 +36,6 @@ namespace GameEngine.Core.Tests.Mocks
 
         public void DestroyTexture(Texture texture)
         {
-            throw new NotImplementedException();
         }
 
         public void EndFrame(double deltaTime)
@@ -51,7 +50,6 @@ namespace GameEngine.Core.Tests.Mocks
 
         public void Shutdown()
         {
-            throw new NotImplementedException();
         }
 
         public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode)
@@ -61,7 +59,6 @@ namespace GameEngine.Core.Tests.Mocks
 
         public void UpdateObject(GeometryRenderData data)
         {
-            throw new NotImplementedException();
         }
     }
 }
