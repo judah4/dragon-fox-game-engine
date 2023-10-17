@@ -17,8 +17,8 @@ namespace DragonGameEngine.Core.Systems
         public const string DEFAULT_TEXTURE_NAME = "default";
 
         private readonly ILogger _logger;
+        private readonly TextureSystemState _state;
 
-        private TextureSystemState _state;
         private IRenderer? _renderer;
 
         public TextureSystem(ILogger logger, TextureSystemState state)
@@ -30,8 +30,7 @@ namespace DragonGameEngine.Core.Systems
         public void Init(IRenderer renderer)
         {
             _renderer = renderer;
-            var textures = CreateDefaultTextures();
-            _state.DefaultTexture.UpdateTexture(textures, EntityIdService.INVALID_ID);
+            CreateDefaultTextures();
         }
 
         public void Shutdown()
@@ -47,7 +46,7 @@ namespace DragonGameEngine.Core.Systems
                 {
                     continue;
                 }
-                _renderer?.DestroyTexture(textureRefPair.Value.TextureHandle);
+                DestroyTexture(textureRefPair.Value.TextureHandle);
             }
             _state.Textures.Clear();
 
@@ -77,7 +76,7 @@ namespace DragonGameEngine.Core.Systems
                 {
                     ReferenceCount = 0,
                     AutoRelease = autoRelease, //set only the first time it's loaded
-                    TextureHandle = new Texture(unchecked((uint)name.GetHashCode()), default, EntityIdService.INVALID_ID),
+                    TextureHandle = new Texture(name),
                 };
                 _state.Textures.Add(name, textureRef);
             }
@@ -86,7 +85,7 @@ namespace DragonGameEngine.Core.Systems
             //load if it hasn't been loaded yet
             if(textureRef.TextureHandle.Generation == EntityIdService.INVALID_ID)
             {
-                var loadResult = LoadTexture(name, textureRef.TextureHandle);
+                var loadResult = LoadTexture(textureRef.TextureHandle);
                 if(loadResult.IsFailure)
                 {
                     var errorMessage = $"Load Texture Error - {loadResult.Error}";
@@ -136,9 +135,7 @@ namespace DragonGameEngine.Core.Systems
             if (textureRef.ReferenceCount == 0 && textureRef.AutoRelease)
             {
                 //release texture
-                _renderer?.DestroyTexture(textureRef.TextureHandle);
-
-                textureRef.TextureHandle.ResetGeneration();
+                DestroyTexture(textureRef.TextureHandle);
                 _state.Textures.Remove(name);
 
                 //TODO: pool thse texture classes later so they don't hit the GC.
@@ -156,7 +153,7 @@ namespace DragonGameEngine.Core.Systems
             return _state.DefaultTexture;
         }
 
-        private InnerTexture CreateDefaultTextures()
+        private Texture CreateDefaultTextures()
         {
             if(_renderer == null)
             {
@@ -165,7 +162,7 @@ namespace DragonGameEngine.Core.Systems
             // NOTE: Create default texture, a 256x256 blue/white checkerboard pattern.
             // This is done in code to eliminate asset dependencies.
             _logger.LogDebug("Creating default texture...");
-            const uint tex_dimension = 256;
+            const uint tex_dimension = 128;
             const uint channels = 4;
             const uint pixel_count = tex_dimension * tex_dimension;
             byte[] pixels = new byte[pixel_count * channels];
@@ -197,14 +194,13 @@ namespace DragonGameEngine.Core.Systems
                 }
             }
 
-            var innerTexture = _renderer.CreateTexture(
-                "default",
+            _state.DefaultTexture.UpdateTextureMetaData(
                 new Vector2D<uint>(tex_dimension, tex_dimension),
                 4,
-                pixels,
                 false);
 
-            return innerTexture;
+            _renderer.LoadTexture(pixels, _state.DefaultTexture);
+            return _state.DefaultTexture;
         }
 
         private void DestroyDefaultTextures()
@@ -213,10 +209,11 @@ namespace DragonGameEngine.Core.Systems
             {
                 return;
             }
-            _renderer?.DestroyTexture(_state.DefaultTexture);
+
+            DestroyTexture(_state.DefaultTexture);
         }
 
-        private Result<bool> LoadTexture(string textureName, Texture texture)
+        private Result<bool> LoadTexture(Texture texture)
         {
             if(_renderer == null)
             {
@@ -227,7 +224,7 @@ namespace DragonGameEngine.Core.Systems
             const int requiredChannelCount = 4;
 
             //todo: try different extensions
-            var filePath = Path.Join(path, $"{textureName}.png");
+            var filePath = Path.Join(path, $"{texture.Name}.png");
 
             try
             {
@@ -243,14 +240,15 @@ namespace DragonGameEngine.Core.Systems
                 // Check for transparency
                 bool hasTransparency = img.PixelType.AlphaRepresentation.HasValue && img.PixelType.AlphaRepresentation.Value != PixelAlphaRepresentation.None;
 
-                var innerTexture = _renderer.CreateTexture(
-                    textureName,
+
+                texture.UpdateTextureMetaData(
                     new Vector2D<uint>((uint)img.Width, (uint)img.Height),
-                    requiredChannelCount,
-                    pixels,
+                    requiredChannelCount, 
                     hasTransparency);
 
-                _renderer.DestroyTexture(texture);
+                _renderer.DestroyTexture(texture); //destroy/release the old
+
+                _renderer.LoadTexture(pixels, texture);
 
                 uint newGeneration = 0;
                 if (currentGeneration != EntityIdService.INVALID_ID)
@@ -258,7 +256,7 @@ namespace DragonGameEngine.Core.Systems
                     newGeneration = currentGeneration + 1;
                 }
 
-                texture.UpdateTexture(innerTexture, newGeneration);
+                texture.UpdateGeneration(newGeneration);
 
             }
             catch (Exception e)
@@ -267,6 +265,12 @@ namespace DragonGameEngine.Core.Systems
                 return Result.Fail<bool>(e.Message);
             }
             return Result.Ok<bool>();
+        }
+
+        private void DestroyTexture(Texture texture) 
+        {
+            _renderer?.DestroyTexture(texture);
+            texture.ResetGeneration();
         }
 
     }

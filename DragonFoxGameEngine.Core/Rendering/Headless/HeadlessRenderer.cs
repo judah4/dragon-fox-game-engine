@@ -47,9 +47,9 @@ namespace DragonGameEngine.Core.Rendering.Headless
             //might want to use this for interest area later
         }
 
-        public InnerTexture CreateTexture(string name, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
+        public void LoadTexture(Span<byte> pixels, Texture texture)
         {
-            return new InnerTexture(size, channelCount, hasTransparency, new object());
+            texture.UpdateTextureInternalData(true); //keep it simple for headless
         }
 
         public void DestroyTexture(Texture texture)

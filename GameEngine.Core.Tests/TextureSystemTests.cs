@@ -17,25 +17,23 @@ namespace GameEngine.Core.Tests
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRenderer();
             var textureSystemState = new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
-                );
+                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME));
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                textureSystemState
-                );
+                textureSystemState);
 
             var createTextureCalls = 0;
             var innerData = 100;
-            mockRenderer.OnCreateTexture += (string name, Vector2D<uint> size, byte channelCount, byte[] pixels, bool hasTransparency) =>
+            mockRenderer.OnLoadTexture += (byte[] pixels, Texture texture) =>
             {
                 createTextureCalls++;
-                return new InnerTexture(size, channelCount, hasTransparency, innerData);
+                texture.UpdateTextureInternalData(innerData);
             };
 
             textureSystem.Init(mockRenderer);
 
             Assert.AreEqual(1, createTextureCalls, "Expected creae texture to be called once for the default texture.");
-            Assert.AreEqual(innerData, textureSystemState.DefaultTexture.Data.InternalData);
+            Assert.AreEqual(innerData, textureSystemState.DefaultTexture.InternalData);
         }
 
         [TestMethod]
@@ -46,7 +44,7 @@ namespace GameEngine.Core.Tests
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
                 new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
+                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME)
                 ));
 
             textureSystem.Shutdown();
@@ -58,16 +56,15 @@ namespace GameEngine.Core.Tests
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRenderer();
             var textureSystemState = new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
+                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME)
                 );
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                textureSystemState
-                );
+                textureSystemState);
 
-            mockRenderer.OnCreateTexture += (string name, Vector2D<uint> size, byte channelCount, byte[] pixels, bool hasTransparency) =>
+            mockRenderer.OnLoadTexture += (byte[] pixels, Texture texture) =>
             {
-                return new InnerTexture(size, channelCount, hasTransparency, new object());
+                texture.UpdateTextureInternalData(new object());
             };
 
             textureSystem.Init(mockRenderer);
@@ -87,16 +84,15 @@ namespace GameEngine.Core.Tests
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRenderer();
             var textureSystemState = new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
-                );
+                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                textureSystemState
-                );
+                textureSystemState);
 
-            mockRenderer.OnCreateTexture += (string name, Vector2D<uint> size, byte channelCount, byte[] pixels, bool hasTransparency) =>
+            mockRenderer.OnLoadTexture += (byte[] pixels, Texture texture) =>
             {
-                return new InnerTexture(size, channelCount, hasTransparency, new object());
+                texture.UpdateTextureInternalData(new object());
             };
 
             textureSystem.Init(mockRenderer);

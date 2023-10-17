@@ -23,7 +23,15 @@ namespace DragonGameEngine.Core.Rendering
 
         public void UpdateObject(GeometryRenderData data);
 
-        public InnerTexture CreateTexture(string name, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency);
+        /// <summary>
+        /// Loads the pixels into the texture
+        /// </summary>
+        /// <param name="pixels"></param>
+        /// <param name="texture"></param>
+        /// <remarks>
+        /// This is create texture in the kohi tutorial series
+        /// </remarks>
+        public void LoadTexture(Span<byte> pixels, Texture texture);
 
         public void DestroyTexture(Texture texture);
     }

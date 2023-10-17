@@ -26,7 +26,7 @@ namespace GameEngine.Core.Tests
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
                 new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
+                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME)
                 ));
 
             var initCalls = 0;
@@ -35,10 +35,10 @@ namespace GameEngine.Core.Tests
                 initCalls++;
             };
             var createTextureCalls = 0;
-            mockRenderer.OnCreateTexture += (string name, Vector2D<uint> size, byte channelCount, byte[] pixels, bool hasTransparency) =>
+            mockRenderer.OnLoadTexture += (byte[] pixels, Texture texture) =>
             {
                 createTextureCalls++;
-                return new InnerTexture(size, channelCount, hasTransparency, new object());
+                texture.UpdateTextureInternalData(new object());
             };
 
             var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, mockRenderer);
@@ -64,7 +64,7 @@ namespace GameEngine.Core.Tests
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
                 new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
+                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME)
                 ));
 
             var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, rendererMock.Object);

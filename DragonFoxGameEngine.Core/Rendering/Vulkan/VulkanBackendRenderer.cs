@@ -33,7 +33,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         private readonly VulkanFramebufferSetup _framebufferSetup;
         private readonly VulkanFenceSetup _fenceSetup;
         private readonly VulkanShaderManager _shaderManager;
-        private readonly VulkanMaterialShaderManager _objectShaderManager;
+        private readonly VulkanMaterialShaderManager _materialShaderManager;
         private readonly VulkanPipelineSetup _pipelineSetup;
         private readonly VulkanBufferSetup _bufferSetup;
 
@@ -52,7 +52,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         private uint _tempIndiciesCount;
 
-        public VulkanBackendRenderer(string applicationName, IWindow window,TextureSystem textureSystem, ILogger logger)
+        public VulkanBackendRenderer(string applicationName, IWindow window, TextureSystem textureSystem, ILogger logger)
         {
             _applicationName = applicationName;
             _window = window;
@@ -69,7 +69,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //shaders
             _shaderManager = new VulkanShaderManager();
             _pipelineSetup = new VulkanPipelineSetup(logger);
-            _objectShaderManager = new VulkanMaterialShaderManager(logger, _shaderManager, _pipelineSetup, _bufferSetup, textureSystem);
+            _materialShaderManager = new VulkanMaterialShaderManager(logger, _shaderManager, _pipelineSetup, _bufferSetup, textureSystem);
 
         }
 
@@ -209,7 +209,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             CreateSemaphoresAndFences();
 
-            var materialShader = _objectShaderManager.Create(_context);
+            var materialShader = _materialShaderManager.Create(_context);
             _context.SetupBuiltinShaders(materialShader);
 
             CreateBuffers(_context);
@@ -242,7 +242,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectVertexBuffer, 0, (ulong)(sizeof(Vertex3d) * verts.LongLength), verts.AsSpan());
             UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectIndexBuffer, 0, (ulong)(sizeof(uint) * indices.LongLength), indices.AsSpan());
             
-            var objectId = _objectShaderManager.AcquireResources(_context);
+            var objectId = _materialShaderManager.AcquireResources(_context);
             
             //todo: end test code.
 
@@ -259,7 +259,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             DestroyBuffers(_context);
 
-            _objectShaderManager.Destroy(_context, _context.MaterialShader!);
+            _materialShaderManager.Destroy(_context, _context.MaterialShader!);
 
             DestroySemaphoresAndFences();
 
@@ -467,7 +467,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, System.Drawing.Color ambientColor, int mode)
         {
-            _objectShaderManager.ShaderUse(_context!, _context!.MaterialShader!);
+            _materialShaderManager.ShaderUse(_context!, _context!.MaterialShader!);
 
             //update the view and projection
             var materialShader = _context.MaterialShader!;
@@ -480,12 +480,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             _context.SetupBuiltinShaders(materialShader);
 
-            _objectShaderManager.UpdateGlobalState(_context, materialShader, _context.FrameDeltaTime);
+            _materialShaderManager.UpdateGlobalState(_context, materialShader, _context.FrameDeltaTime);
         }
 
         public void UpdateObject(GeometryRenderData data)
         {
-            _objectShaderManager.UpdateObject(_context!, data);
+            _materialShaderManager.UpdateObject(_context!, data);
 
             var commandBuffer = _context!.GraphicsCommandBuffers![_context.ImageIndex];
 
@@ -510,13 +510,13 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //end temp test code
         }
 
-        public InnerTexture CreateTexture(string name, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
+        public void LoadTexture(Span<byte> pixels, Texture texture)
         {
             if(_context == null)
             {
-                return default;
+                return;
             }
-            var imageSize = size.X * size.Y * channelCount;
+            var imageSize = texture.Size.X * texture.Size.Y * texture.ChannelCount;
 
             //Assume 8 bits per channel
             var imageFormat = Format.R8G8B8A8Unorm;
@@ -531,7 +531,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             var image = _imageSetup.ImageCreate(
                 _context,
                 ImageType.Type2D,
-                size, imageFormat,
+                texture.Size, imageFormat,
                 ImageTiling.Optimal,
                 ImageUsageFlags.TransferSrcBit | ImageUsageFlags.TransferDstBit | ImageUsageFlags.SampledBit | ImageUsageFlags.ColorAttachmentBit,
                 MemoryPropertyFlags.DeviceLocalBit,
@@ -581,8 +581,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             var data = new VulkanTextureData(image, sampler);
 
-            var textureData = new InnerTexture(size, channelCount, hasTransparency, data);
-            return textureData;
+            texture.UpdateTextureInternalData(data);
         }
 
         public void DestroyTexture(Texture texture)
@@ -591,14 +590,14 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             {
                 return;
             }
-            if (texture.Data.InternalData is not VulkanTextureData)
+            if (texture.InternalData is not VulkanTextureData)
             {
                 return;
             }
 
             _context.Vk.DeviceWaitIdle(_context.Device.LogicalDevice);
 
-            var data = (VulkanTextureData)texture.Data.InternalData;
+            var data = (VulkanTextureData)texture.InternalData;
             
             _imageSetup.ImageDestroy(_context, data.Image);
 
@@ -606,7 +605,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             //default some values again;
             texture.ResetGeneration();
-            texture.UpdateTexture(default, texture.Generation);
+            texture.UpdateTextureInternalData(new object());
         }
 
         private void PopulateDebugMessengerCreateInfo(ref DebugUtilsMessengerCreateInfoEXT createInfo)

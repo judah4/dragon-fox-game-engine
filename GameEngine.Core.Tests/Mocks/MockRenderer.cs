@@ -9,7 +9,7 @@ namespace GameEngine.Core.Tests.Mocks
     {
 
         public Action? OnInit { get; set; }
-        public Func<string, Vector2D<uint>, byte, byte[], bool, InnerTexture>? OnCreateTexture { get; set; }
+        public Action<byte[], Texture>? OnLoadTexture { get; set; }
 
         public void Init()
         {
@@ -25,13 +25,13 @@ namespace GameEngine.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public InnerTexture CreateTexture(string name, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
+        public void LoadTexture(Span<byte> pixels, Texture texture)
         {
-            if (OnCreateTexture == null)
+            if (OnLoadTexture == null)
             {
-                return default;
+                return;
             }
-            return OnCreateTexture(name, size, channelCount, pixels.ToArray(), hasTransparency);
+            OnLoadTexture(pixels.ToArray(), texture);
         }
 
         public void DestroyTexture(Texture texture)

@@ -99,16 +99,6 @@ namespace DragonGameEngine.Core.Rendering
             _systemState = _systemState.UpdateView(view);
         }
 
-        public InnerTexture CreateTexture(string name, Vector2D<uint> size, byte channelCount, Span<byte> pixels, bool hasTransparency)
-        {
-            return _rendererBackend.CreateTexture(name, size, channelCount, pixels, hasTransparency);
-        }
-
-        public void DestroyTexture(Texture texture)
-        {
-            _rendererBackend.DestroyTexture(texture);
-        }
-
         private RenderSystemState RegenProjectionMatrix(float nearClip, float farClip)
         {
             var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45f), (float)_window.Size.X / (float)_window.Size.Y, nearClip, farClip);
@@ -154,7 +144,7 @@ namespace DragonGameEngine.Core.Rendering
                 renderer = new HeadlessRenderer(logger);
             }
 
-            return new RendererBackend(window, logger, renderer);
+            return renderer;
         }
     }
 }
