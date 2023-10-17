@@ -53,6 +53,15 @@ namespace DragonGameEngine.Core.Systems
             DestroyDefaultTextures();
         }
 
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="autoRelease"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
+        /// <exception cref="EngineException">Throws if there is a loading issue.</exception>
         public Texture Acquire(string name, bool autoRelease)
         {
             if(string.IsNullOrWhiteSpace(name))

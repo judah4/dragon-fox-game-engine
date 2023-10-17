@@ -15,7 +15,6 @@ namespace DragonGameEngine.Core.Resources
 
         public uint Generation { get; private set; }
 
-
         public uint InternalId { get; }
 
         public Vector2D<uint> Size { get; private set; }
@@ -33,6 +32,22 @@ namespace DragonGameEngine.Core.Resources
             Name = name;
             Generation = EntityIdService.INVALID_ID;
 
+        }
+
+        public void UpdateMetaData(Vector4D<float> diffuseColor, TextureMap diffuseMap)
+        {
+            DiffuseColor = diffuseColor;
+            DiffuseMap = diffuseMap;
+        }
+
+        public void ResetGeneration()
+        {
+            Generation = EntityIdService.INVALID_ID;
+        }
+
+        public void UpdateGeneration(uint generation)
+        {
+            Generation = generation;
         }
 
     }
