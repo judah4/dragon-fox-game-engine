@@ -1,46 +1,68 @@
 ﻿using DragonGameEngine.Core.Ecs;
 using Silk.NET.Maths;
+using System;
 
 namespace DragonGameEngine.Core.Resources
 {
     public sealed class Texture
     {
+        public const int NAME_MAX_LENGTH = 512;
+
         public uint Id { get; }
-        public InnerTexture Data { get; private set; }
+
+        public string Name { get; }
+
+        public Vector2D<uint> Size { get; private set; }
+        public byte ChannelCount { get; private set; }
+        public bool HasTransparency { get; private set; }
+        public object InternalData { get; private set; } //do something with this type later
+
         public uint Generation { get; private set; }
 
-        public Texture(uint id, InnerTexture data, uint generation)
+        public Texture(string name) : this(name, Vector2D<uint>.Zero, 0, false, false, EntityIdService.INVALID_ID)
         {
-            Id = id;
-            Data = data;
+        }
+
+        public Texture(string name, Vector2D<uint> size, byte channelCount, bool hasTransparency, object internalData, uint generation)
+        {
+            if(string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentNullException(nameof(name), "Name should not be null or empty.");
+            }
+            if(name.Length > NAME_MAX_LENGTH)
+            {
+                throw new ArgumentException(nameof(name), $"Name should not be less than {NAME_MAX_LENGTH}");
+            }
+
+            Id = unchecked((uint)name.GetHashCode());
+            Name = name;
+            Size = size;
+            ChannelCount = channelCount;
+            HasTransparency = hasTransparency;
+            InternalData = internalData;
             Generation = generation;
         }
 
-        public void UpdateTexture(InnerTexture data, uint generation)
+        public void UpdateTextureMetaData(Vector2D<uint> size, byte channelCount, bool hasTransparency)
         {
-            Data = data;
-            Generation = generation;
+            Size = size;
+            ChannelCount = channelCount;
+            HasTransparency = hasTransparency;
+        }
+
+        public void UpdateTextureInternalData(object internalData)
+        {
+            InternalData = internalData;
         }
 
         public void ResetGeneration()
         {
             Generation = EntityIdService.INVALID_ID;
         }
-    }
 
-    public readonly struct InnerTexture
-    {
-        public Vector2D<uint> Size { get; }
-        public byte ChannelCount { get; }
-        public bool HasTransparency { get; }
-        public object InternalData { get; } //do something with this type later
-
-        public InnerTexture(Vector2D<uint> size, byte channelCount, bool hasTransparency, object internalData)
+        public void UpdateGeneration(uint generation)
         {
-            Size = size;
-            ChannelCount = channelCount;
-            HasTransparency = hasTransparency;
-            InternalData = internalData;
+            Generation = generation;
         }
     }
 }

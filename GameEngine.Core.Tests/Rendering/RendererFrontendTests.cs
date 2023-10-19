@@ -7,7 +7,7 @@ using GameEngine.Core.Tests.Mocks;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
-namespace GameEngine.Core.Tests
+namespace GameEngine.Core.Tests.Rendering
 {
     [TestClass]
     public class RendererFrontendTests
@@ -21,10 +21,11 @@ namespace GameEngine.Core.Tests
             var config = ApplicationConfigTestProvider.CreateTestConfig();
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
-                ));
-            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, mockRenderer);
+                new TextureSystemConfig(65536));
+
+            var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(4096), textureSystem);
+
+            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, materialSystem, loggerMock.Object, mockRenderer);
 
             var initCalls = 0;
             mockRenderer.OnInit += () =>
@@ -47,11 +48,11 @@ namespace GameEngine.Core.Tests
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(0, default, EntityIdService.INVALID_ID)
-                ));
+                new TextureSystemConfig(65536));
 
-            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, rendererMock.Object);
+            var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(4096), textureSystem);
+
+            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, materialSystem, loggerMock.Object, rendererMock.Object);
 
             frontend.Shutdown();
 
