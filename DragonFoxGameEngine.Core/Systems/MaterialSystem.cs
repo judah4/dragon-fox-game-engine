@@ -6,7 +6,6 @@ using DragonGameEngine.Core.Systems.Domain;
 using Foxis.Library;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
-using SixLabors.ImageSharp.PixelFormats;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -25,6 +24,11 @@ namespace DragonGameEngine.Core.Systems
         private readonly Dictionary<string, MaterialReference> _materials;
 
         private IRenderer? _renderer;
+
+        /// <summary>
+        /// Number of materials loaded and referenced.
+        /// </summary>
+        public int MaterialsCount => _materials.Count;
 
         public MaterialSystem(ILogger logger, MaterialSystemConfig config, TextureSystem textureSystem)
         {
@@ -57,11 +61,20 @@ namespace DragonGameEngine.Core.Systems
             DestroyMaterial(_defaultMaterial);
         }
 
+        public Material GetDefaultMaterial()
+        {
+            return _defaultMaterial;
+        }
+
         public Material Acquire(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 throw new ArgumentNullException(nameof(name));
+            }
+            if (name.Equals(DEFAULT_MATERIAL_NAME))
+            {
+                return _defaultMaterial;
             }
 
             var path = "Assets/Materials/";
@@ -163,7 +176,7 @@ namespace DragonGameEngine.Core.Systems
             }
             catch (EngineException e)
             {
-                _logger.LogError(e, e.Message, "Unable to load texture {textName} for material {matName}, using default.", materialConfig.DiffuseMapName, material.Name);
+                _logger.LogError(e, "Unable to load texture {textName} for material {matName}, using default. {eMessage}", e.Message, materialConfig.DiffuseMapName, material.Name);
                 diffuseTexture = _textureSystem.GetDefaultTexture();
             }
 
@@ -234,20 +247,105 @@ namespace DragonGameEngine.Core.Systems
                 Texture = _textureSystem.GetDefaultTexture(),
             });
 
-            _renderer?.CreateMaterial(_defaultMaterial);
+            _renderer?.LoadMaterial(_defaultMaterial);
         }
 
         private MaterialConfig LoadConfigurationFile(string path)
         {
+            string matName = string.Empty;
+            string diffuseMapName = string.Empty;
+            Vector4D<float>? diffuseColor = default;
 
+            int lineNumber = 0;
             using(var reader = File.OpenText(path))
             {
-                while(!reader.EndOfStream)
+                string? line;
+                while ((line = reader.ReadLine()) != null)
                 {
-                    var line = reader.ReadLine();
+                    lineNumber++;
+
+                    line = line.Trim();
+                    if(line.Length < 1 || line[0] == '#')
+                    {
+                        continue;
+                    }
+
+                    var splitData = line.Split('=');
+                    if(splitData.Length < 2 )
+                    {
+                        _logger.LogWarning("Potential formatting issue found in file '{path}': '=' token not found. Skipping line {lineNum}", path, lineNumber);
+                        continue;
+                    }
+
+                    var name = splitData[0].Trim();
+
+                    var value = splitData[1].Trim();
+
+                    if (name.Equals("version", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        //TODO: version
+                    }
+                    else if (name.Equals("name", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        matName = value;
+                    }
+                    else if (name.Equals("diffuse_map_name", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        diffuseMapName = value;
+                    }
+                    else if (name.Equals("diffuse_color", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        diffuseColor = ParseColor(value, path);
+                    }
                 }
             }
-            throw new NotImplementedException();
+
+            if(string.IsNullOrEmpty(matName))
+            {
+                throw new EngineException("Material has no name.");
+            }
+            if (string.IsNullOrEmpty(diffuseMapName))
+            {
+                _logger.LogWarning("diffuse_map_name for material {name} not set. Defaulting to default texture.", matName);
+                diffuseMapName = TextureSystem.DEFAULT_TEXTURE_NAME;
+            }
+            if(!diffuseColor.HasValue)
+            {
+                _logger.LogWarning("No parsed diffuse_color in file '{file}'. Using default of white instead.", path);
+                diffuseColor = Vector4D<float>.One;
+            }
+
+            var config = new MaterialConfig(matName, true, diffuseColor.Value, diffuseMapName);
+
+            return config;
+        }
+
+        private Vector4D<float> ParseColor(string value, string path)
+        {
+            var colorSplit = value.Split(' ');
+            if (colorSplit.Length < 4)
+            {
+                _logger.LogWarning("Error parsing diffuse_color in file '{file}'. Using default of white instead.", path);
+                return Vector4D<float>.One;
+            }
+
+            var color = new Vector4D<float>();
+
+            color.X = ParseColorValueOrLog(colorSplit[0], path, 0);
+            color.Y = ParseColorValueOrLog(colorSplit[1], path, 1);
+            color.Z = ParseColorValueOrLog(colorSplit[2], path, 2);
+            color.W = ParseColorValueOrLog(colorSplit[3], path, 3);
+            return color;
+        }
+
+        private float ParseColorValueOrLog(string value, string path, int index)
+        {
+            if(!float.TryParse(value, out var result))
+            {
+                _logger.LogWarning("Error parsing diffuse_color in file '{file}', color index {index}", path, index);
+                return 1.0f;
+            }
+            return result;
         }
 
     }

@@ -1,12 +1,9 @@
 using DragonGameEngine.Core.Ecs;
-using DragonGameEngine.Core.Rendering;
-using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems;
 using DragonGameEngine.Core.Systems.Domain;
 using GameEngine.Core.Tests.Mocks;
-using Silk.NET.Maths;
 
-namespace GameEngine.Core.Tests
+namespace GameEngine.Core.Tests.Systems
 {
     [TestClass]
     public class TextureSystemTests
@@ -16,15 +13,13 @@ namespace GameEngine.Core.Tests
         {
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRenderer();
-            var textureSystemState = new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME));
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                textureSystemState);
+                new TextureSystemConfig(65536));
 
             var createTextureCalls = 0;
             var innerData = 100;
-            mockRenderer.OnLoadTexture += (byte[] pixels, Texture texture) =>
+            mockRenderer.OnLoadTexture += (pixels, texture) =>
             {
                 createTextureCalls++;
                 texture.UpdateTextureInternalData(innerData);
@@ -33,7 +28,7 @@ namespace GameEngine.Core.Tests
             textureSystem.Init(mockRenderer);
 
             Assert.AreEqual(1, createTextureCalls, "Expected creae texture to be called once for the default texture.");
-            Assert.AreEqual(innerData, textureSystemState.DefaultTexture.InternalData);
+            Assert.AreEqual(innerData, textureSystem.GetDefaultTexture().InternalData);
         }
 
         [TestMethod]
@@ -43,9 +38,7 @@ namespace GameEngine.Core.Tests
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME)
-                ));
+                new TextureSystemConfig(65536));
 
             textureSystem.Shutdown();
         }
@@ -55,14 +48,11 @@ namespace GameEngine.Core.Tests
         {
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRenderer();
-            var textureSystemState = new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME)
-                );
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                textureSystemState);
+                new TextureSystemConfig(65536));
 
-            mockRenderer.OnLoadTexture += (byte[] pixels, Texture texture) =>
+            mockRenderer.OnLoadTexture += (pixels, texture) =>
             {
                 texture.UpdateTextureInternalData(new object());
             };
@@ -72,7 +62,7 @@ namespace GameEngine.Core.Tests
             var texture = textureSystem.Acquire("TestTexture", true);
 
             Assert.IsNotNull(texture);
-            Assert.AreEqual(1, textureSystemState.Textures.Count, "Expected a texture to be saved.");
+            Assert.AreEqual(1, textureSystem.TexturesCount, "Expected a texture to be saved.");
             Assert.AreNotEqual(0U, texture.Id, "Id should be generated properly.");
             Assert.AreEqual(0U, texture.Generation, "Generation should be set.");
 
@@ -83,14 +73,12 @@ namespace GameEngine.Core.Tests
         {
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRenderer();
-            var textureSystemState = new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME));
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                textureSystemState);
+                new TextureSystemConfig(65536));
 
-            mockRenderer.OnLoadTexture += (byte[] pixels, Texture texture) =>
+            mockRenderer.OnLoadTexture += (pixels, texture) =>
             {
                 texture.UpdateTextureInternalData(new object());
             };
@@ -103,7 +91,7 @@ namespace GameEngine.Core.Tests
 
             textureSystem.Release(textureName);
 
-            Assert.AreEqual(0, textureSystemState.Textures.Count);
+            Assert.AreEqual(0, textureSystem.TexturesCount);
             Assert.AreEqual(EntityIdService.INVALID_ID, texture.Generation);
 
         }

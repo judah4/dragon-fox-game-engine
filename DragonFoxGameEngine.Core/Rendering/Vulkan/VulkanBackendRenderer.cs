@@ -241,9 +241,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //update UpdateObject indicies if adding more
             UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectVertexBuffer, 0, (ulong)(sizeof(Vertex3d) * verts.LongLength), verts.AsSpan());
             UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectIndexBuffer, 0, (ulong)(sizeof(uint) * indices.LongLength), indices.AsSpan());
-            
-            var objectId = _materialShaderManager.AcquireResources(_context);
-            
+                        
             //todo: end test code.
 
             _logger.LogInformation($"Vulkan initialized.");
@@ -606,6 +604,28 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //default some values again;
             texture.ResetGeneration();
             texture.UpdateTextureInternalData(new object());
+        }
+
+        public void LoadMaterial(Material material)
+        {
+            if(_context == null || _context.MaterialShader == null)
+            {
+                return;
+            }
+
+            _materialShaderManager.AcquireResources(_context, _context.MaterialShader, material);
+            _logger.LogTrace("Renderer: Material '{name}' ({instanceId}) Created", material.Name, material.InternalId);
+        }
+
+        public void DestroyMaterial(Material material)
+        {
+            if (_context == null || _context.MaterialShader == null)
+            {
+                return;
+            }
+
+            _materialShaderManager.ReleaseResources(_context, _context.MaterialShader, material);
+            _logger.LogTrace("Renderer: Material Destroyed");
         }
 
         private void PopulateDebugMessengerCreateInfo(ref DebugUtilsMessengerCreateInfoEXT createInfo)

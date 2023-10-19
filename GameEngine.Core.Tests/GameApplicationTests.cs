@@ -25,9 +25,9 @@ namespace GameEngine.Core.Tests
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME)
-                ));
+                new TextureSystemConfig(65536));
+
+            var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(4096), textureSystem);
 
             var initCalls = 0;
             mockRenderer.OnInit += () =>
@@ -41,9 +41,9 @@ namespace GameEngine.Core.Tests
                 texture.UpdateTextureInternalData(new object());
             };
 
-            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, mockRenderer);
+            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, materialSystem, loggerMock.Object, mockRenderer);
 
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, frontend, textureSystem);
+            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, frontend, textureSystem, materialSystem);
 
             gameApp.Init();
 
@@ -57,23 +57,29 @@ namespace GameEngine.Core.Tests
         {
             var loggerMock = new Mock<ILogger>();
             var windowMock = MockWindow();
-            var rendererMock = new Mock<IRenderer>();
+            var mockRenderer = new MockRenderer();
             var gameEntryMock = new Mock<IGameEntry>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemState(
-                    new TextureSystemConfig(65536), new Texture(TextureSystem.DEFAULT_TEXTURE_NAME)
-                ));
+                new TextureSystemConfig(65536));
 
-            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, loggerMock.Object, rendererMock.Object);
+            var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(4096), textureSystem);
 
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, frontend, textureSystem);
+            var shutdownCalls = 0;
+            mockRenderer.OnShutdown += () =>
+            {
+                shutdownCalls++;
+            };
+
+            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, materialSystem, loggerMock.Object, mockRenderer);
+
+            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, frontend, textureSystem, materialSystem);
 
             gameApp.Shutdown();
 
-            rendererMock.Verify((renderer) => renderer.Shutdown(), Times.Once());
+            Assert.AreEqual(1, shutdownCalls, "Expected shutdown to be called once.");
             gameEntryMock.Verify((gameEntry) => gameEntry.Shutdown(), Times.Once());
 
         }

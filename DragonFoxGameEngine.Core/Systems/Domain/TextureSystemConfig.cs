@@ -8,7 +8,7 @@ namespace DragonGameEngine.Core.Systems.Domain
 
         public TextureSystemConfig(uint maxTextureCount)
         {
-            if (MaxTextureCount == 0)
+            if (maxTextureCount == 0)
             {
                 throw new ArgumentException("config.MaxTextureCount must be > 0.");
             }

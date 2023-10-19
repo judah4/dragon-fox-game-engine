@@ -4,6 +4,7 @@ using DragonGameEngine.Core.Rendering.Headless;
 using DragonGameEngine.Core.Rendering.Vulkan;
 using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems;
+using DragonGameEngine.Core.Systems.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -19,6 +20,7 @@ namespace DragonGameEngine.Core.Rendering
         private readonly ApplicationConfig _config;
         private readonly IWindow _window;
         private readonly TextureSystem _textureSystem;
+        private readonly MaterialSystem _materialSystem;
 
         private readonly ILogger _logger;
 
@@ -27,20 +29,21 @@ namespace DragonGameEngine.Core.Rendering
         private RenderSystemState _systemState;
         private float rotationAngle = 0f;
 
-        private Texture? _testDiffuse; //temp texture
+        private Material? _testMaterial; //temp material
         private int _testTextureChoice;
 
-        public RendererFrontend(ApplicationConfig config, IWindow window, TextureSystem textureSystem, ILogger logger, IRenderer renderer)
+        public RendererFrontend(ApplicationConfig config, IWindow window, TextureSystem textureSystem, MaterialSystem materialSystem, ILogger logger, IRenderer renderer)
         {
             _config = config;
             _window = window;
             _textureSystem = textureSystem;
+            _materialSystem = materialSystem;
             _logger = logger;
             _rendererBackend = renderer;
         }
 
-        public RendererFrontend(ApplicationConfig config, IWindow window, TextureSystem textureSystem, ILogger logger)
-            : this(config, window, textureSystem, logger, SetupRenderer(config, window, textureSystem, logger))
+        public RendererFrontend(ApplicationConfig config, IWindow window, TextureSystem textureSystem, MaterialSystem materialSystem, ILogger logger)
+            : this(config, window, textureSystem, materialSystem, logger, SetupRenderer(config, window, textureSystem, logger))
         {
         }
 
@@ -72,21 +75,32 @@ namespace DragonGameEngine.Core.Rendering
             {
                 _rendererBackend.UpdateGlobalState(_systemState.Projection, _systemState.View, Vector3D<float>.Zero, Color.White, 0);
 
+
                 rotationAngle += 1f * (float)packet.DeltaTime;
                 var rotation = Quaternion<float>.CreateFromAxisAngle(new Vector3D<float>(0, 0, 1), rotationAngle);
                 // model is the object's matrix. Postion, rotation, and scale
                 var model = Matrix4X4.CreateFromQuaternion(rotation);
 
-                if(_testDiffuse == null)
+                //TODO: Temporary
+                if(_testMaterial == null)
                 {
-                    _testDiffuse = _textureSystem!.GetDefaultTexture();
+                    try
+                    {
+                        _testMaterial = _materialSystem.Acquire("test_material");
+                    }
+                    catch(Exception e)
+                    {
+                        _logger.LogError(e, e.Message);
+                        //back up creation if it failed
+                        var matConfig = new MaterialConfig("test_material", false, Vector4D<float>.One, TextureSystem.DEFAULT_TEXTURE_NAME);
+                        _testMaterial = _materialSystem.AcquireFromConfig(matConfig);
+                    }
                 }
 
                 var geometryRenderData = new GeometryRenderData()
                 {
                     Model = model,
-                    ObjectId = 0,
-                    Textures = new Texture[] { _testDiffuse },
+                    Material = _testMaterial,
                 };
                 _rendererBackend.UpdateObject(geometryRenderData);
 
@@ -99,6 +113,16 @@ namespace DragonGameEngine.Core.Rendering
             _systemState = _systemState.UpdateView(view);
         }
 
+        public void LoadMaterial(Material material)
+        {
+            _rendererBackend.LoadMaterial(material);
+        }
+
+        public void DestroyMaterial(Material material)
+        {
+            _rendererBackend.DestroyMaterial(material);
+        }
+
         private RenderSystemState RegenProjectionMatrix(float nearClip, float farClip)
         {
             var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45f), (float)_window.Size.X / (float)_window.Size.Y, nearClip, farClip);
@@ -109,6 +133,11 @@ namespace DragonGameEngine.Core.Rendering
         public void CycleTestTexture()
         {
             if (_textureSystem == null)
+            {
+                _logger.LogError("Renderer not initialized");
+                return;
+            }
+            if(_testMaterial == null)
             {
                 _logger.LogError("Renderer not initialized");
                 return;
@@ -126,8 +155,22 @@ namespace DragonGameEngine.Core.Rendering
 
             _testTextureChoice++;
             _testTextureChoice %= textureNames.Length;
+            Texture texture;
+            try
+            {
+                texture = _textureSystem.Acquire(textureNames[_testTextureChoice], true);
+            }
+            catch(Exception e)
+            {
+                _logger.LogError(e, $"No texture to load, using default - {e.Message}");
+                texture = _textureSystem.GetDefaultTexture();
+            } 
 
-            _testDiffuse = _textureSystem.Acquire(textureNames[_testTextureChoice], true);
+            _testMaterial.UpdateMetaData(_testMaterial.DiffuseColor, new TextureMap()
+            {
+                Texture = texture,
+                TextureUse = TextureUse.MapDiffuse,
+            });
 
             _textureSystem.Release(oldName);
         }

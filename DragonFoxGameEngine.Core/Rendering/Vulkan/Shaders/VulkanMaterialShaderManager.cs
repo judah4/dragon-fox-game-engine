@@ -23,8 +23,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
         private readonly VulkanBufferSetup _bufferSetup;
         private readonly TextureSystem _textureSystem;
 
-        private float tempAccumulator = 0f;
-
         public VulkanMaterialShaderManager(ILogger logger, VulkanShaderManager shaderSetup, VulkanPipelineSetup pipelineSetup, VulkanBufferSetup bufferSetup, TextureSystem textureSystem)
         {
             _logger = logger;
@@ -109,8 +107,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 materialShader.GlobalDescriptorPool = descriptorPool;
             }
 
+            // Sampler Uses
+            materialShader.SamplerUses[0] = TextureUse.MapDiffuse;
+
             //Local/Object Descriptors
-            const uint localSamplerCount = 1;
             var descriptorTypes = new DescriptorType[VulkanMaterialShader.DESCRIPTOR_COUNT] 
             {
                 DescriptorType.UniformBuffer, //binding 0 - uniform buffer
@@ -155,7 +155,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 new DescriptorPoolSize()
                 {
                     Type = DescriptorType.CombinedImageSampler,
-                    DescriptorCount = localSamplerCount * VulkanMaterialShader.MAX_MATERIAL_COUNT,
+                    DescriptorCount = (uint)materialShader.SamplerUses.Length * VulkanMaterialShader.MAX_MATERIAL_COUNT,
                 },
             };
             //local descriptor pool
@@ -168,6 +168,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                     PoolSizeCount = (uint)localPoolSizes.Length,
                     PPoolSizes = poolSizesPtr,
                     MaxSets = VulkanMaterialShader.MAX_MATERIAL_COUNT,
+                    Flags = DescriptorPoolCreateFlags.FreeDescriptorSetBit,
                 };
 
                 var createDescriptorPoolResult = context.Vk.CreateDescriptorPool(context.Device.LogicalDevice, poolInfo, context.Allocator, &localDescriptorPool);
@@ -255,7 +256,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             //create object uniform buffer
             var localUboBuffer = _bufferSetup.BufferCreate(
                 context,
-                (ulong)sizeof(ObjectUniformObject),
+                (ulong)sizeof(MaterialUniformObject) * VulkanMaterialShader.MAX_MATERIAL_COUNT,
                 BufferUsageFlags.TransferDstBit | BufferUsageFlags.UniformBufferBit,
                 MemoryPropertyFlags.HostVisibleBit | MemoryPropertyFlags.HostCoherentBit,
                 true);
@@ -360,25 +361,23 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             context.Vk.CmdPushConstants<Matrix4X4<float>>(commandBuffer, shader.Pipeline.PipelineLayout, ShaderStageFlags.VertexBit, 0, (uint)sizeof(Matrix4X4<float>), ref modelVal);
         
             //obtain material data
-            var objectState = shader.InstanceStates[data.ObjectId];
-            var objectDescriptorSet = objectState.DescriptorSets[imageIndex];
+            var instanceState = shader.InstanceStates[data.Material.InternalId];
+            var instanceDescriptorSet = instanceState.DescriptorSets[imageIndex];
 
             //TODO: if needs update
             var descriptorWrites = new WriteDescriptorSet[VulkanMaterialShader.DESCRIPTOR_COUNT];
 
             // Descriptor 0 - Uniform buffer
-            uint range = (uint)sizeof(ObjectUniformObject);
-            ulong offset = range * (ulong)data.ObjectId; // also the index into the array
+            uint range = (uint)sizeof(MaterialUniformObject);
+            ulong offset = range * (ulong)data.Material.InternalId; // also the index into the array
 
-            //todo: get diffuse color from a material
-            tempAccumulator += (float)context.FrameDeltaTime;
-            var sinVal = (float)(Math.Sin(tempAccumulator) + 1f) / 2f; //Scale from -1, 1 to 0, 1
-            var obo = new ObjectUniformObject()
+            // Get diffuse color from a material
+            var obo = new MaterialUniformObject()
             {
-                DiffuseColor = new Vector4D<float>(sinVal, sinVal, sinVal, 1f),
+                DiffuseColor = data.Material.DiffuseColor,
             };
 
-            Span<ObjectUniformObject> oboData = stackalloc ObjectUniformObject[1];
+            Span<MaterialUniformObject> oboData = stackalloc MaterialUniformObject[1];
             oboData[0] = obo;
             //load the data into the buffer
             _bufferSetup.BufferLoadData(context, shader.ObjectUniformBuffer, offset, range, 0, oboData);
@@ -386,7 +385,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             uint descriptorCount = 0; //count for writes
             uint descriptorIndex = 0;
             //only do this if the descriptor has not yet been updated
-            if (objectState.DescriptorStates[descriptorIndex].Generation[imageIndex] == EntityIdService.INVALID_ID)
+            var globalUboGeneration = instanceState.DescriptorStates[descriptorIndex].Generation[imageIndex];
+            if (globalUboGeneration == EntityIdService.INVALID_ID || globalUboGeneration != data.Material.Generation)
             {
 
                 DescriptorBufferInfo bufferInfo = new()
@@ -399,7 +399,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 var descriptor = new WriteDescriptorSet()
                 {
                     SType = StructureType.WriteDescriptorSet,
-                    DstSet = objectDescriptorSet,
+                    DstSet = instanceDescriptorSet,
                     DstBinding = 0,
                     DstArrayElement = 0,
                     DescriptorType = DescriptorType.UniformBuffer,
@@ -410,23 +410,32 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 descriptorCount++;
 
                 //update the frame generation. In this case it is only needed once since this is a buffer.
-                objectState.DescriptorStates[descriptorIndex].Generation[imageIndex] = 0;
+                globalUboGeneration = data.Material.Generation;
+                instanceState.DescriptorStates[descriptorIndex].Generation[imageIndex] = globalUboGeneration;
             }
 
             descriptorIndex++;
 
-            // TODO: samplers.
+            // Samplers.
             const uint samplerCount = 1;
             var imageInfos = new DescriptorImageInfo[1];
             for (uint samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
             {
-                if(data.Textures.Length <= samplerIndex)
+                var textureUse = shader.SamplerUses[samplerIndex];
+                Texture t;
+                switch(textureUse)
                 {
-                    continue;
-                }    
-                var t = data.Textures[samplerIndex];
-                var descriptorGeneration = objectState.DescriptorStates[descriptorIndex].Generation[imageIndex];
-                var descriptorId = objectState.DescriptorStates[descriptorIndex].Ids[imageIndex];
+                    case TextureUse.MapDiffuse:
+                        t = data.Material.DiffuseMap.Texture;
+                        break;
+                    default:
+                        _logger.LogError("Unable to bind sampler to unknown use.");
+                        return;
+
+                }
+
+                var descriptorGeneration = instanceState.DescriptorStates[descriptorIndex].Generation[imageIndex];
+                var descriptorId = instanceState.DescriptorStates[descriptorIndex].Ids[imageIndex];
 
                 // if the texture hasn't been loaded yet, use the default.
                 // TODO: Determine which use the texture has and pull appropriate default based on that.
@@ -458,7 +467,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                         var descriptor = new WriteDescriptorSet()
                         {
                             SType = StructureType.WriteDescriptorSet,
-                            DstSet = objectDescriptorSet,
+                            DstSet = instanceDescriptorSet,
                             DstBinding = descriptorIndex,
                             DstArrayElement = 0,
                             DescriptorType = DescriptorType.CombinedImageSampler,
@@ -476,8 +485,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                         descriptorId = t.Id;
                     }
                     //update the frame generation.
-                    objectState.DescriptorStates[descriptorIndex].Generation[imageIndex] = descriptorGeneration;
-                    objectState.DescriptorStates[descriptorIndex].Ids[imageIndex] = descriptorId;
+                    instanceState.DescriptorStates[descriptorIndex].Generation[imageIndex] = descriptorGeneration;
+                    instanceState.DescriptorStates[descriptorIndex].Ids[imageIndex] = descriptorId;
                     descriptorIndex++;
                 }
             }
@@ -491,30 +500,28 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             }
 
             //bind the descriptor set to be updated, or in case the shader changed.
-            context.Vk.CmdBindDescriptorSets(commandBuffer, PipelineBindPoint.Graphics, shader.Pipeline.PipelineLayout, 1, 1, objectDescriptorSet, 0, default);
+            context.Vk.CmdBindDescriptorSets(commandBuffer, PipelineBindPoint.Graphics, shader.Pipeline.PipelineLayout, 1, 1, instanceDescriptorSet, 0, default);
 
             //set data
-            objectState.DescriptorSets[imageIndex] = objectDescriptorSet;
-            shader.InstanceStates[data.ObjectId] = objectState;
+            instanceState.DescriptorSets[imageIndex] = instanceDescriptorSet;
+            shader.InstanceStates[data.Material.InternalId] = instanceState;
         }
 
-        public uint AcquireResources(VulkanContext context)
+        public void AcquireResources(VulkanContext context, VulkanMaterialShader shader, Material material)
         {
-            var shader = context.MaterialShader!;
-            var objectId = shader.ObjectUniformBufferIndex;
+            var internalId = shader.ObjectUniformBufferIndex;
             shader.ObjectUniformBufferIndex++;
             context.SetupBuiltinShaders(shader);
 
-            var objectState = shader.InstanceStates[objectId];
-            for(int cnt = 0; cnt < objectState.DescriptorStates.Length; cnt++)
+            var instanceState = shader.InstanceStates[internalId];
+            for(int cnt = 0; cnt < instanceState.DescriptorStates.Length; cnt++)
             {
                 //set for all frames
-                objectState.DescriptorStates[cnt].Generation = new uint[3];
-                Array.Fill(objectState.DescriptorStates[cnt].Generation, EntityIdService.INVALID_ID);
-                objectState.DescriptorStates[cnt].Ids = new uint[3];
-                Array.Fill(objectState.DescriptorStates[cnt].Ids, EntityIdService.INVALID_ID);
+                instanceState.DescriptorStates[cnt].Generation = new uint[3];
+                Array.Fill(instanceState.DescriptorStates[cnt].Generation, EntityIdService.INVALID_ID);
+                instanceState.DescriptorStates[cnt].Ids = new uint[3];
+                Array.Fill(instanceState.DescriptorStates[cnt].Ids, EntityIdService.INVALID_ID);
             }
-            shader.InstanceStates[objectId] = objectState;
 
             var layouts = new DescriptorSetLayout[3];
             for (int cnt = 0; cnt < layouts.Length; cnt++)
@@ -533,7 +540,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                     PSetLayouts = layoutsPtr,
                 };
 
-                fixed (DescriptorSet* descriptorSetsPtr = objectState.DescriptorSets)
+                fixed (DescriptorSet* descriptorSetsPtr = instanceState.DescriptorSets)
                 {
                     var allocDescriptorSetsResult = context.Vk.AllocateDescriptorSets(context.Device.LogicalDevice, allocateInfo, descriptorSetsPtr);
                     if (allocDescriptorSetsResult != Result.Success)
@@ -542,31 +549,42 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                     }
                 }
             }
+            //don't forget to updat the struct
+            shader.InstanceStates[internalId] = instanceState;
+
+            material.UpdateInternalId(internalId);
 
             context.SetupBuiltinShaders(shader);
-
-            return objectId;
         }
-        public void ReleaseResources(VulkanContext context, uint objectId)
-        {
-            var shader = context.MaterialShader!;
-            var objectState = shader.InstanceStates[objectId];
 
-            var result = context.Vk.FreeDescriptorSets(context.Device.LogicalDevice, shader.ObjectDescriptorPool, (uint)objectState.DescriptorSets.Length, objectState.DescriptorSets);
+        public void ReleaseResources(VulkanContext context, VulkanMaterialShader shader, Material material)
+        {
+            if(material.InternalId == EntityIdService.INVALID_ID)
+            {
+                return;
+            }
+
+            var instanceState = shader.InstanceStates[material.InternalId];
+
+            var result = context.Vk.FreeDescriptorSets(context.Device.LogicalDevice, shader.ObjectDescriptorPool, (uint)instanceState.DescriptorSets.Length, instanceState.DescriptorSets);
             if(result != Result.Success)
             {
                 _logger.LogError("Error freeing material shader descriptor sets!");
             }
+            //reset sets
+            Array.Fill(instanceState.DescriptorSets, default);
 
-            for (int cnt = 0; cnt < objectState.DescriptorStates.Length; cnt++)
+            for (int cnt = 0; cnt < instanceState.DescriptorStates.Length; cnt++)
             {
                 //set for all frames
-                Array.Fill(objectState.DescriptorStates[cnt].Generation, EntityIdService.INVALID_ID);
-                Array.Fill(objectState.DescriptorStates[cnt].Ids, EntityIdService.INVALID_ID);
+                Array.Fill(instanceState.DescriptorStates[cnt].Generation, EntityIdService.INVALID_ID);
+                Array.Fill(instanceState.DescriptorStates[cnt].Ids, EntityIdService.INVALID_ID);
             }
-            shader.InstanceStates[objectId] = objectState;
+            shader.InstanceStates[material.InternalId] = instanceState;
 
             //TODO: add objectId to free list
+
+            material.UpdateInternalId(EntityIdService.INVALID_ID);
 
             context.SetupBuiltinShaders(shader);
 

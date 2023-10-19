@@ -9,7 +9,11 @@ namespace GameEngine.Core.Tests.Mocks
     {
 
         public Action? OnInit { get; set; }
+        public Action? OnShutdown { get; set; }
+
         public Action<byte[], Texture>? OnLoadTexture { get; set; }
+        public Action<Material>? OnLoadMaterial { get; set; }
+        public Action<Material>? OnDestroyMaterial { get; set; }
 
         public void Init()
         {
@@ -50,6 +54,7 @@ namespace GameEngine.Core.Tests.Mocks
 
         public void Shutdown()
         {
+            OnShutdown?.Invoke();
         }
 
         public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode)
@@ -59,6 +64,16 @@ namespace GameEngine.Core.Tests.Mocks
 
         public void UpdateObject(GeometryRenderData data)
         {
+        }
+
+        public void LoadMaterial(Material material)
+        {
+            OnLoadMaterial?.Invoke(material);
+        }
+
+        public void DestroyMaterial(Material material)
+        {
+            OnDestroyMaterial?.Invoke(material);
         }
     }
 }

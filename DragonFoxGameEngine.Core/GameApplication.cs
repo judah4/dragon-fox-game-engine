@@ -23,6 +23,7 @@ namespace DragonGameEngine.Core
         private readonly ILogger _logger;
         private readonly EngineInternalInput _engineInternalInput;
         private readonly TextureSystem _textureSystem;
+        private readonly MaterialSystem _materialSystem;
 
         private long _frame;
         private string _gameTitleData = string.Empty;
@@ -34,7 +35,7 @@ namespace DragonGameEngine.Core
         private DateTime _lastFpsTime = DateTime.UtcNow;
         private DateTime _lastFpsFrameStatsTime = DateTime.UtcNow;
 
-        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, RendererFrontend rendererFrontend, TextureSystem textureSystem)
+        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, RendererFrontend rendererFrontend, TextureSystem textureSystem, MaterialSystem materialSystem)
         {
             _config = config;
             _game = game;
@@ -47,6 +48,7 @@ namespace DragonGameEngine.Core
 
             _renderer = rendererFrontend;
             _textureSystem = textureSystem;
+            _materialSystem = materialSystem;
 
             IInputContext input = window!.CreateInput();
             _engineInternalInput = new EngineInternalInput(input, window, logger);
@@ -60,6 +62,8 @@ namespace DragonGameEngine.Core
                 _renderer.Init();
 
                 _textureSystem.Init(_renderer.Renderer);
+
+                _materialSystem.Init(_renderer.Renderer);
 
                 _game.Initialize(this);
             }
@@ -94,6 +98,7 @@ namespace DragonGameEngine.Core
                 _logger.LogError(e, e.Message);
             }
 
+            _materialSystem.Shutdown();
             _textureSystem.Shutdown();
             _renderer.Shutdown();
         }

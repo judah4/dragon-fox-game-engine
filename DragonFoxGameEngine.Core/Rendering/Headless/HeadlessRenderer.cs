@@ -56,5 +56,13 @@ namespace DragonGameEngine.Core.Rendering.Headless
         {
             texture.ResetGeneration();
         }
+
+        public void LoadMaterial(Material material)
+        {
+        }
+
+        public void DestroyMaterial(Material material)
+        {
+        }
     }
 }

@@ -12,6 +12,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         /// </summary>
         public const int DESCRIPTOR_COUNT = 2;
         public const int SAMPLER_COUNT = 1;
+
+        //TODO: make configurable
+        /// <summary>
+        /// Max number of material instances
+        /// </summary>
         public const int MAX_MATERIAL_COUNT = 1024;
 
         /// <summary>
@@ -50,7 +55,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         public VulkanBuffer ObjectUniformBuffer;
 
         // TODO: manage a free list of some kind here instead
-        public uint ObjectUniformBufferIndex;
+        public uint ObjectUniformBufferIndex { get; set; }
 
         public TextureUse[] SamplerUses { get; } = new TextureUse[SAMPLER_COUNT];
 
@@ -62,11 +67,14 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
             ShaderStages = new VulkanShaderStage[MATERIAL_SHADER_STAGE_COUNT];
             GlobalDescriptorSets = new DescriptorSet[3];
             InstanceStates = new VulkanMaterialShaderInstanceState[MAX_MATERIAL_COUNT];
-            Array.Fill(InstanceStates, new VulkanMaterialShaderInstanceState()
+            for(int cnt = 0; cnt < InstanceStates.Length; cnt++)
             {
-                DescriptorSets = new DescriptorSet[3],
-                DescriptorStates = new VulkanDescriptorState[DESCRIPTOR_COUNT],
-            });
+                InstanceStates[cnt] = new VulkanMaterialShaderInstanceState()
+                {
+                    DescriptorSets = new DescriptorSet[3],
+                    DescriptorStates = new VulkanDescriptorState[DESCRIPTOR_COUNT],
+                };
+            }
         }
     }
 }

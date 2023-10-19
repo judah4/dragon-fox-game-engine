@@ -3,7 +3,7 @@ using Silk.NET.Maths;
 
 namespace DragonGameEngine.Core.Systems.Domain
 {
-    public class MaterialConfig
+    public readonly struct MaterialConfig
     {
         public string Name { get; init; }
         public bool AutoRelease { get; init; }

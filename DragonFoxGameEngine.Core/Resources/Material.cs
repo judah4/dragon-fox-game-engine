@@ -13,9 +13,11 @@ namespace DragonGameEngine.Core.Resources
 
         public string Name { get; }
 
+        public uint InternalId { get; private set; }
+
+
         public uint Generation { get; private set; }
 
-        public uint InternalId { get; }
 
         public Vector2D<uint> Size { get; private set; }
         public Vector4D<float> DiffuseColor { get; private set; }
@@ -31,6 +33,7 @@ namespace DragonGameEngine.Core.Resources
             Id = unchecked((uint)name.GetHashCode());
             Name = name;
             Generation = EntityIdService.INVALID_ID;
+            InternalId = EntityIdService.INVALID_ID;
 
         }
 
@@ -50,5 +53,9 @@ namespace DragonGameEngine.Core.Resources
             Generation = generation;
         }
 
+        public void UpdateInternalId(uint internalId)
+        {
+            InternalId = internalId;
+        }
     }
 }

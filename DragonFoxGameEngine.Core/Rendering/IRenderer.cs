@@ -34,5 +34,7 @@ namespace DragonGameEngine.Core.Rendering
         public void LoadTexture(Span<byte> pixels, Texture texture);
 
         public void DestroyTexture(Texture texture);
+        public void LoadMaterial(Material material);
+        public void DestroyMaterial(Material material);
     }
 }

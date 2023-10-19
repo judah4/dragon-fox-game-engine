@@ -5,7 +5,7 @@ namespace DragonGameEngine.Core.Rendering
     /// <summary>
     /// 
     /// </summary>
-    public struct ObjectUniformObject
+    public struct MaterialUniformObject
     {
         public Vector4D<float> DiffuseColor { get; init; } //16 bytes
         public Vector4D<float> Reserved1 { get; init; } //16 bytes, reserved for future
