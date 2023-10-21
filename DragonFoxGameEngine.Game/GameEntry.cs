@@ -271,7 +271,7 @@ namespace DragonFoxGameEngine.Game
 
         private void SetDefaultCameraPosition()
         {
-            _cameraPosition = new Vector3D<float>(0, 0, 10);
+            _cameraPosition = new Vector3D<float>(0, 5, 10);
             _cameraEuler = Vector3D<float>.Zero;
             _cameraViewDirty = true;
         }

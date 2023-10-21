@@ -86,7 +86,8 @@ namespace DragonGameEngine.Core
                 // Load up default geometry.
                 //_testGeometry = _geometrySystem.GetDefaultGeometry();
 
-                _testGeometry2 = _geometrySystem.GetDefaultGeometry();
+                var geometryConfig2 = _geometrySystem.GeneratePlaneConfig(10.0f, 10.0f, 5, 5, 5.0f, 5.0f, "test flat plane", "test_plane_mat");
+                _testGeometry2 = _geometrySystem.AcquireFromConfig(geometryConfig2, true);
 
                 // TODO: end temp 
 
@@ -169,12 +170,12 @@ namespace DragonGameEngine.Core
                 geometries = ImmutableArray.Create(new GeometryRenderData()
                 {
                     Geometry = _testGeometry,
-                    Model = Matrix4X4<float>.Identity,
+                    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 3.5f, -5)),
                 },
                 new GeometryRenderData()
                 {
                     Geometry = _testGeometry2,
-                    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(10, 10, 0))
+                    Model = Matrix4X4.CreateFromAxisAngle(Vector3D<float>.UnitX, -MathF.PI/2f),
                 });
             }
 
