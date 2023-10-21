@@ -24,8 +24,11 @@ namespace DragonGameEngine.Core.Systems
         public void Init()
         {
             //Auto-register known loader types
-            RegisterLoader(new ImageResourceLoader(_logger, ResourceBasePath()));
             RegisterLoader(new TextResourceLoader(_logger, ResourceBasePath()));
+            RegisterLoader(new BinaryResourceLoader(_logger, ResourceBasePath()));
+            RegisterLoader(new ImageResourceLoader(_logger, ResourceBasePath()));
+            RegisterLoader(new MaterialResourceLoader(_logger, ResourceBasePath()));
+            RegisterLoader(new StaticMeshResourceLoader(_logger, ResourceBasePath()));
 
 
             _logger.LogInformation("Resource System initialized with base path {path}", _config.AssetBasePath);

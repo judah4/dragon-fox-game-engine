@@ -13,11 +13,14 @@ namespace DragonGameEngine.Core.Resources.ResourceDataTypes
 
         public byte[] Pixels { get; init; }
 
-        public ImageResourceData(byte channelCount, Vector2D<uint> size, byte[] pixels)
+        public bool HasTransparency { get; init; }
+
+        public ImageResourceData(byte channelCount, Vector2D<uint> size, byte[] pixels, bool hasTransparency)
         {
             ChannelCount = channelCount;
             Size = size;
             Pixels = pixels;
+            HasTransparency = hasTransparency;
         }
 
     }

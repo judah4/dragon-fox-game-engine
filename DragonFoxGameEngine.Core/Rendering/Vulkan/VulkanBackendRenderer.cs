@@ -51,7 +51,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         private VulkanContext? _context;
 
-        public VulkanBackendRenderer(string applicationName, IWindow window, TextureSystem textureSystem, ILogger logger)
+        public VulkanBackendRenderer(string applicationName, IWindow window, TextureSystem textureSystem, ResourceSystem resourceSystem, ILogger logger)
         {
             _applicationName = applicationName;
             _window = window;

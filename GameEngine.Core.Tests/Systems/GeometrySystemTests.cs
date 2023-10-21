@@ -15,14 +15,20 @@ namespace GameEngine.Core.Tests.Systems
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRendererFrontend();
 
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             var materialSystem = new MaterialSystem(
                 loggerMock.Object,
-                new MaterialSystemConfig(1024),
-                textureSystem);
+                new MaterialSystemConfig(4096),
+                textureSystem,
+                resourceSystem);
 
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
@@ -48,14 +54,20 @@ namespace GameEngine.Core.Tests.Systems
         {
             var loggerMock = new Mock<ILogger>();
 
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             var materialSystem = new MaterialSystem(
                 loggerMock.Object,
                 new MaterialSystemConfig(4096),
-                textureSystem);
+                textureSystem,
+                resourceSystem);
 
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
@@ -70,14 +82,20 @@ namespace GameEngine.Core.Tests.Systems
         {
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRendererFrontend();
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             var materialSystem = new MaterialSystem(
                 loggerMock.Object,
                 new MaterialSystemConfig(4096),
-                textureSystem);
+                textureSystem,
+                resourceSystem);
 
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
@@ -109,14 +127,20 @@ namespace GameEngine.Core.Tests.Systems
         {
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRendererFrontend();
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             var materialSystem = new MaterialSystem(
                 loggerMock.Object,
                 new MaterialSystemConfig(4096),
-                textureSystem);
+                textureSystem,
+                resourceSystem);
 
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,

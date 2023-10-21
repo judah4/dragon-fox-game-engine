@@ -54,7 +54,10 @@ namespace DragonGameEngine.Core.Systems.ResourceLoaders
             var pixels = new byte[imageSize];
             img.CopyPixelDataTo(pixels);
 
-            var imageResourceData = new ImageResourceData(requiredChannelCount, new Silk.NET.Maths.Vector2D<uint>((uint)img.Width, (uint)img.Height), pixels);
+            // Check for transparency
+            bool hasTransparency = img.PixelType.AlphaRepresentation.HasValue && img.PixelType.AlphaRepresentation.Value != PixelAlphaRepresentation.None;
+
+            var imageResourceData = new ImageResourceData(requiredChannelCount, new Silk.NET.Maths.Vector2D<uint>((uint)img.Width, (uint)img.Height), pixels, hasTransparency);
 
             return new Resource(ResourceType, name, filePath, imageSize, imageResourceData);
             throw new NotImplementedException();

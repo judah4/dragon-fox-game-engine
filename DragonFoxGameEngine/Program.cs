@@ -62,13 +62,16 @@ namespace DragonFoxGameEngine
 
         static void ApplicationRun(ApplicationConfig config, PlatformWindowing platform, IWindow window, IGameEntry game, ILogger engineLogger)
         {
-            var textureSystem = new TextureSystem(engineLogger, new TextureSystemConfig(65536));
+            //for debugging, lets use the default path for now
+            var resourceSystem = new ResourceSystem(engineLogger, new ResourceSystemConfig(32, "Assets"));
 
-            var materialSystem = new MaterialSystem(engineLogger, new MaterialSystemConfig(4096), textureSystem);
+            var textureSystem = new TextureSystem(engineLogger, new TextureSystemConfig(65536), resourceSystem);
+
+            var materialSystem = new MaterialSystem(engineLogger, new MaterialSystemConfig(4096), textureSystem, resourceSystem);
             var geometrySystem = new GeometrySystem(engineLogger, new GeometrySystemConfig(4096), materialSystem);
 
-            var rendererFrontend = new RendererFrontend(config, window, textureSystem, materialSystem, engineLogger);
-            var application = new GameApplication(config, game, window, engineLogger, rendererFrontend, textureSystem, materialSystem, geometrySystem);
+            var rendererFrontend = new RendererFrontend(config, window, textureSystem, materialSystem, resourceSystem, engineLogger);
+            var application = new GameApplication(config, game, window, engineLogger, rendererFrontend, textureSystem, materialSystem, geometrySystem, resourceSystem);
 
             try
             {

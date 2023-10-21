@@ -25,6 +25,7 @@ namespace DragonGameEngine.Core
         private readonly TextureSystem _textureSystem;
         private readonly MaterialSystem _materialSystem;
         private readonly GeometrySystem _geometrySystem;
+        private readonly ResourceSystem _resourceSystem;
 
         private long _frame;
         private string _gameTitleData = string.Empty;
@@ -44,7 +45,7 @@ namespace DragonGameEngine.Core
 
 
         public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, IRendererFrontend rendererFrontend, 
-            TextureSystem textureSystem, MaterialSystem materialSystem, GeometrySystem geometrySystem)
+            TextureSystem textureSystem, MaterialSystem materialSystem, GeometrySystem geometrySystem, ResourceSystem resourceSystem)
         {
             _config = config;
             _game = game;
@@ -63,12 +64,15 @@ namespace DragonGameEngine.Core
             IInputContext input = window!.CreateInput();
             _engineInternalInput = new EngineInternalInput(input, window, logger);
             _frameStats = new FrameStats();
+            _resourceSystem = resourceSystem;
         }
 
         public void Init()
         {
             try
             {
+                _resourceSystem.Init();
+
                 _renderer.Init();
 
                 _textureSystem.Init(_renderer);
@@ -128,6 +132,8 @@ namespace DragonGameEngine.Core
             _materialSystem.Shutdown();
             _textureSystem.Shutdown();
             _renderer.Shutdown();
+            _resourceSystem.Shutdown();
+
         }
 
         private void OnUpdate(double deltaTime)

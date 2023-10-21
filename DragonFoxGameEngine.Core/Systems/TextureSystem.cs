@@ -2,6 +2,7 @@
 using DragonGameEngine.Core.Exceptions;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
@@ -23,6 +24,7 @@ namespace DragonGameEngine.Core.Systems
         public readonly TextureSystemConfig _config;
         public readonly Texture _defaultTexture;
         public readonly Dictionary<string, TextureReference> _textures;
+        public readonly ResourceSystem _resourceSystem;
 
         private IRendererFrontend? _renderer;
 
@@ -31,12 +33,12 @@ namespace DragonGameEngine.Core.Systems
         /// </summary>
         public int TexturesCount => _textures.Count;
 
-        public TextureSystem(ILogger logger, TextureSystemConfig config)
+        public TextureSystem(ILogger logger, TextureSystemConfig config, ResourceSystem resources)
         {
             _logger = logger;
             _defaultTexture = new Texture(DEFAULT_TEXTURE_NAME);
             _textures = new Dictionary<string, TextureReference>((int)config.MaxTextureCount);
-
+            _resourceSystem = resources;
         }
 
         public void Init(IRendererFrontend renderer)
@@ -227,36 +229,21 @@ namespace DragonGameEngine.Core.Systems
             {
                 throw new EngineException("texture system not initialized with renderer!");
             }
-            //TODO: should be able to be located anywhere.
-            var path = "Assets/Textures/";
-            const int requiredChannelCount = 4;
 
-            //todo: try different extensions
-            var filePath = Path.Join(path, $"{texture.Name}.png");
-
-            using var img = SixLabors.ImageSharp.Image.Load<Rgba32>(new DecoderOptions() {  }, filePath);
-            img.Mutate(i => i.RotateFlip(RotateMode.None,  FlipMode.Vertical));
-
-            //flip
-            ulong imageSize = (ulong)(img.Width * img.Height * img.PixelType.BitsPerPixel / 8);
-            var pixels = new byte[imageSize];
-            img.CopyPixelDataTo(pixels);
+            var resource = _resourceSystem.Load(texture.Name, ResourceType.Image);
+            var imageResourceData = (ImageResourceData)resource.Data;
 
             uint currentGeneration = texture.Generation;
             texture.ResetGeneration();
 
-            // Check for transparency
-            bool hasTransparency = img.PixelType.AlphaRepresentation.HasValue && img.PixelType.AlphaRepresentation.Value != PixelAlphaRepresentation.None;
-
-
-            texture.UpdateTextureMetaData(
-                new Vector2D<uint>((uint)img.Width, (uint)img.Height),
-                requiredChannelCount, 
-                hasTransparency);
-
             _renderer.DestroyTexture(texture); //destroy/release the old
 
-            _renderer.LoadTexture(pixels, texture);
+            texture.UpdateTextureMetaData(
+                imageResourceData.Size,
+                imageResourceData.ChannelCount,
+                imageResourceData.HasTransparency);
+
+            _renderer.LoadTexture(imageResourceData.Pixels, texture);
 
             uint newGeneration = 0;
             if (currentGeneration != EntityIdService.INVALID_ID)
@@ -265,6 +252,9 @@ namespace DragonGameEngine.Core.Systems
             }
 
             texture.UpdateGeneration(newGeneration);
+            
+            //clean up just in case
+            _resourceSystem.Unload(resource);
         }
 
         private void DestroyTexture(Texture texture) 

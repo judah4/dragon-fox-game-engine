@@ -22,7 +22,12 @@ namespace DragonGameEngine.Core.Resources
         public void Unload()
         {
             DataSize = 0;
-            Data = false;
+        }
+
+        public void SetData(ulong dataSize, object data)
+        {
+            DataSize = dataSize;
+            Data = data;
         }
     }
 }

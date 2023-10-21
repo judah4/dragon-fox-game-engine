@@ -13,9 +13,14 @@ namespace GameEngine.Core.Tests.Systems
         {
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRendererFrontend();
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             var createTextureCalls = 0;
             var innerData = 100;
@@ -35,10 +40,14 @@ namespace GameEngine.Core.Tests.Systems
         public void TextureSystem_Shutdown_Test()
         {
             var loggerMock = new Mock<ILogger>();
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             textureSystem.Shutdown();
         }
@@ -48,9 +57,14 @@ namespace GameEngine.Core.Tests.Systems
         {
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRendererFrontend();
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             mockRenderer.OnLoadTexture += (pixels, texture) =>
             {
@@ -74,9 +88,14 @@ namespace GameEngine.Core.Tests.Systems
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRendererFrontend();
 
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object, 
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             mockRenderer.OnLoadTexture += (pixels, texture) =>
             {

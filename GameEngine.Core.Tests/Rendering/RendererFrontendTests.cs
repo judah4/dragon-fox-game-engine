@@ -19,11 +19,20 @@ namespace GameEngine.Core.Tests.Rendering
             var windowMock = new Mock<IWindow>();
             var mockRenderer = new MockBackendRenderer();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
-            var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(4096), textureSystem);
+            var materialSystem = new MaterialSystem(
+                loggerMock.Object,
+                new MaterialSystemConfig(4096),
+                textureSystem,
+                resourceSystem);
 
             var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, materialSystem, loggerMock.Object, mockRenderer);
 
@@ -46,11 +55,20 @@ namespace GameEngine.Core.Tests.Rendering
             var rendererMock = new Mock<IRenderer>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
-            var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(4096), textureSystem);
+            var materialSystem = new MaterialSystem(
+                loggerMock.Object,
+                new MaterialSystemConfig(4096),
+                textureSystem,
+                resourceSystem);
 
             var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, materialSystem, loggerMock.Object, rendererMock.Object);
 

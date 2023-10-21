@@ -1,10 +1,9 @@
-﻿using DragonGameEngine.Core.Resources;
+﻿using DragonGameEngine.Core.Exceptions;
+using DragonGameEngine.Core.Resources;
 using Microsoft.Extensions.Logging;
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace DragonGameEngine.Core.Systems.ResourceLoaders
 {
@@ -26,12 +25,27 @@ namespace DragonGameEngine.Core.Systems.ResourceLoaders
 
         public Resource Load(string name)
         {
-            throw new NotImplementedException();
+            return TextLoad(name);
         }
 
         public void Unload(Resource resource)
         {
-            throw new NotImplementedException();
+            resource.Unload();
+        }
+
+        private Resource TextLoad(string name)
+        {
+            //todo: try different extensions
+            var filePath = Path.Combine(_basePath, TypePath, $"{name}.txt");
+
+            var text = File.ReadAllText(filePath, Encoding.UTF8);
+
+            if(string.IsNullOrEmpty(text))
+            {
+                throw new ResourceException(name, $"Text resource is empty!");
+            }
+
+            return new Resource(ResourceType, name, filePath, (ulong)text.Length, text);
         }
     }
 }
