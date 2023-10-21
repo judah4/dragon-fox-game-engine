@@ -43,6 +43,9 @@ namespace DragonGameEngine.Core.Systems
         {
             _renderer = renderer;
             CreateDefaultTextures();
+
+            _logger.LogInformation("Texture System initialized");
+
         }
 
         public void Shutdown()
@@ -59,8 +62,10 @@ namespace DragonGameEngine.Core.Systems
             _textures.Clear();
 
             DestroyDefaultTextures();
-        }
 
+            _logger.LogInformation("Texture System shutdown");
+
+        }
 
         /// <summary>
         /// 

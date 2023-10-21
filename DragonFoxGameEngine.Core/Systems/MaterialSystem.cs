@@ -43,6 +43,8 @@ namespace DragonGameEngine.Core.Systems
         {
             _renderer = renderer;
             CreateDefaultMaterial();
+
+            _logger.LogInformation("Material System initialized");
         }
 
         public void Shutdown()
@@ -59,6 +61,8 @@ namespace DragonGameEngine.Core.Systems
             _materials.Clear();
 
             DestroyMaterial(_defaultMaterial);
+
+            _logger.LogInformation("Material System shutdown");
         }
 
         public Material GetDefaultMaterial()

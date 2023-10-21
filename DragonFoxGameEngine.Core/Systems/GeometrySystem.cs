@@ -44,12 +44,16 @@ namespace DragonGameEngine.Core.Systems
         {
             _renderer = renderer;
             CreateDefaultGeometry();
+
+            _logger.LogInformation("Geometry System initialized");
         }
 
         public void Shutdown()
         {
             //nothing really to do.
             _geometries.Clear();
+
+            _logger.LogInformation("Geometry System shutdown");
         }
 
         public Geometry AcquireById(uint id)
