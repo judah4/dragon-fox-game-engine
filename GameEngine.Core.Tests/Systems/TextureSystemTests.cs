@@ -71,6 +71,7 @@ namespace GameEngine.Core.Tests.Systems
                 texture.UpdateTextureInternalData(new object());
             };
 
+            resourceSystem.Init();
             textureSystem.Init(mockRenderer);
 
             var texture = textureSystem.Acquire("TestTexture", true);
@@ -102,6 +103,7 @@ namespace GameEngine.Core.Tests.Systems
                 texture.UpdateTextureInternalData(new object());
             };
 
+            resourceSystem.Init();
             textureSystem.Init(mockRenderer);
 
             var textureName = "TestTexture";
