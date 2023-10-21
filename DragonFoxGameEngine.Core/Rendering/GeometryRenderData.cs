@@ -6,9 +6,9 @@ namespace DragonGameEngine.Core.Rendering
     /// <summary>
     /// Model info for rendering
     /// </summary>
-    public struct GeometryRenderData
+    public readonly struct GeometryRenderData
     {
         public Matrix4X4<float> Model { get; init; }
-        public Material Material { get; init; }
+        public  Geometry Geometry { get; init; }
     }
 }

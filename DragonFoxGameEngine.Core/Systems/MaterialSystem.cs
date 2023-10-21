@@ -2,6 +2,7 @@
 using DragonGameEngine.Core.Exceptions;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems.Domain;
 using Foxis.Library;
 using Microsoft.Extensions.Logging;
@@ -16,14 +17,13 @@ namespace DragonGameEngine.Core.Systems
     {
         public const string DEFAULT_MATERIAL_NAME = "default";
 
-
         private readonly ILogger _logger;
         private readonly MaterialSystemConfig _config;
         private readonly TextureSystem _textureSystem;
         private readonly Material _defaultMaterial;
         private readonly Dictionary<string, MaterialReference> _materials;
 
-        private IRenderer? _renderer;
+        private IRendererFrontend? _renderer;
 
         /// <summary>
         /// Number of materials loaded and referenced.
@@ -39,7 +39,7 @@ namespace DragonGameEngine.Core.Systems
             _defaultMaterial = new Material(DEFAULT_MATERIAL_NAME);
         }
 
-        public void Init(IRenderer renderer)
+        public void Init(IRendererFrontend renderer)
         {
             _renderer = renderer;
             CreateDefaultMaterial();
@@ -225,7 +225,7 @@ namespace DragonGameEngine.Core.Systems
             _logger.LogDebug("Destroying material {name}", material.Name);
 
             //Release texture references
-            if(material.DiffuseMap.Texture != null)
+            if(material.DiffuseMap.Texture != null && material.DiffuseMap.Texture.Name != TextureSystem.DEFAULT_TEXTURE_NAME)
             {
                 _textureSystem.Release(material.DiffuseMap.Texture.Name);
             }

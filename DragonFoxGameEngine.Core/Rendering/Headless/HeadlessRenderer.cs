@@ -1,4 +1,5 @@
-﻿using DragonGameEngine.Core.Resources;
+﻿using DragonGameEngine.Core.Maths;
+using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
@@ -42,7 +43,7 @@ namespace DragonGameEngine.Core.Rendering.Headless
         {
         }
 
-        public void UpdateObject(GeometryRenderData data)
+        public void DrawGeometry(GeometryRenderData data)
         {
             //might want to use this for interest area later
         }
@@ -62,6 +63,14 @@ namespace DragonGameEngine.Core.Rendering.Headless
         }
 
         public void DestroyMaterial(Material material)
+        {
+        }
+
+        public void LoadGeometry(Geometry geometry, Vertex3d[] vertices, uint[] indices)
+        {
+        }
+
+        public void DestroyGeometry(Geometry geometry)
         {
         }
     }

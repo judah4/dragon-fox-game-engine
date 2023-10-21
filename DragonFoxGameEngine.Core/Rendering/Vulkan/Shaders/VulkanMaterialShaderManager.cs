@@ -10,6 +10,8 @@ using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 using System;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using System.Reflection;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 {
@@ -348,20 +350,24 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             context.Vk.CmdBindDescriptorSets(commandBuffer, PipelineBindPoint.Graphics, shader.Pipeline.PipelineLayout, 0, 1, globalDescriptor, 0, default);
         }
 
-        public void UpdateObject(VulkanContext context, GeometryRenderData data)
+        public void SetModel(VulkanContext context, VulkanMaterialShader shader, Matrix4X4<float> model)
         {
             var imageIndex = context.ImageIndex;
             CommandBuffer commandBuffer = context.GraphicsCommandBuffers![imageIndex].Handle;
-            var shader = context.MaterialShader!;
 
             // Used to push data that changes often that is usaged in all the shaders.
             // I think I can use this for time of day later
             // 128 bytes limited. Maybe not then for time of day
-            var modelVal = data.Model;
-            context.Vk.CmdPushConstants<Matrix4X4<float>>(commandBuffer, shader.Pipeline.PipelineLayout, ShaderStageFlags.VertexBit, 0, (uint)sizeof(Matrix4X4<float>), ref modelVal);
-        
+            context.Vk.CmdPushConstants<Matrix4X4<float>>(commandBuffer, shader.Pipeline.PipelineLayout, ShaderStageFlags.VertexBit, 0, (uint)sizeof(Matrix4X4<float>), ref model);  
+        }
+
+        public void ApplyMaterial(VulkanContext context, VulkanMaterialShader shader, Material material)
+        {
+            var imageIndex = context.ImageIndex;
+            CommandBuffer commandBuffer = context.GraphicsCommandBuffers![imageIndex].Handle;
+
             //obtain material data
-            var instanceState = shader.InstanceStates[data.Material.InternalId];
+            var instanceState = shader.InstanceStates[material.InternalId];
             var instanceDescriptorSet = instanceState.DescriptorSets[imageIndex];
 
             //TODO: if needs update
@@ -369,12 +375,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 
             // Descriptor 0 - Uniform buffer
             uint range = (uint)sizeof(MaterialUniformObject);
-            ulong offset = range * (ulong)data.Material.InternalId; // also the index into the array
+            ulong offset = range * (ulong)material.InternalId; // also the index into the array
 
             // Get diffuse color from a material
             var obo = new MaterialUniformObject()
             {
-                DiffuseColor = data.Material.DiffuseColor,
+                DiffuseColor = material.DiffuseColor,
             };
 
             Span<MaterialUniformObject> oboData = stackalloc MaterialUniformObject[1];
@@ -386,7 +392,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             uint descriptorIndex = 0;
             //only do this if the descriptor has not yet been updated
             var globalUboGeneration = instanceState.DescriptorStates[descriptorIndex].Generation[imageIndex];
-            if (globalUboGeneration == EntityIdService.INVALID_ID || globalUboGeneration != data.Material.Generation)
+            if (globalUboGeneration == EntityIdService.INVALID_ID || globalUboGeneration != material.Generation)
             {
 
                 DescriptorBufferInfo bufferInfo = new()
@@ -410,7 +416,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 descriptorCount++;
 
                 //update the frame generation. In this case it is only needed once since this is a buffer.
-                globalUboGeneration = data.Material.Generation;
+                globalUboGeneration = material.Generation;
                 instanceState.DescriptorStates[descriptorIndex].Generation[imageIndex] = globalUboGeneration;
             }
 
@@ -422,11 +428,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             for (uint samplerIndex = 0; samplerIndex < samplerCount; ++samplerIndex)
             {
                 var textureUse = shader.SamplerUses[samplerIndex];
-                Texture t;
-                switch(textureUse)
+                Texture texture;
+                switch (textureUse)
                 {
                     case TextureUse.MapDiffuse:
-                        t = data.Material.DiffuseMap.Texture;
+                        texture = material.DiffuseMap.Texture;
                         break;
                     default:
                         _logger.LogError("Unable to bind sampler to unknown use.");
@@ -439,30 +445,30 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 
                 // if the texture hasn't been loaded yet, use the default.
                 // TODO: Determine which use the texture has and pull appropriate default based on that.
-                if (t.Generation == EntityIdService.INVALID_ID)
+                if (texture.Generation == EntityIdService.INVALID_ID)
                 {
-                    t = _textureSystem.GetDefaultTexture();
+                    texture = _textureSystem.GetDefaultTexture();
 
                     //reset the descriptor generation if using the default texture.
                     descriptorGeneration = EntityIdService.INVALID_ID;
                 }
 
                 // Check if the descriptor needs updating first.
-                if (descriptorId != t.Id || descriptorGeneration != t.Generation || descriptorGeneration == EntityIdService.INVALID_ID)
+                if (descriptorId != texture.Id || descriptorGeneration != texture.Generation || descriptorGeneration == EntityIdService.INVALID_ID)
                 {
 
-                    if(t.InternalData is not VulkanTextureData)
+                    if (texture.InternalData is not VulkanTextureData)
                     {
-                        throw new EngineException($"Vulkan Image data not loaded for {t.Name}!");
+                        throw new EngineException($"Vulkan Image data not loaded for {texture.Name}!");
                     }
-                    var internal_data = (VulkanTextureData)t.InternalData;
+                    var internal_data = (VulkanTextureData)texture.InternalData;
 
                     // Assign view and sampler.
                     imageInfos[samplerIndex].ImageLayout = ImageLayout.ShaderReadOnlyOptimal;
                     imageInfos[samplerIndex].ImageView = internal_data.Image.ImageView;
                     imageInfos[samplerIndex].Sampler = internal_data.Sampler;
 
-                    fixed(DescriptorImageInfo* imageInfosPtr = imageInfos)
+                    fixed (DescriptorImageInfo* imageInfosPtr = imageInfos)
                     {
                         var descriptor = new WriteDescriptorSet()
                         {
@@ -479,10 +485,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                     }
 
                     // Sync frame generation if not using a default texture.
-                    if (t.Generation != EntityIdService.INVALID_ID)
+                    if (texture.Generation != EntityIdService.INVALID_ID)
                     {
-                        descriptorGeneration = t.Generation;
-                        descriptorId = t.Id;
+                        descriptorGeneration = texture.Generation;
+                        descriptorId = texture.Id;
                     }
                     //update the frame generation.
                     instanceState.DescriptorStates[descriptorIndex].Generation[imageIndex] = descriptorGeneration;
@@ -504,7 +510,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 
             //set data
             instanceState.DescriptorSets[imageIndex] = instanceDescriptorSet;
-            shader.InstanceStates[data.Material.InternalId] = instanceState;
+            shader.InstanceStates[material.InternalId] = instanceState;
         }
 
         public void AcquireResources(VulkanContext context, VulkanMaterialShader shader, Material material)
@@ -563,6 +569,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             {
                 return;
             }
+
+            //Wait for any pending operations using the descriptor set to finish.
+            context.Vk.DeviceWaitIdle(context.Device.LogicalDevice);
 
             var instanceState = shader.InstanceStates[material.InternalId];
 

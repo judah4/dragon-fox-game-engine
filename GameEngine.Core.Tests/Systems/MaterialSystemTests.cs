@@ -1,5 +1,6 @@
 using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems;
 using DragonGameEngine.Core.Systems.Domain;
 using GameEngine.Core.Tests.Mocks;
@@ -14,7 +15,7 @@ namespace GameEngine.Core.Tests.Systems
         public void MaterialSystem_Init_Test()
         {
             var loggerMock = new Mock<ILogger>();
-            var mockRenderer = new MockRenderer();
+            var mockRenderer = new MockRendererFrontend();
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
@@ -60,7 +61,7 @@ namespace GameEngine.Core.Tests.Systems
         public void MaterialSystem_Acquire_Test()
         {
             var loggerMock = new Mock<ILogger>();
-            var mockRenderer = new MockRenderer();
+            var mockRenderer = new MockRendererFrontend();
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
                 new TextureSystemConfig(65536));
@@ -97,7 +98,7 @@ namespace GameEngine.Core.Tests.Systems
         public void MaterialSystem_Release_Test()
         {
             var loggerMock = new Mock<ILogger>();
-            var mockRenderer = new MockRenderer();
+            var mockRenderer = new MockRendererFrontend();
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,

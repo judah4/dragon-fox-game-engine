@@ -60,6 +60,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public ulong GeometryVertexOffset { get; private set; }
         public ulong GeometryIndexOffset { get; private set; }
 
+        //TODO: make dynamic
+        public VulkanGeometryData[] Geometries { get; private set; } = new VulkanGeometryData[VulkanGeometryData.MAX_GEOMENTRY_COUNT];
+
         public VulkanContext(
             Vk vk,
             IWindow window,

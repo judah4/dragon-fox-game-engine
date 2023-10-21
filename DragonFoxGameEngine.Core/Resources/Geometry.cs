@@ -1,46 +1,45 @@
 ﻿using DragonGameEngine.Core.Ecs;
-using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
 
 namespace DragonGameEngine.Core.Resources
 {
-    public sealed class Material
+    /// <summary>
+    /// Represents geometry in the world.
+    /// Typically (but not always, depending on use) paired with a material.
+    /// </summary>
+    public sealed class Geometry
     {
         public const int NAME_MAX_LENGTH = 512;
 
         public uint Id { get; }
 
-        public string Name { get; }
-
         public uint InternalId { get; private set; }
 
+        public string Name { get; }
 
         public uint Generation { get; private set; }
 
+        public Material Material { get; private set; }
 
-        public Vector2D<uint> Size { get; private set; }
-        public Vector4D<float> DiffuseColor { get; private set; }
-        public TextureMap DiffuseMap { get; private set; }
-
-        public Material(string name)
+        public Geometry(string name, Material material)
         {
-            if (name.Length > NAME_MAX_LENGTH)
+            if (string.IsNullOrWhiteSpace(name) || name.Length > NAME_MAX_LENGTH)
             {
                 throw new ArgumentException($"Name should not be less than {NAME_MAX_LENGTH}", nameof(name));
             }
 
-            Id = unchecked((uint)name.GetHashCode());
+            Id = GetIdByName(name);
             Name = name;
             Generation = EntityIdService.INVALID_ID;
             InternalId = EntityIdService.INVALID_ID;
+            Material = material;
 
         }
 
-        public void UpdateMetaData(Vector4D<float> diffuseColor, TextureMap diffuseMap)
+        public void UpdateMaterial(Material material)
         {
-            DiffuseColor = diffuseColor;
-            DiffuseMap = diffuseMap;
+            Material = material;
         }
 
         public void ResetGeneration()
@@ -56,6 +55,11 @@ namespace DragonGameEngine.Core.Resources
         public void UpdateInternalId(uint internalId)
         {
             InternalId = internalId;
+        }
+
+        public static uint GetIdByName(string name)
+        {
+            return unchecked((uint)name.GetHashCode());
         }
     }
 }

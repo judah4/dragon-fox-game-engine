@@ -1,11 +1,12 @@
-﻿using DragonGameEngine.Core.Rendering;
+﻿using DragonGameEngine.Core.Maths;
+using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
 using Silk.NET.Maths;
 using System.Drawing;
 
 namespace GameEngine.Core.Tests.Mocks
 {
-    public class MockRenderer : IRenderer
+    public class MockBackendRenderer : IRenderer
     {
 
         public Action? OnInit { get; set; }
@@ -15,13 +16,12 @@ namespace GameEngine.Core.Tests.Mocks
         public Action<Material>? OnLoadMaterial { get; set; }
         public Action<Material>? OnDestroyMaterial { get; set; }
 
+        public Action<Geometry>? OnLoadGeometry { get; set; }
+        public Action<Geometry>? OnDestroyGeometry { get; set; }
+
         public void Init()
         {
-            if(OnInit == null)
-            {
-                return;
-            }
-            OnInit();
+            OnInit?.Invoke();
         }
 
         public bool BeginFrame(double deltaTime)
@@ -62,7 +62,7 @@ namespace GameEngine.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
-        public void UpdateObject(GeometryRenderData data)
+        public void DrawGeometry(GeometryRenderData data)
         {
         }
 
@@ -74,6 +74,16 @@ namespace GameEngine.Core.Tests.Mocks
         public void DestroyMaterial(Material material)
         {
             OnDestroyMaterial?.Invoke(material);
+        }
+
+        public void LoadGeometry(Geometry geometry, Vertex3d[] vertices, uint[] indices)
+        {
+            OnLoadGeometry?.Invoke(geometry);
+        }
+
+        public void DestroyGeometry(Geometry geometry)
+        {
+            OnDestroyGeometry?.Invoke(geometry);
         }
     }
 }

@@ -1,12 +1,10 @@
 using DragonGameEngine.Core;
-using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems.Domain;
 using DragonGameEngine.Core.Systems;
 using GameEngine.Core.Tests.Mocks;
 using Silk.NET.Input;
-using Silk.NET.Maths;
 using Silk.NET.Windowing;
 
 namespace GameEngine.Core.Tests
@@ -19,7 +17,7 @@ namespace GameEngine.Core.Tests
         {
             var loggerMock = new Mock<ILogger>();
             var windowMock = MockWindow();
-            var mockRenderer = new MockRenderer();
+            var mockRenderer = new MockRendererFrontend();
             var gameEntryMock = new Mock<IGameEntry>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
@@ -28,6 +26,11 @@ namespace GameEngine.Core.Tests
                 new TextureSystemConfig(65536));
 
             var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(4096), textureSystem);
+
+            var geometrySystem = new GeometrySystem(
+                loggerMock.Object,
+                new GeometrySystemConfig(4096),
+                materialSystem);
 
             var initCalls = 0;
             mockRenderer.OnInit += () =>
@@ -41,9 +44,7 @@ namespace GameEngine.Core.Tests
                 texture.UpdateTextureInternalData(new object());
             };
 
-            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, materialSystem, loggerMock.Object, mockRenderer);
-
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, frontend, textureSystem, materialSystem);
+            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, mockRenderer, textureSystem, materialSystem, geometrySystem);
 
             gameApp.Init();
 
@@ -57,7 +58,7 @@ namespace GameEngine.Core.Tests
         {
             var loggerMock = new Mock<ILogger>();
             var windowMock = MockWindow();
-            var mockRenderer = new MockRenderer();
+            var mockRenderer = new MockRendererFrontend();
             var gameEntryMock = new Mock<IGameEntry>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
@@ -65,7 +66,13 @@ namespace GameEngine.Core.Tests
                 loggerMock.Object,
                 new TextureSystemConfig(65536));
 
-            var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(4096), textureSystem);
+            var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(1024), textureSystem);
+
+            var geometrySystem = new GeometrySystem(
+                loggerMock.Object,
+                new GeometrySystemConfig(4096),
+                materialSystem);
+
 
             var shutdownCalls = 0;
             mockRenderer.OnShutdown += () =>
@@ -73,9 +80,7 @@ namespace GameEngine.Core.Tests
                 shutdownCalls++;
             };
 
-            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, materialSystem, loggerMock.Object, mockRenderer);
-
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, frontend, textureSystem, materialSystem);
+            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, mockRenderer, textureSystem, materialSystem, geometrySystem);
 
             gameApp.Shutdown();
 
