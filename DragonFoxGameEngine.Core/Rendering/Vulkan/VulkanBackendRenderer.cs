@@ -1,4 +1,5 @@
 using DragonGameEngine.Core;
+using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Exceptions;
 using DragonGameEngine.Core.Exceptions.Vulkan;
 using DragonGameEngine.Core.Maths;
@@ -49,8 +50,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         };
 
         private VulkanContext? _context;
-
-        private uint _tempIndiciesCount;
 
         public VulkanBackendRenderer(string applicationName, IWindow window, TextureSystem textureSystem, ILogger logger)
         {
@@ -214,35 +213,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             CreateBuffers(_context);
 
-            //TODO: Temporary test geometrydw
-
-            float trigSize = 5f;
-
-            var verts = new Vertex3d[]
-            {
-                new Vertex3d(new Vector3D<float>(-0.5f, -0.5f, 0) * trigSize, new Vector2D<float>(0,0)),
-                new Vertex3d(new Vector3D<float>(0.5f, 0.5f, 0) * trigSize, new Vector2D<float>(1f,1f)),
-                new Vertex3d(new Vector3D<float>(-0.5f, 0.5f, 0) * trigSize, new Vector2D<float>(0,1f)),
-                new Vertex3d(new Vector3D<float>(0.5f, -0.5f, 0) * trigSize, new Vector2D<float>(1f,0)),
-            };
-
-            // 2_____1
-            //  |  /|
-            //  | / |
-            //  |/  |
-            // 0-----3
-
-            var indices = new uint[]
-            {
-                0,1,2,
-                0,3,1,
-            };
-            _tempIndiciesCount = (uint)indices.Length;
-            //update UpdateObject indicies if adding more
-            UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectVertexBuffer, 0, (ulong)(sizeof(Vertex3d) * verts.LongLength), verts.AsSpan());
-            UploadDataRange(_context, _context.Device.GraphicsCommandPool, default, _context.Device.GraphicsQueue, _context.ObjectIndexBuffer, 0, (ulong)(sizeof(uint) * indices.LongLength), indices.AsSpan());
-                        
-            //todo: end test code.
+            Array.Fill(_context.Geometries, new VulkanGeometryData(EntityIdService.INVALID_ID));
 
             _logger.LogInformation($"Vulkan initialized.");
         }
@@ -481,33 +452,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _materialShaderManager.UpdateGlobalState(_context, materialShader, _context.FrameDeltaTime);
         }
 
-        public void UpdateObject(GeometryRenderData data)
-        {
-            _materialShaderManager.UpdateObject(_context!, data);
-
-            var commandBuffer = _context!.GraphicsCommandBuffers![_context.ImageIndex];
-
-            //TODO: Test code to draw
-
-            var vertexBuffers = new Buffer[] { _context.ObjectVertexBuffer.Handle };
-            //bind vertex buffer at offset
-            var offsets = new ulong[] { 0 };
-
-            fixed (ulong* offsetsPtr = offsets)
-            fixed (Buffer* vertexBuffersPtr = vertexBuffers)
-            {
-                _context.Vk.CmdBindVertexBuffers(commandBuffer.Handle, 0, 1, vertexBuffersPtr, offsetsPtr);
-            }
-
-            //bind index buffer at offset
-            _context.Vk.CmdBindIndexBuffer(commandBuffer.Handle, _context.ObjectIndexBuffer.Handle, 0, IndexType.Uint32);
-
-            //issue the draw. hardcode to 3 indices for now
-            _context.Vk.CmdDrawIndexed(commandBuffer.Handle, _tempIndiciesCount, 1, 0, 0, 0);
-            //drawCall++
-            //end temp test code
-        }
-
         public void LoadTexture(Span<byte> pixels, Texture texture)
         {
             if(_context == null)
@@ -626,6 +570,168 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             _materialShaderManager.ReleaseResources(_context, _context.MaterialShader, material);
             _logger.LogTrace("Renderer: Material Destroyed");
+        }
+
+        public void LoadGeometry(Geometry geometry, Vertex3d[] vertices, uint[] indices)
+        {
+            if (_context == null)
+            {
+                return;
+            }
+            bool isReupload = geometry.InternalId != EntityIdService.INVALID_ID;
+            VulkanGeometryData oldRange = new VulkanGeometryData(EntityIdService.INVALID_ID);
+
+            VulkanGeometryData internalData = new VulkanGeometryData(EntityIdService.INVALID_ID);
+
+            if (isReupload)
+            {
+                internalData = _context.Geometries[geometry.InternalId];
+                //make a copy
+                oldRange = internalData;
+            }
+            else
+            {
+                for(uint cnt = 0; cnt < _context.Geometries.Length; cnt++)
+                {
+                    if (_context.Geometries[cnt].Id !=  EntityIdService.INVALID_ID)
+                    {
+                        continue;
+                    }
+
+                    geometry.UpdateInternalId(cnt);
+                    internalData = new VulkanGeometryData(cnt, EntityIdService.INVALID_ID, 0, 0, 0, 0, 0, 0);
+                    _context.Geometries[cnt] = internalData;
+                    break;
+                }
+            }
+
+            if(internalData.Id == EntityIdService.INVALID_ID)
+            {
+                _logger.LogError("LoadGeometry failed to find a free index for a new geometry upload. Adjust config to allow for more.");
+                return;
+            }
+
+            var pool = _context.Device.GraphicsCommandPool;
+            var queue = _context.Device.GraphicsQueue;
+
+            // Vertex data.
+            var vertexBufferOffset = _context.GeometryVertexOffset;
+            var vertexSize = (uint)sizeof(Vertex3d) * (uint)vertices.Length;
+            UploadDataRange<Vertex3d>(_context, pool, default, queue, _context.ObjectVertexBuffer, vertexBufferOffset, vertexSize, vertices);
+            // TODO: should maintain a free list instead of this.
+            var geometryVertexOffset = _context.GeometryVertexOffset + vertexSize;
+            var geometryIndexOffset = _context.GeometryIndexOffset;
+            // Index data, if applicable
+            var indexBufferOffset = _context.GeometryIndexOffset;
+            var indexSize = 0U;
+            if (indices.Length > 0)
+            {
+                indexSize = (uint)sizeof(uint) * (uint)indices.Length;
+                UploadDataRange<uint>(_context, pool, default, queue, _context.ObjectIndexBuffer, indexBufferOffset, indexSize, indices);
+                // TODO: should maintain a free list instead of this.
+                geometryIndexOffset += indexSize;
+            }
+
+            _context.SetupBufferOffsets(geometryVertexOffset, geometryIndexOffset);
+
+            var generation = 0U;
+
+            if (internalData.Generation != EntityIdService.INVALID_ID)
+            {
+                generation++;
+            }
+
+            _context.Geometries[geometry.InternalId] = new VulkanGeometryData(
+                geometry.InternalId,
+                generation,
+                (uint)vertices.Length,
+                vertexSize,
+                vertexBufferOffset,
+                (uint)indices.Length,
+                indexSize,
+                indexBufferOffset);
+
+            if (isReupload && oldRange.Id != EntityIdService.INVALID_ID)
+            {
+                // Free vertex data
+                FreeDataRange(_context.ObjectVertexBuffer, oldRange.VertexBufferOffset, oldRange.VertexSize);
+
+                // Free index data, if applicable
+                if (oldRange.IndexSize > 0)
+                {
+                    FreeDataRange(_context.ObjectIndexBuffer, oldRange.IndexBufferOffset, oldRange.IndexSize);
+                }
+            }
+        }
+
+        public void DestroyGeometry(Geometry geometry)
+        {
+            if (_context == null || geometry.InternalId == EntityIdService.INVALID_ID)
+            {
+                return;
+            }
+            
+            _context.Vk.DeviceWaitIdle(_context.Device.LogicalDevice);
+            var internal_data = _context.Geometries[geometry.InternalId];
+
+            // Free vertex data
+            FreeDataRange(_context.ObjectVertexBuffer, internal_data.VertexBufferOffset, internal_data.VertexSize);
+
+            // Free index data, if applicable
+            if (internal_data.IndexSize > 0)
+            {
+                FreeDataRange(_context.ObjectIndexBuffer, internal_data.IndexBufferOffset, internal_data.IndexSize);
+            }
+
+            // Clean up data.
+            _context.Geometries[geometry.InternalId] = new VulkanGeometryData(EntityIdService.INVALID_ID);
+            geometry.UpdateInternalId(EntityIdService.INVALID_ID);
+        }
+
+        public void DrawGeometry(GeometryRenderData data)
+        {
+            if (_context == null || _context.MaterialShader == null || data.Geometry == null || data.Geometry.InternalId == EntityIdService.INVALID_ID)
+            {
+                return;
+            }
+
+            var bufferData = _context.Geometries[data.Geometry.InternalId];
+
+            //TODO: check if this is actually needed.
+            _materialShaderManager.ShaderUse(_context, _context.MaterialShader);
+
+            _materialShaderManager.SetModel(_context, _context.MaterialShader, data.Model);
+
+            //assume we always have a material set, even if it's the default material
+            _materialShaderManager.ApplyMaterial(_context, _context.MaterialShader, data.Geometry.Material);
+
+            var commandBuffer = _context!.GraphicsCommandBuffers![_context.ImageIndex];
+
+            var vertexBuffers = new Buffer[] { _context.ObjectVertexBuffer.Handle };
+            //bind vertex buffer at offset
+            var offsets = new ulong[] { bufferData.VertexBufferOffset };
+
+            fixed (ulong* offsetsPtr = offsets)
+            fixed (Buffer* vertexBuffersPtr = vertexBuffers)
+            {
+                _context.Vk.CmdBindVertexBuffers(commandBuffer.Handle, 0, 1, vertexBuffersPtr, offsetsPtr);
+            }
+
+            if(bufferData.IndexCount > 0)
+            {
+                //bind index buffer at offset
+                _context.Vk.CmdBindIndexBuffer(commandBuffer.Handle, _context.ObjectIndexBuffer.Handle, bufferData.IndexBufferOffset, IndexType.Uint32);
+
+                //Issue the draw
+                _context.Vk.CmdDrawIndexed(commandBuffer.Handle, bufferData.IndexCount, 1, 0, 0, 0);
+            }
+            else
+            {
+                //Issue the draw sans indicies
+                _context.Vk.CmdDraw(commandBuffer.Handle, bufferData.VertexCount, 1, 0, 0);
+            }
+
+            //drawCall++
         }
 
         private void PopulateDebugMessengerCreateInfo(ref DebugUtilsMessengerCreateInfoEXT createInfo)
@@ -930,6 +1036,16 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             //clean up the staging buffer
             _bufferSetup.BufferDestroy(context, staging);
+        }
+
+        private void FreeDataRange(VulkanBuffer buffer, ulong offset, ulong size)
+        {
+            if(_context == null)
+            {
+                return;
+            }
+            //TODO: Free this in the buffer
+            //TODO: update free list with this range being free.
         }
     }
 }

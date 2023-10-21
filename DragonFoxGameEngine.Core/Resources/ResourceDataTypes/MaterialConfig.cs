@@ -1,7 +1,6 @@
-﻿using DragonGameEngine.Core.Resources;
-using Silk.NET.Maths;
+﻿using Silk.NET.Maths;
 
-namespace DragonGameEngine.Core.Systems.Domain
+namespace DragonGameEngine.Core.Resources.ResourceDataTypes
 {
     public readonly struct MaterialConfig
     {

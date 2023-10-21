@@ -12,7 +12,7 @@ namespace GameEngine.Core.Tests.Systems
         public void TextureSystem_Init_Test()
         {
             var loggerMock = new Mock<ILogger>();
-            var mockRenderer = new MockRenderer();
+            var mockRenderer = new MockRendererFrontend();
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
                 new TextureSystemConfig(65536));
@@ -47,7 +47,7 @@ namespace GameEngine.Core.Tests.Systems
         public void TextureSystem_Acquire_Test()
         {
             var loggerMock = new Mock<ILogger>();
-            var mockRenderer = new MockRenderer();
+            var mockRenderer = new MockRendererFrontend();
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
                 new TextureSystemConfig(65536));
@@ -72,7 +72,7 @@ namespace GameEngine.Core.Tests.Systems
         public void TextureSystem_Release_Test()
         {
             var loggerMock = new Mock<ILogger>();
-            var mockRenderer = new MockRenderer();
+            var mockRenderer = new MockRendererFrontend();
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,

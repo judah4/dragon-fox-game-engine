@@ -1,29 +1,30 @@
-﻿using DragonGameEngine.Core.Ecs;
-using DragonGameEngine.Core.Platforms;
+﻿using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core.Rendering;
+using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems;
-using DragonGameEngine.Core.Systems.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System;
+using System.Collections.Immutable;
 
 namespace DragonGameEngine.Core
 {
     public sealed class GameApplication
     {
         public IWindow Window => _window;
-        public RendererFrontend Renderer => _renderer;
+        public IRendererFrontend Renderer => _renderer;
 
         private readonly ApplicationConfig _config;
         private readonly IGameEntry _game;
         private readonly IWindow _window;
-        private readonly RendererFrontend _renderer;
+        private readonly IRendererFrontend _renderer;
         private readonly ILogger _logger;
         private readonly EngineInternalInput _engineInternalInput;
         private readonly TextureSystem _textureSystem;
         private readonly MaterialSystem _materialSystem;
+        private readonly GeometrySystem _geometrySystem;
 
         private long _frame;
         private string _gameTitleData = string.Empty;
@@ -35,7 +36,15 @@ namespace DragonGameEngine.Core
         private DateTime _lastFpsTime = DateTime.UtcNow;
         private DateTime _lastFpsFrameStatsTime = DateTime.UtcNow;
 
-        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, RendererFrontend rendererFrontend, TextureSystem textureSystem, MaterialSystem materialSystem)
+        //TODO: temp geometry
+        private Geometry? _testGeometry;
+        private int _testChoice;
+
+        private Geometry? _testGeometry2;
+
+
+        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, IRendererFrontend rendererFrontend, 
+            TextureSystem textureSystem, MaterialSystem materialSystem, GeometrySystem geometrySystem)
         {
             _config = config;
             _game = game;
@@ -49,6 +58,7 @@ namespace DragonGameEngine.Core
             _renderer = rendererFrontend;
             _textureSystem = textureSystem;
             _materialSystem = materialSystem;
+            _geometrySystem = geometrySystem;
 
             IInputContext input = window!.CreateInput();
             _engineInternalInput = new EngineInternalInput(input, window, logger);
@@ -61,9 +71,24 @@ namespace DragonGameEngine.Core
             {
                 _renderer.Init();
 
-                _textureSystem.Init(_renderer.Renderer);
+                _textureSystem.Init(_renderer);
 
-                _materialSystem.Init(_renderer.Renderer);
+                _materialSystem.Init(_renderer);
+
+                _geometrySystem.Init(_renderer);
+
+                // TODO: temp 
+
+                // Load up a plane configuration, and load geometry from it.
+                var geometryConfig = _geometrySystem.GeneratePlaneConfig(10.0f, 5.0f, 5, 5, 5.0f, 2.0f, "test geometry", "test_material");
+                _testGeometry = _geometrySystem.AcquireFromConfig(geometryConfig, true);
+
+                // Load up default geometry.
+                //_testGeometry = _geometrySystem.GetDefaultGeometry();
+
+                _testGeometry2 = _geometrySystem.GetDefaultGeometry();
+
+                // TODO: end temp 
 
                 _game.Initialize(this);
             }
@@ -98,6 +123,7 @@ namespace DragonGameEngine.Core
                 _logger.LogError(e, e.Message);
             }
 
+            _geometrySystem.Shutdown();
             _materialSystem.Shutdown();
             _textureSystem.Shutdown();
             _renderer.Shutdown();
@@ -132,7 +158,27 @@ namespace DragonGameEngine.Core
         {
             _game.Render(deltaTime);
 
-            var renderPacket = new RenderPacket(deltaTime);
+            var geometries = ImmutableArray<GeometryRenderData>.Empty;
+
+            if(_testGeometry == null || _testGeometry2 == null)
+            {
+                _logger.LogWarning("Expected test geometry to exist.");
+            }
+            else
+            {
+                geometries = ImmutableArray.Create(new GeometryRenderData()
+                {
+                    Geometry = _testGeometry,
+                    Model = Matrix4X4<float>.Identity,
+                },
+                new GeometryRenderData()
+                {
+                    Geometry = _testGeometry2,
+                    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(10, 10, 0))
+                });
+            }
+
+            var renderPacket = new RenderPacket(deltaTime, geometries);
 
             _renderer.DrawFrame(renderPacket);
 
@@ -144,5 +190,54 @@ namespace DragonGameEngine.Core
         {
             _gameTitleData = title;
         }
+
+        /// <summary>
+        /// Cycle the square's texture for texture loading
+        /// </summary>
+        public void CycleTestTexture()
+        {
+            if (_textureSystem == null)
+            {
+                _logger.LogError("Renderer not initialized");
+                return;
+            }
+            if (_testGeometry == null)
+            {
+                _logger.LogError("game not initialized");
+                return;
+            }
+
+            var textureNames = new string[]
+            {
+                "cobblestone",
+                "paving",
+                "paving2",
+                "CoffeeDragon",
+            };
+
+            var oldName = textureNames[_testChoice];
+
+            _testChoice++;
+            _testChoice %= textureNames.Length;
+            Texture texture;
+            try
+            {
+                texture = _textureSystem.Acquire(textureNames[_testChoice], true);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, $"No texture to load, using default - {e.Message}");
+                texture = _textureSystem.GetDefaultTexture();
+            }
+
+            _testGeometry.Material.UpdateMetaData(_testGeometry.Material.DiffuseColor, new TextureMap()
+            {
+                Texture = texture,
+                TextureUse = TextureUse.MapDiffuse,
+            });
+
+            _textureSystem.Release(oldName);
+        }
+
     }
 }

@@ -195,7 +195,7 @@ namespace DragonFoxGameEngine.Game
             }
             else if(key == Key.T)
             {
-                _gameApp!.Renderer.CycleTestTexture();
+                _gameApp!.CycleTestTexture();
             }
             else if (key == Key.R)
             {

@@ -5,7 +5,9 @@ using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
+using SixLabors.ImageSharp.Formats;
 using SixLabors.ImageSharp.PixelFormats;
+using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +24,7 @@ namespace DragonGameEngine.Core.Systems
         public readonly Texture _defaultTexture;
         public readonly Dictionary<string, TextureReference> _textures;
 
-        private IRenderer? _renderer;
+        private IRendererFrontend? _renderer;
 
         /// <summary>
         /// Number of textures loaded and referenced.
@@ -37,7 +39,7 @@ namespace DragonGameEngine.Core.Systems
 
         }
 
-        public void Init(IRenderer renderer)
+        public void Init(IRendererFrontend renderer)
         {
             _renderer = renderer;
             CreateDefaultTextures();
@@ -113,7 +115,7 @@ namespace DragonGameEngine.Core.Systems
             }
             if (name.Equals(DEFAULT_TEXTURE_NAME))
             {
-                _logger.LogWarning("TexureSystem Tried to release the default texture. Don't do that.");
+                _logger.LogWarning("TexureSystem tried to release the default texture. Don't do that.");
                 return;
             }
             //Find the existing texture reference
@@ -227,8 +229,10 @@ namespace DragonGameEngine.Core.Systems
             //todo: try different extensions
             var filePath = Path.Join(path, $"{texture.Name}.png");
 
-            using var img = SixLabors.ImageSharp.Image.Load<Rgba32>(filePath);
+            using var img = SixLabors.ImageSharp.Image.Load<Rgba32>(new DecoderOptions() {  }, filePath);
+            img.Mutate(i => i.RotateFlip(RotateMode.None,  FlipMode.Vertical));
 
+            //flip
             ulong imageSize = (ulong)(img.Width * img.Height * img.PixelType.BitsPerPixel / 8);
             var pixels = new byte[imageSize];
             img.CopyPixelDataTo(pixels);

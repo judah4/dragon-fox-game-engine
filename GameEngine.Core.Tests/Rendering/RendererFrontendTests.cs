@@ -17,7 +17,7 @@ namespace GameEngine.Core.Tests.Rendering
         {
             var loggerMock = new Mock<ILogger>();
             var windowMock = new Mock<IWindow>();
-            var mockRenderer = new MockRenderer();
+            var mockRenderer = new MockBackendRenderer();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
             var textureSystem = new TextureSystem(
                 loggerMock.Object,

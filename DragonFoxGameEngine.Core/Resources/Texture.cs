@@ -31,7 +31,7 @@ namespace DragonGameEngine.Core.Resources
             }
             if(name.Length > NAME_MAX_LENGTH)
             {
-                throw new ArgumentException(nameof(name), $"Name should not be less than {NAME_MAX_LENGTH}");
+                throw new ArgumentException($"Name should not be less than {NAME_MAX_LENGTH}", nameof(name));
             }
 
             Id = unchecked((uint)name.GetHashCode());
