@@ -196,8 +196,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //Swapchain
             _swapchainSetup.Create(_context, _context.FramebufferSize);
 
-            _renderpassSetup.Create(_context, new Rect2D(new Offset2D(0, 0), new Extent2D(_context.FramebufferSize.X, _context.FramebufferSize.Y)),
-                System.Drawing.Color.CornflowerBlue, 1.0f, 0);
+            _renderpassSetup.Create(
+                _context,
+                new Rect2D(new Offset2D(0, 0), new Extent2D(_context.FramebufferSize.X, _context.FramebufferSize.Y)),
+                System.Drawing.Color.CornflowerBlue,
+                1.0f, 
+                0);
 
             //Create frame buffers.
             var swapchain = _context.Swapchain;
@@ -472,11 +476,15 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             _bufferSetup.BufferLoadData(_context, staging, 0, imageSize, 0, pixels);
 
+            uint mipLevels = 1U;
+
             //lots of assumptions
             var image = _imageSetup.ImageCreate(
                 _context,
                 ImageType.Type2D,
-                texture.Size, imageFormat,
+                texture.Size,
+                mipLevels,
+                imageFormat,
                 ImageTiling.Optimal,
                 ImageUsageFlags.TransferSrcBit | ImageUsageFlags.TransferDstBit | ImageUsageFlags.SampledBit | ImageUsageFlags.ColorAttachmentBit,
                 MemoryPropertyFlags.DeviceLocalBit,
@@ -491,7 +499,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             //copy from the buffer
             _imageSetup.CopyFromBuffer(_context, image, staging.Handle, tempBuffer);
-
 
             //transition from optimal for data reciept to shader read only optimal layout
             _imageSetup.TransitionLayout(_context, tempBuffer, image, imageFormat, ImageLayout.TransferDstOptimal, ImageLayout.ShaderReadOnlyOptimal);
@@ -515,6 +522,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 CompareEnable = false,
                 CompareOp = CompareOp.Always,
                 MipmapMode = SamplerMipmapMode.Linear,
+                MinLod = 0,
+                MaxLod = mipLevels,
+                MipLodBias = 0,
             };
 
             Sampler sampler;
