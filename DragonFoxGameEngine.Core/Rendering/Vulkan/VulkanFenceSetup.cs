@@ -22,10 +22,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public VulkanFence FenceCreate(VulkanContext context, bool createSignaled)
         {
-            var vulkanFence = new VulkanFence()
-            {
-                IsSignaled = createSignaled,
-            };
 
             FenceCreateInfo fenceInfo = new()
             {
@@ -41,7 +37,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             {
                 throw new VulkanResultException(fenceResult, "Failed to create fence!");
             }
-            vulkanFence.Handle = fence;
+
+            var vulkanFence = new VulkanFence(fence);
 
             _logger.LogDebug("Fence created");
             return vulkanFence;
@@ -61,31 +58,18 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public Result<VulkanFence> FenceWait(VulkanContext context, VulkanFence vulkanFence, ulong timeoutNs)
         {
-            if (vulkanFence.IsSignaled)
-                return Foxis.Library.Result.Ok(vulkanFence);
-
             var result = context.Vk.WaitForFences(context.Device.LogicalDevice, 1, vulkanFence.Handle, true, timeoutNs);
-            switch (result)
+
+            if(VulkanUtils.ResultIsSuccess(result))
             {
-                case Silk.NET.Vulkan.Result.Success:
-                    vulkanFence.IsSignaled = true;
-                    return Foxis.Library.Result.Ok(vulkanFence);
-                case Silk.NET.Vulkan.Result.Timeout:
-                    _logger.LogWarning($"Fence Wait - {result}");
-                    return Foxis.Library.Result.Fail<VulkanFence>(result.ToString());
-                default:
-                    _logger.LogError($"Fence Wait - {result}");
-                    return Foxis.Library.Result.Fail<VulkanFence>(result.ToString());
+                return Foxis.Library.Result.Ok(vulkanFence);
             }
+            return Foxis.Library.Result.Fail<VulkanFence>(VulkanUtils.FormattedResult(result));
         }
 
         public VulkanFence FenceReset(VulkanContext context, VulkanFence vulkanFence)
         {
-            if (vulkanFence.IsSignaled)
-            {
-                context.Vk.ResetFences(context.Device.LogicalDevice, 1, vulkanFence.Handle);
-                vulkanFence.IsSignaled = false;
-            }
+            context.Vk.ResetFences(context.Device.LogicalDevice, 1, vulkanFence.Handle);
             return vulkanFence;
         }
     }

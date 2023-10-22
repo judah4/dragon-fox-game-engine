@@ -4,9 +4,9 @@ using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
 {
-    public sealed class VulkanMaterialShader
+    public sealed class VulkanUiShader
     {
-        public const int MATERIAL_SHADER_STAGE_COUNT = 2;
+        public const int UI_SHADER_STAGE_COUNT = 2;
         /// <summary>
         /// The descriptor count per material instance
         /// </summary>
@@ -15,9 +15,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
 
         //TODO: make configurable
         /// <summary>
-        /// Max number of material instances
+        /// Max number of ui material instances
         /// </summary>
-        public const int MAX_MATERIAL_COUNT = 1024;
+        public const int MAX_UI_COUNT = 1024;
 
         /// <summary>
         /// Vertex, Fragment
@@ -41,7 +41,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         /// <summary>
         /// Global uniform object
         /// </summary>
-        public VulkanMaterialShaderGlobalUniformObject GlobalUbo;
+        public VulkanUiShaderGlobalUniformObject GlobalUbo;
 
         public VulkanBuffer GlobalUniformBuffer;
 
@@ -60,16 +60,16 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         public TextureUse[] SamplerUses { get; } = new TextureUse[SAMPLER_COUNT];
 
         //TODO: make dynamic
-        public VulkanMaterialShaderInstanceState[] InstanceStates { get; init; }
+        public VulkanUiShaderInstanceState[] InstanceStates { get; init; }
 
-        public VulkanMaterialShader()
+        public VulkanUiShader()
         {
-            ShaderStages = new VulkanShaderStage[MATERIAL_SHADER_STAGE_COUNT];
+            ShaderStages = new VulkanShaderStage[UI_SHADER_STAGE_COUNT];
             GlobalDescriptorSets = new DescriptorSet[3];
-            InstanceStates = new VulkanMaterialShaderInstanceState[MAX_MATERIAL_COUNT];
+            InstanceStates = new VulkanUiShaderInstanceState[MAX_UI_COUNT];
             for(int cnt = 0; cnt < InstanceStates.Length; cnt++)
             {
-                InstanceStates[cnt] = new VulkanMaterialShaderInstanceState()
+                InstanceStates[cnt] = new VulkanUiShaderInstanceState()
                 {
                     DescriptorSets = new DescriptorSet[3],
                     DescriptorStates = new VulkanDescriptorState[DESCRIPTOR_COUNT],

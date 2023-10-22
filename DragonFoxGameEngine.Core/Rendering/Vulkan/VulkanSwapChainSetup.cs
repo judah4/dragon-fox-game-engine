@@ -227,7 +227,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             if(swapchain.Framebuffers == null)
             {
-                swapchain.Framebuffers = new VulkanFramebuffer[swapImageCount];
+                swapchain.Framebuffers = new Framebuffer[swapImageCount];
             }
 
             //Depth resources

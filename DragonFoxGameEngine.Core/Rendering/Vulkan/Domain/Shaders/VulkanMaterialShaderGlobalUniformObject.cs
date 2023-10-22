@@ -1,6 +1,6 @@
 ﻿using Silk.NET.Maths;
 
-namespace DragonGameEngine.Core.Rendering
+namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
 {
     /// <summary>
     /// 
@@ -8,7 +8,7 @@ namespace DragonGameEngine.Core.Rendering
     /// <remarks>
     /// Should be 256 bytes in size for nVidia
     /// </remarks>
-    public struct GlobalUniformObject
+    public struct VulkanMaterialShaderGlobalUniformObject
     {
         public Matrix4X4<float> Projection { get; init; } //64 bytes
         public Matrix4X4<float> View { get; init; } //64 bytes

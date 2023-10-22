@@ -13,7 +13,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public ImageView[]? ImageViews { get; set; }
         public VulkanImage DepthAttachment { get; set; }
 
-        public VulkanFramebuffer[] Framebuffers { get; set; }
+        public Framebuffer[] Framebuffers { get; set; }
 
         //public Format swapChainImageFormat;
         //public Extent2D swapChainExtent;

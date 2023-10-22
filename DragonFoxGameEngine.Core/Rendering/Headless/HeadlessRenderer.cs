@@ -27,11 +27,25 @@ namespace DragonGameEngine.Core.Rendering.Headless
             return true;
         }
 
-        public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode)
+        public void UpdateGlobalWorldState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode)
+        {
+        }
+
+        public void UpdateGlobalUiState(Matrix4X4<float> projection, Matrix4X4<float> view, int mode)
         {
         }
 
         public void EndFrame(double deltaTime)
+        {
+        }
+
+
+        public bool BeginRenderpass(RenderpassId renderpassId)
+        {
+            return true;
+        }
+
+        public void EndRenderpass(RenderpassId renderpassId)
         {
         }
 
@@ -73,5 +87,6 @@ namespace DragonGameEngine.Core.Rendering.Headless
         public void DestroyGeometry(Geometry geometry)
         {
         }
+
     }
 }

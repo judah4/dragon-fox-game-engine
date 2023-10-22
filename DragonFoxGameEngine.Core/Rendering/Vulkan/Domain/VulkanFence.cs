@@ -2,9 +2,14 @@
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
-    public struct VulkanFence
+    public readonly struct VulkanFence
     {
-        public Fence Handle;
-        public bool IsSignaled;
+        public Fence Handle { get; }
+
+
+        public VulkanFence(Fence fence)
+        {
+            Handle = fence;
+        }
     }
 }

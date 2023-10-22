@@ -3,6 +3,7 @@ using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Vulkan;
 using System;
+using System.Collections.Generic;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
@@ -25,44 +26,33 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         /// <param name="stencil"></param>
         /// <returns></returns>
         /// <exception cref="Exception"></exception>
-        /// <remarks>Impure, set context MainRenderpass.</remarks>
-        public VulkanRenderpass Create(VulkanContext context, Rect2D rect, System.Drawing.Color color, float depth, uint stencil)
+        public VulkanRenderpass Create(VulkanContext context, Rect2D rect, System.Drawing.Color color, float depth, uint stencil, 
+            RenderpassClearFlags clearFlags, bool hasPreviousPass, bool hasNextPass)
         {
+
+            //attachments TODO: make configurable
+            var attachmentDescriptions = new List<AttachmentDescription>(2);
+            
+            //Color attachment
+            bool doClearColor = (clearFlags & RenderpassClearFlags.ClearColorBufferFlag) != 0;
+
             AttachmentDescription colorAttachment = new()
             {
                 Format = context.Swapchain.ImageFormat.Format, //TODO: configurable
                 Samples = SampleCountFlags.Count1Bit,
-                LoadOp = AttachmentLoadOp.Clear,
+                LoadOp = doClearColor ? AttachmentLoadOp.Clear : AttachmentLoadOp.Load,
                 StoreOp = AttachmentStoreOp.Store,
                 StencilLoadOp = AttachmentLoadOp.DontCare,
                 StencilStoreOp = AttachmentStoreOp.DontCare,
-                InitialLayout = ImageLayout.Undefined,
-                FinalLayout = ImageLayout.PresentSrcKhr,
+                InitialLayout = hasPreviousPass ? ImageLayout.ColorAttachmentOptimal : ImageLayout.Undefined,
+                FinalLayout = hasNextPass ? ImageLayout.ColorAttachmentOptimal : ImageLayout.PresentSrcKhr,
             };
+            attachmentDescriptions.Add(colorAttachment);
 
-            //attachments TODO: make configurable
             AttachmentReference colorAttachmentRef = new()
             {
                 Attachment = 0, //array index
                 Layout = ImageLayout.ColorAttachmentOptimal,
-            };
-
-            AttachmentDescription depthAttachment = new()
-            {
-                Format = context.Device.DepthFormat,
-                Samples = SampleCountFlags.Count1Bit,
-                LoadOp = AttachmentLoadOp.Clear,
-                StoreOp = AttachmentStoreOp.DontCare,
-                StencilLoadOp = AttachmentLoadOp.DontCare,
-                StencilStoreOp = AttachmentStoreOp.DontCare,
-                InitialLayout = ImageLayout.Undefined,
-                FinalLayout = ImageLayout.DepthStencilAttachmentOptimal,
-            };
-
-            AttachmentReference depthAttachmentRef = new()
-            {
-                Attachment = 1,
-                Layout = ImageLayout.DepthStencilAttachmentOptimal,
             };
 
             //main subpass
@@ -71,8 +61,32 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 PipelineBindPoint = PipelineBindPoint.Graphics,
                 ColorAttachmentCount = 1,
                 PColorAttachments = &colorAttachmentRef,
-                PDepthStencilAttachment = &depthAttachmentRef,
             };
+
+            //depth attachment
+            AttachmentReference depthAttachmentRef = new()
+            {
+                Attachment = 1,
+                Layout = ImageLayout.DepthStencilAttachmentOptimal,
+            };
+            bool doClearDepth = (clearFlags & RenderpassClearFlags.ClearDepthBufferFlag) != 0;
+            if(doClearDepth)
+            {
+                AttachmentDescription depthAttachment = new()
+                {
+                    Format = context.Device.DepthFormat,
+                    Samples = SampleCountFlags.Count1Bit,
+                    LoadOp = doClearDepth ? AttachmentLoadOp.Clear : AttachmentLoadOp.Load,
+                    StoreOp = AttachmentStoreOp.DontCare,
+                    StencilLoadOp = AttachmentLoadOp.DontCare,
+                    StencilStoreOp = AttachmentStoreOp.DontCare,
+                    InitialLayout = ImageLayout.Undefined,
+                    FinalLayout = ImageLayout.DepthStencilAttachmentOptimal,
+                };
+                attachmentDescriptions.Add(depthAttachment);
+
+                subpass.PDepthStencilAttachment = &depthAttachmentRef;
+            }
 
             SubpassDependency dependency = new()
             {
@@ -84,7 +98,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 DstAccessMask = AccessFlags.ColorAttachmentWriteBit | AccessFlags.DepthStencilAttachmentWriteBit
             };
 
-            var attachments = new[] { colorAttachment, depthAttachment };
+            var attachments = attachmentDescriptions.ToArray();
 
             RenderPass renderPass;
             fixed (AttachmentDescription* attachmentsPtr = attachments)
@@ -114,10 +128,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 Depth = depth,
                 Stencil = stencil,
                 Handle = renderPass,
+                ClearFlags = clearFlags,
+                HasPreviousPass = hasPreviousPass,
+                HasNextPass = hasNextPass,
                 State = RenderpassState.Ready,
             };
 
-            context.SetupMainRenderpass(vulkanRenderpass);
             _logger.LogDebug("Render pass created!");
             return vulkanRenderpass;
         }
@@ -141,21 +157,37 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 Framebuffer = framebuffer,
                 RenderArea = vulkanRenderpass.Rect, //yay objects!
             };
-            var clearValues = new ClearValue[]
-            {
-                new()
-                {
-                    Color = new (){ Float32_0 = vulkanRenderpass.Color.R/255f, Float32_1 = vulkanRenderpass.Color.G/255f, Float32_2 = vulkanRenderpass.Color.B/255f, Float32_3 = vulkanRenderpass.Color.A/255f },
-                },
-                new()
-                {
-                    DepthStencil = new () { Depth = vulkanRenderpass.Depth, Stencil = vulkanRenderpass.Stencil }
-                }
-            };
 
-            fixed (ClearValue* clearValuesPtr = clearValues)
+            //cache this
+            var clearValues = new List<ClearValue>(2);
+
+            bool doClearColor = (vulkanRenderpass.ClearFlags & RenderpassClearFlags.ClearColorBufferFlag) != 0;
+            if(doClearColor)
             {
-                renderPassInfo.ClearValueCount = (uint)clearValues.Length;
+                clearValues.Add(new()
+                {
+                    Color = new() { Float32_0 = vulkanRenderpass.Color.R / 255f, Float32_1 = vulkanRenderpass.Color.G / 255f, Float32_2 = vulkanRenderpass.Color.B / 255f, Float32_3 = vulkanRenderpass.Color.A / 255f },
+                });
+            }
+
+            bool doClearDepth= (vulkanRenderpass.ClearFlags & RenderpassClearFlags.ClearDepthBufferFlag) != 0;
+            bool doClearStencil = (vulkanRenderpass.ClearFlags & RenderpassClearFlags.ClearStencilBufferFlag) != 0;
+            if (doClearDepth)
+            {
+                clearValues.Add(new()
+                {
+                    DepthStencil = new() 
+                    { 
+                        Depth = vulkanRenderpass.Depth, 
+                        Stencil = doClearStencil ? vulkanRenderpass.Stencil : 0
+                    }
+                });
+            }
+
+            var clearValuesArray = clearValues.ToArray();
+            fixed (ClearValue* clearValuesPtr = clearValuesArray)
+            {
+                renderPassInfo.ClearValueCount = (uint)clearValuesArray.Length;
                 renderPassInfo.PClearValues = clearValuesPtr;
 
                 context.Vk.CmdBeginRenderPass(commandBuffer.Handle, &renderPassInfo, SubpassContents.Inline);

@@ -1,10 +1,8 @@
 ﻿using DragonGameEngine.Core.Exceptions.Vulkan;
-using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
-using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
@@ -18,13 +16,15 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         }
 
         public VulkanPipeline PipelineCreate(VulkanContext context,
-            VulkanRenderpass renderPass,
+            VulkanRenderpass renderpass,
+            uint stride,
             VertexInputAttributeDescription[] attributes,
             DescriptorSetLayout[] descriptorSetLayouts,
             PipelineShaderStageCreateInfo[] stages,
             Viewport viewport,
             Rect2D scissor,
-            bool isWireFrame
+            bool isWireFrame,
+            bool depthTestEnabled
             )
         {
             //viewport
@@ -66,15 +66,19 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             };
 
             //Depth and stencil testing.
-            PipelineDepthStencilStateCreateInfo depthStencil = new()
+            PipelineDepthStencilStateCreateInfo depthStencil = default;
+            if (depthTestEnabled)
             {
-                SType = StructureType.PipelineDepthStencilStateCreateInfo,
-                DepthTestEnable = true,
-                DepthWriteEnable = true,
-                DepthCompareOp = CompareOp.Less,
-                DepthBoundsTestEnable = false,
-                StencilTestEnable = false,
-            };
+                depthStencil = new PipelineDepthStencilStateCreateInfo()
+                {
+                    SType = StructureType.PipelineDepthStencilStateCreateInfo,
+                    DepthTestEnable = true,
+                    DepthWriteEnable = true,
+                    DepthCompareOp = CompareOp.Less,
+                    DepthBoundsTestEnable = false,
+                    StencilTestEnable = false,
+                };
+            }
 
             PipelineColorBlendAttachmentState colorBlendAttachment = new()
             {
@@ -122,7 +126,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 var bindingDescription = new VertexInputBindingDescription()
                 {
                     Binding = 0, //Binding index
-                    Stride = (uint)sizeof(Vertex3d),
+                    Stride = stride,
                     InputRate = VertexInputRate.Vertex, //move to next data entry for each vertext
                 };
 
@@ -181,12 +185,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     PViewportState = &viewportState,
                     PRasterizationState = &rasterizer,
                     PMultisampleState = &multisampling,
-                    PDepthStencilState = &depthStencil,
+                    PDepthStencilState = depthTestEnabled ? &depthStencil : default,
                     PColorBlendState = &colorBlending,
                     PDynamicState = &dynamicStateCreateInfo,
                     PTessellationState = default,
                     Layout = pipelineLayout,
-                    RenderPass = renderPass.Handle,
+                    RenderPass = renderpass.Handle,
                     Subpass = 0,
                     BasePipelineHandle = default,
                     BasePipelineIndex = -1,
