@@ -94,7 +94,12 @@ namespace DragonGameEngine.Core.Systems.ResourceLoaders
                             uint index = face.MIndices[i];
 
                             var position = mesh->MVertices[index];
-                            var texture = mesh->MTextureCoords[0][(int)index];
+                            var texture = System.Numerics.Vector3.Zero;
+                            var textureCoords = mesh->MTextureCoords;
+                            if (textureCoords.Element0 != default)
+                            {
+                                texture = mesh->MTextureCoords[0][(int)index];
+                            }
 
                             var vertex = new Vertex3d(
                                 new Vector3D<float>(position.X, position.Y, position.Z),
