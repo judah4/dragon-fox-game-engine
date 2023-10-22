@@ -1,4 +1,4 @@
-﻿using DragonGameEngine.Core.Platforms;
+using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems;
