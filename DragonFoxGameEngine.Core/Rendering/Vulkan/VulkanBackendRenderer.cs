@@ -51,7 +51,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         private VulkanContext? _context;
 
-        public VulkanBackendRenderer(string applicationName, IWindow window, TextureSystem textureSystem, ILogger logger)
+        public VulkanBackendRenderer(string applicationName, IWindow window, TextureSystem textureSystem, ResourceSystem resourceSystem, ILogger logger)
         {
             _applicationName = applicationName;
             _window = window;
@@ -66,7 +66,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _bufferSetup = new VulkanBufferSetup(_imageSetup, _commandBufferSetup, logger);
 
             //shaders
-            _shaderManager = new VulkanShaderManager();
+            _shaderManager = new VulkanShaderManager(resourceSystem);
             _pipelineSetup = new VulkanPipelineSetup(logger);
             _materialShaderManager = new VulkanMaterialShaderManager(logger, _shaderManager, _pipelineSetup, _bufferSetup, textureSystem);
 

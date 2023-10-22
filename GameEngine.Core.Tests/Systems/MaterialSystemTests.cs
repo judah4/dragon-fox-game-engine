@@ -16,15 +16,20 @@ namespace GameEngine.Core.Tests.Systems
         {
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRendererFrontend();
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             var materialSystem = new MaterialSystem(
                 loggerMock.Object,
-                new MaterialSystemConfig(1024),
-                textureSystem);
+                new MaterialSystemConfig(4096),
+                textureSystem,
+                resourceSystem);
 
             var loadMaterialCalls = 0;
             uint expectedInternalId = 0;
@@ -44,15 +49,20 @@ namespace GameEngine.Core.Tests.Systems
         public void MaterialSystem_Shutdown_Test()
         {
             var loggerMock = new Mock<ILogger>();
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             var materialSystem = new MaterialSystem(
                 loggerMock.Object,
                 new MaterialSystemConfig(4096),
-                textureSystem);
+                textureSystem,
+                resourceSystem);
 
             materialSystem.Shutdown();
         }
@@ -62,14 +72,20 @@ namespace GameEngine.Core.Tests.Systems
         {
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRendererFrontend();
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             var materialSystem = new MaterialSystem(
                 loggerMock.Object,
                 new MaterialSystemConfig(4096),
-                textureSystem);
+                textureSystem,
+                resourceSystem);
 
             uint expectedInternalId = 1;
             mockRenderer.OnLoadMaterial += (Material material) =>
@@ -99,15 +115,20 @@ namespace GameEngine.Core.Tests.Systems
         {
             var loggerMock = new Mock<ILogger>();
             var mockRenderer = new MockRendererFrontend();
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
             var materialSystem = new MaterialSystem(
                 loggerMock.Object,
                 new MaterialSystemConfig(4096),
-                textureSystem);
+                textureSystem,
+                resourceSystem);
 
 
             uint expectedInternalId = 1;

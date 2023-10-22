@@ -25,6 +25,7 @@ namespace DragonGameEngine.Core
         private readonly TextureSystem _textureSystem;
         private readonly MaterialSystem _materialSystem;
         private readonly GeometrySystem _geometrySystem;
+        private readonly ResourceSystem _resourceSystem;
 
         private long _frame;
         private string _gameTitleData = string.Empty;
@@ -42,9 +43,11 @@ namespace DragonGameEngine.Core
 
         private Geometry? _testGeometry2;
 
+        private Geometry? _cubeGeometry;
+
 
         public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, IRendererFrontend rendererFrontend, 
-            TextureSystem textureSystem, MaterialSystem materialSystem, GeometrySystem geometrySystem)
+            TextureSystem textureSystem, MaterialSystem materialSystem, GeometrySystem geometrySystem, ResourceSystem resourceSystem)
         {
             _config = config;
             _game = game;
@@ -63,12 +66,15 @@ namespace DragonGameEngine.Core
             IInputContext input = window!.CreateInput();
             _engineInternalInput = new EngineInternalInput(input, window, logger);
             _frameStats = new FrameStats();
+            _resourceSystem = resourceSystem;
         }
 
         public void Init()
         {
             try
             {
+                _resourceSystem.Init();
+
                 _renderer.Init();
 
                 _textureSystem.Init(_renderer);
@@ -88,6 +94,8 @@ namespace DragonGameEngine.Core
 
                 var geometryConfig2 = _geometrySystem.GeneratePlaneConfig(10.0f, 10.0f, 5, 5, 5.0f, 5.0f, "test flat plane", "test_plane_mat");
                 _testGeometry2 = _geometrySystem.AcquireFromConfig(geometryConfig2, true);
+
+                _cubeGeometry = _geometrySystem.Acquire("Meshes/cube.glb");
 
                 // TODO: end temp 
 
@@ -128,6 +136,8 @@ namespace DragonGameEngine.Core
             _materialSystem.Shutdown();
             _textureSystem.Shutdown();
             _renderer.Shutdown();
+            _resourceSystem.Shutdown();
+
         }
 
         private void OnUpdate(double deltaTime)
@@ -161,7 +171,7 @@ namespace DragonGameEngine.Core
 
             var geometries = ImmutableArray<GeometryRenderData>.Empty;
 
-            if(_testGeometry == null || _testGeometry2 == null)
+            if(_testGeometry == null || _testGeometry2 == null || _cubeGeometry == null)
             {
                 _logger.LogWarning("Expected test geometry to exist.");
             }
@@ -176,6 +186,11 @@ namespace DragonGameEngine.Core
                 {
                     Geometry = _testGeometry2,
                     Model = Matrix4X4.CreateFromAxisAngle(Vector3D<float>.UnitX, -MathF.PI/2f),
+                },
+                new GeometryRenderData()
+                {
+                    Geometry = _cubeGeometry,
+                    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 1.5f, 0)),
                 });
             }
 

@@ -20,6 +20,7 @@ namespace DragonGameEngine.Core.Systems
         private readonly ILogger _logger;
         private readonly MaterialSystemConfig _config;
         private readonly TextureSystem _textureSystem;
+        private readonly ResourceSystem _resourceSystem;
         private readonly Material _defaultMaterial;
         private readonly Dictionary<string, MaterialReference> _materials;
 
@@ -30,19 +31,22 @@ namespace DragonGameEngine.Core.Systems
         /// </summary>
         public int MaterialsCount => _materials.Count;
 
-        public MaterialSystem(ILogger logger, MaterialSystemConfig config, TextureSystem textureSystem)
+        public MaterialSystem(ILogger logger, MaterialSystemConfig config, TextureSystem textureSystem, ResourceSystem resourceSystem)
         {
             _logger = logger;
             _config = config;
             _textureSystem = textureSystem;
             _materials = new Dictionary<string, MaterialReference>((int)config.MaxMaterialCount);
             _defaultMaterial = new Material(DEFAULT_MATERIAL_NAME);
+            _resourceSystem = resourceSystem;
         }
 
         public void Init(IRendererFrontend renderer)
         {
             _renderer = renderer;
             CreateDefaultMaterial();
+
+            _logger.LogInformation("Material System initialized");
         }
 
         public void Shutdown()
@@ -59,6 +63,8 @@ namespace DragonGameEngine.Core.Systems
             _materials.Clear();
 
             DestroyMaterial(_defaultMaterial);
+
+            _logger.LogInformation("Material System shutdown");
         }
 
         public Material GetDefaultMaterial()
@@ -77,13 +83,14 @@ namespace DragonGameEngine.Core.Systems
                 return _defaultMaterial;
             }
 
-            var path = "Assets/Materials/";
-
-            var filePath = Path.Join(path, $"{name}.kmt");
-            var config = LoadConfigurationFile(filePath);
+            var resource = _resourceSystem.Load(name, ResourceType.Material);
+            var config = (MaterialConfig)resource.Data;
 
             //Now Acquire from loaded config
-            return AcquireFromConfig(config);
+            var material = AcquireFromConfig(config);
+
+            _resourceSystem.Unload(resource);
+            return material;
         }
 
         public Material AcquireFromConfig(MaterialConfig materialConfig)
@@ -249,104 +256,5 @@ namespace DragonGameEngine.Core.Systems
 
             _renderer?.LoadMaterial(_defaultMaterial);
         }
-
-        private MaterialConfig LoadConfigurationFile(string path)
-        {
-            string matName = string.Empty;
-            string diffuseMapName = string.Empty;
-            Vector4D<float>? diffuseColor = default;
-
-            int lineNumber = 0;
-            using(var reader = File.OpenText(path))
-            {
-                string? line;
-                while ((line = reader.ReadLine()) != null)
-                {
-                    lineNumber++;
-
-                    line = line.Trim();
-                    if(line.Length < 1 || line[0] == '#')
-                    {
-                        continue;
-                    }
-
-                    var splitData = line.Split('=');
-                    if(splitData.Length < 2 )
-                    {
-                        _logger.LogWarning("Potential formatting issue found in file '{path}': '=' token not found. Skipping line {lineNum}", path, lineNumber);
-                        continue;
-                    }
-
-                    var name = splitData[0].Trim();
-
-                    var value = splitData[1].Trim();
-
-                    if (name.Equals("version", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        //TODO: version
-                    }
-                    else if (name.Equals("name", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        matName = value;
-                    }
-                    else if (name.Equals("diffuse_map_name", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        diffuseMapName = value;
-                    }
-                    else if (name.Equals("diffuse_color", StringComparison.InvariantCultureIgnoreCase))
-                    {
-                        diffuseColor = ParseColor(value, path);
-                    }
-                }
-            }
-
-            if(string.IsNullOrEmpty(matName))
-            {
-                throw new EngineException("Material has no name.");
-            }
-            if (string.IsNullOrEmpty(diffuseMapName))
-            {
-                _logger.LogWarning("diffuse_map_name for material {name} not set. Defaulting to default texture.", matName);
-                diffuseMapName = TextureSystem.DEFAULT_TEXTURE_NAME;
-            }
-            if(!diffuseColor.HasValue)
-            {
-                _logger.LogWarning("No parsed diffuse_color in file '{file}'. Using default of white instead.", path);
-                diffuseColor = Vector4D<float>.One;
-            }
-
-            var config = new MaterialConfig(matName, true, diffuseColor.Value, diffuseMapName);
-
-            return config;
-        }
-
-        private Vector4D<float> ParseColor(string value, string path)
-        {
-            var colorSplit = value.Split(' ');
-            if (colorSplit.Length < 4)
-            {
-                _logger.LogWarning("Error parsing diffuse_color in file '{file}'. Using default of white instead.", path);
-                return Vector4D<float>.One;
-            }
-
-            var color = new Vector4D<float>();
-
-            color.X = ParseColorValueOrLog(colorSplit[0], path, 0);
-            color.Y = ParseColorValueOrLog(colorSplit[1], path, 1);
-            color.Z = ParseColorValueOrLog(colorSplit[2], path, 2);
-            color.W = ParseColorValueOrLog(colorSplit[3], path, 3);
-            return color;
-        }
-
-        private float ParseColorValueOrLog(string value, string path, int index)
-        {
-            if(!float.TryParse(value, out var result))
-            {
-                _logger.LogWarning("Error parsing diffuse_color in file '{file}', color index {index}", path, index);
-                return 1.0f;
-            }
-            return result;
-        }
-
     }
 }

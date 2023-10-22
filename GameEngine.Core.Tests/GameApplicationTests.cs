@@ -21,16 +21,26 @@ namespace GameEngine.Core.Tests
             var gameEntryMock = new Mock<IGameEntry>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
-            var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(4096), textureSystem);
+            var materialSystem = new MaterialSystem(
+                loggerMock.Object, 
+                new MaterialSystemConfig(4096), 
+                textureSystem, 
+                resourceSystem);
 
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
                 new GeometrySystemConfig(4096),
-                materialSystem);
+                materialSystem,
+                resourceSystem);
 
             var initCalls = 0;
             mockRenderer.OnInit += () =>
@@ -44,7 +54,7 @@ namespace GameEngine.Core.Tests
                 texture.UpdateTextureInternalData(new object());
             };
 
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, mockRenderer, textureSystem, materialSystem, geometrySystem);
+            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, mockRenderer, textureSystem, materialSystem, geometrySystem, resourceSystem);
 
             gameApp.Init();
 
@@ -62,16 +72,26 @@ namespace GameEngine.Core.Tests
             var gameEntryMock = new Mock<IGameEntry>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
+            var resourceSystem = new ResourceSystem(
+                loggerMock.Object,
+                new ResourceSystemConfig(32, "Assets"));
+
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
-                new TextureSystemConfig(65536));
+                new TextureSystemConfig(65536),
+                resourceSystem);
 
-            var materialSystem = new MaterialSystem(loggerMock.Object, new MaterialSystemConfig(1024), textureSystem);
+            var materialSystem = new MaterialSystem(
+                loggerMock.Object,
+                new MaterialSystemConfig(4096),
+                textureSystem,
+                resourceSystem);
 
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
                 new GeometrySystemConfig(4096),
-                materialSystem);
+                materialSystem,
+                resourceSystem);
 
 
             var shutdownCalls = 0;
@@ -80,7 +100,7 @@ namespace GameEngine.Core.Tests
                 shutdownCalls++;
             };
 
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, mockRenderer, textureSystem, materialSystem, geometrySystem);
+            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, mockRenderer, textureSystem, materialSystem, geometrySystem, resourceSystem);
 
             gameApp.Shutdown();
 

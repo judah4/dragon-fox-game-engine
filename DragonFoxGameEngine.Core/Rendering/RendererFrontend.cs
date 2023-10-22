@@ -35,8 +35,8 @@ namespace DragonGameEngine.Core.Rendering
             _rendererBackend = renderer;
         }
 
-        public RendererFrontend(ApplicationConfig config, IWindow window, TextureSystem textureSystem, MaterialSystem materialSystem, ILogger logger)
-            : this(config, window, textureSystem, materialSystem, logger, SetupRenderer(config, window, textureSystem, logger))
+        public RendererFrontend(ApplicationConfig config, IWindow window, TextureSystem textureSystem, MaterialSystem materialSystem, ResourceSystem resourceSystem, ILogger logger)
+            : this(config, window, textureSystem, materialSystem, logger, SetupRenderer(config, window, textureSystem, resourceSystem, logger))
         {
         }
 
@@ -119,12 +119,12 @@ namespace DragonGameEngine.Core.Rendering
             return renderSystemState;
         }
 
-        private static IRenderer SetupRenderer(ApplicationConfig config, IWindow window, TextureSystem textureSystem, ILogger logger)
+        private static IRenderer SetupRenderer(ApplicationConfig config, IWindow window, TextureSystem textureSystem, ResourceSystem resourceSystem, ILogger logger)
         {
             IRenderer renderer;
             if (!config.HeadlessMode)
             {
-                renderer = new VulkanBackendRenderer(config.Title, window, textureSystem, logger);
+                renderer = new VulkanBackendRenderer(config.Title, window, textureSystem, resourceSystem, logger);
             }
             else
             {
