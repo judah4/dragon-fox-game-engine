@@ -33,6 +33,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 
         public VulkanSwapchain Swapchain { get; private set; }
         public VulkanRenderpass MainRenderPass { get; private set; }
+        public VulkanRenderpass UiRenderPass { get; private set; }
 
         #region Buffers
         public VulkanBuffer ObjectVertexBuffer { get; private set; }
@@ -56,12 +57,15 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 
         //shaders
         public VulkanMaterialShader? MaterialShader { get; private set; }
+        public VulkanUiShader? UiShader { get; private set; }
 
         public ulong GeometryVertexOffset { get; private set; }
         public ulong GeometryIndexOffset { get; private set; }
 
         //TODO: make dynamic
         public VulkanGeometryData[] Geometries { get; private set; } = new VulkanGeometryData[VulkanGeometryData.MAX_GEOMENTRY_COUNT];
+
+        public Framebuffer[] WorldFramebuffers { get; set; } = new Framebuffer[3];
 
         public VulkanContext(
             Vk vk,
@@ -117,6 +121,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
             MainRenderPass = vulkanRenderpass;
         }
 
+        public void SetupUiRenderpass(VulkanRenderpass vulkanRenderpass)
+        {
+            UiRenderPass = vulkanRenderpass;
+        }
+
         public void SetupGraphicsCommandBuffers(VulkanCommandBuffer[] commandBuffers)
         {
             GraphicsCommandBuffers = commandBuffers;
@@ -166,9 +175,14 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
             FramebufferSizeGenerationLastGeneration = framebufferSizeGeneration;
         }
 
-        public void SetupBuiltinShaders(VulkanMaterialShader materialShader)
+        public void SetupBuiltinMaterialShader(VulkanMaterialShader materialShader)
         {
             MaterialShader = materialShader;
+        }
+
+        public void SetupBuiltinUiShader(VulkanUiShader uiShader)
+        {
+            UiShader = uiShader;
         }
 
         public void SetupBuffers(VulkanBuffer objectVertexBuffer, VulkanBuffer objectIndexBuffer)

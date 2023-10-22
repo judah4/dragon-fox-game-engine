@@ -48,7 +48,7 @@ namespace DragonGameEngine.Core.Rendering
             Matrix4X4.Invert(initialView, out initialView);
 
             _systemState = RegenProjectionMatrix(0.1f, 1000.0f)
-                .UpdateView(initialView);
+                .UpdateWorldView(initialView);
         }
 
         public void Shutdown()
@@ -66,12 +66,33 @@ namespace DragonGameEngine.Core.Rendering
         {
             if (_rendererBackend.BeginFrame(packet.DeltaTime))
             {
-                _rendererBackend.UpdateGlobalState(_systemState.Projection, _systemState.View, Vector3D<float>.Zero, Color.White, 0);
+                if(!_rendererBackend.BeginRenderpass(RenderpassId.World))
+                {
+                    _logger.LogError("Could not being render pass for World");
+                    return;
+                }
+                _rendererBackend.UpdateGlobalWorldState(_systemState.Projection, _systemState.View, Vector3D<float>.Zero, Color.White, 0);
 
-                for(int cnt = 0; cnt < packet.Geometries.Count; cnt++)
+                for (int cnt = 0; cnt < packet.Geometries.Count; cnt++)
                 {
                     _rendererBackend.DrawGeometry(packet.Geometries[cnt]);
                 }
+
+                _rendererBackend.EndRenderpass(RenderpassId.World);
+
+                if (!_rendererBackend.BeginRenderpass(RenderpassId.Ui))
+                {
+                    _logger.LogError("Could not being render pass for UI");
+                    return;
+                }
+                _rendererBackend.UpdateGlobalUiState(_systemState.UiProjection, _systemState.UiView, 0);
+
+                for (int cnt = 0; cnt < packet.UiGeometries.Count; cnt++)
+                {
+                    _rendererBackend.DrawGeometry(packet.UiGeometries[cnt]);
+                }
+
+                _rendererBackend.EndRenderpass(RenderpassId.Ui);
 
                 _rendererBackend.EndFrame(packet.DeltaTime);
             }
@@ -79,7 +100,7 @@ namespace DragonGameEngine.Core.Rendering
 
         public void SetView(Matrix4X4<float> view)
         {
-            _systemState = _systemState.UpdateView(view);
+            _systemState = _systemState.UpdateWorldView(view);
         }
 
         public void LoadTexture(Span<byte> pixels, Texture texture)
@@ -115,7 +136,14 @@ namespace DragonGameEngine.Core.Rendering
         private RenderSystemState RegenProjectionMatrix(float nearClip, float farClip)
         {
             var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45f), (float)_window.Size.X / (float)_window.Size.Y, nearClip, farClip);
-            var renderSystemState = new RenderSystemState(projection, _systemState.View, farClip, nearClip);
+
+            //ui projection /view
+            var uiProjection = Matrix4X4.CreateOrthographicOffCenter(0, (float)_window.Size.X, (float)_window.Size.Y, 0, -100f, 100f);
+
+            var uiView = Matrix4X4<float>.Identity;
+            Matrix4X4.Invert(uiView, out uiView);
+
+            var renderSystemState = new RenderSystemState(projection, _systemState.View, farClip, nearClip, uiProjection, uiView);
             return renderSystemState;
         }
 

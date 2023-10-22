@@ -45,6 +45,7 @@ namespace DragonGameEngine.Core
 
         private Geometry? _cubeGeometry;
 
+        private Geometry? _uiGeometry;
 
         public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, IRendererFrontend rendererFrontend, 
             TextureSystem textureSystem, MaterialSystem materialSystem, GeometrySystem geometrySystem, ResourceSystem resourceSystem)
@@ -161,8 +162,9 @@ namespace DragonGameEngine.Core
             _game.Render(deltaTime);
 
             var geometries = ImmutableArray<GeometryRenderData>.Empty;
+            var uiGeometries = ImmutableArray<GeometryRenderData>.Empty;
 
-            if(_testGeometry == null || _testGeometry2 == null || _cubeGeometry == null)
+            if (_testGeometry == null || _testGeometry2 == null || _cubeGeometry == null)
             {
                 _logger.LogWarning("Expected test geometry to exist.");
             }
@@ -185,7 +187,7 @@ namespace DragonGameEngine.Core
                 });
             }
 
-            var renderPacket = new RenderPacket(deltaTime, geometries);
+            var renderPacket = new RenderPacket(deltaTime, geometries, uiGeometries);
 
             _renderer.DrawFrame(renderPacket);
 
