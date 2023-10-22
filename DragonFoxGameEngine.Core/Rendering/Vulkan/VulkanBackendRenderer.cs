@@ -51,6 +51,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         private VulkanContext? _context;
 
+        private Vector2D<uint> _cachedFramebufferSize;
+
         public VulkanBackendRenderer(string applicationName, IWindow window, TextureSystem textureSystem, ResourceSystem resourceSystem, ILogger logger)
         {
             _applicationName = applicationName;
@@ -183,6 +185,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             }
 
             var framebufferSize = new Vector2D<uint>((uint)_window.Size.X, (uint)_window.Size.Y);
+            _cachedFramebufferSize = framebufferSize;
             _context = new VulkanContext(vk, _window, instance, allocator, debugUtils, debugMessenger, framebufferSize);
 
             VulkanPlatform.CreateSurface(_context, _logger);
@@ -198,7 +201,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             //Create frame buffers.
             var swapchain = _context.Swapchain;
-            swapchain.Framebuffers = new VulkanFramebuffer[_context.Swapchain.SwapchainImages.Length];
             _context.SetupSwapchain(swapchain);
             swapchain = RegenerateFramebuffers(swapchain, _context.MainRenderPass);
             _context.SetupSwapchain(swapchain); //this all feels real nasty but it works I guess
@@ -269,7 +271,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 return;
 
             //do resizing
-            _context.SetFramebufferSize(size, _context.FramebufferSizeGeneration + 1);
+            _cachedFramebufferSize = size;
+            _context.SetFramebufferSize(_context.FramebufferSize, _context.FramebufferSizeGeneration + 1);
 
             _logger.LogDebug("Vulkan Backend Renderer resized {size}, generation {framebufferSizeGeneration}", size, _context.FramebufferSizeGeneration);
         }
@@ -860,6 +863,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
                 swapchain.Framebuffers[cnt] = _framebufferSetup.FramebufferCreate(_context!, renderpass, _context!.FramebufferSize, attachments);
             }
+            _logger.LogDebug($"Regening Frame buffers with size {_context!.FramebufferSize}");
             return swapchain;
         }
 
@@ -936,7 +940,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             {
                 return false;
             }
-            if (_context.FramebufferSize.X == 0 || _context.FramebufferSize.Y == 0)
+            if (_cachedFramebufferSize.X == 0 || _cachedFramebufferSize.Y == 0)
             {
                 return false;
             }
@@ -955,11 +959,13 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _context.SetupDevice(device);
             _deviceSetup.DetectDepthFormat(_context);
 
-            var swapchain = _swapchainSetup.Recreate(_context, _context.FramebufferSize, _context.Swapchain);
+            var swapchain = _swapchainSetup.Recreate(_context, _cachedFramebufferSize, _context.Swapchain);
             _context.SetupSwapchain(swapchain);
 
+            _context.SetFramebufferSize(_cachedFramebufferSize, _context.FramebufferSizeGeneration);
             var renderPass = _context.MainRenderPass;
             var rect = renderPass.Rect;
+            rect.Offset = new Offset2D(0,0);
             rect.Extent.Width = _context.FramebufferSize.X;
             rect.Extent.Height = _context.FramebufferSize.Y;
             renderPass.Rect = rect;
@@ -979,14 +985,13 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //TODO: something something struct later
             renderPass = _context.MainRenderPass;
             rect = renderPass.Rect;
-            rect.Offset.X = 0;
-            rect.Offset.Y = 0;
+            rect.Offset = new Offset2D(0, 0);
             rect.Extent.Width = _context.FramebufferSize.X;
             rect.Extent.Height = _context.FramebufferSize.Y;
             renderPass.Rect = rect;
             _context.SetupMainRenderpass(renderPass);
 
-            _context.SetupSwapchain(RegenerateFramebuffers(_context.Swapchain, _context.MainRenderPass));
+            _context.SetupSwapchain(RegenerateFramebuffers(_context.Swapchain, renderPass));
 
             CreateCommandBuffers();
 

@@ -5,18 +5,19 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
     public struct VulkanSwapchain
     {
-        public SurfaceFormatKHR ImageFormat;
-        public KhrSwapchain KhrSwapchain;
-        public SwapchainKHR Swapchain;
-        public byte MaxFramesInFlight;
-        public Image[] SwapchainImages;
-        public ImageView[]? ImageViews;
-        internal VulkanImage DepthAttachment;
+        public SurfaceFormatKHR ImageFormat { get; set; }
+        public KhrSwapchain KhrSwapchain { get; set; }
+        public SwapchainKHR Swapchain { get; set; }
+        public byte MaxFramesInFlight { get; set; }
+        public Image[] SwapchainImages { get; set; }
+        public ImageView[]? ImageViews { get; set; }
+        public VulkanImage DepthAttachment { get; set; }
 
-        public VulkanFramebuffer[] Framebuffers;
+        public VulkanFramebuffer[] Framebuffers { get; set; }
 
         //public Format swapChainImageFormat;
         //public Extent2D swapChainExtent;
         //public Framebuffer[]? _uiFramebuffers;
+
     }
 }

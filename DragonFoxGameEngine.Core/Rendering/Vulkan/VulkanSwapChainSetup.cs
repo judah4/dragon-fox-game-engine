@@ -70,6 +70,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public void Present(VulkanContext context, VulkanSwapchain swapchain, Queue graphicsQueue, Queue presentQueue, Semaphore* renderCompleteSemaphore, uint presentImageIndex)
         {
+            var swapchainKhr = swapchain.Swapchain;
             PresentInfoKHR presentInfo = new()
             {
                 SType = StructureType.PresentInfoKhr,
@@ -78,7 +79,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 PWaitSemaphores = renderCompleteSemaphore,
 
                 SwapchainCount = 1,
-                PSwapchains = &swapchain.Swapchain,
+                PSwapchains = &swapchainKhr,
 
                 PImageIndices = &presentImageIndex,
             };
@@ -224,12 +225,25 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 swapchain.ImageViews[cnt] = imageView;
             }
 
+            if(swapchain.Framebuffers == null)
+            {
+                swapchain.Framebuffers = new VulkanFramebuffer[swapImageCount];
+            }
+
             //Depth resources
             _vulkanDeviceSetup.DetectDepthFormat(context);
 
             //create depth image and its view
-            swapchain.DepthAttachment = _vulkanImageSetup.ImageCreate(context, ImageType.Type2D, size, context.Device.DepthFormat, ImageTiling.Optimal,
-                ImageUsageFlags.DepthStencilAttachmentBit, MemoryPropertyFlags.DeviceLocalBit, true, ImageAspectFlags.DepthBit);
+            swapchain.DepthAttachment = _vulkanImageSetup.ImageCreate(
+                context,
+                ImageType.Type2D,
+                size,
+                context.Device.DepthFormat,
+                ImageTiling.Optimal,
+                ImageUsageFlags.DepthStencilAttachmentBit,
+                MemoryPropertyFlags.DeviceLocalBit,
+                true,
+                ImageAspectFlags.DepthBit);
 
             _logger.LogDebug("Swapchain created successfully!");
             context.SetupSwapchain(swapchain);
@@ -238,7 +252,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         private VulkanSwapchain InnerDestroy(VulkanContext context, VulkanSwapchain swapchain)
         {
-            _vulkanImageSetup.ImageDestroy(context, swapchain.DepthAttachment);
+            swapchain.DepthAttachment = _vulkanImageSetup.ImageDestroy(context, swapchain.DepthAttachment);
 
             if (swapchain.ImageViews != null)
             {
