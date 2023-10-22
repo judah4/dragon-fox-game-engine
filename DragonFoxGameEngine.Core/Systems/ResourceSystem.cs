@@ -4,6 +4,7 @@ using DragonGameEngine.Core.Systems.Domain;
 using DragonGameEngine.Core.Systems.ResourceLoaders;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace DragonGameEngine.Core.Systems
 {
@@ -30,7 +31,6 @@ namespace DragonGameEngine.Core.Systems
             RegisterLoader(new MaterialResourceLoader(_logger, ResourceBasePath()));
             RegisterLoader(new StaticMeshResourceLoader(_logger, ResourceBasePath()));
 
-
             _logger.LogInformation("Resource System initialized with base path {path}", _config.AssetBasePath);
         }
 
@@ -55,7 +55,7 @@ namespace DragonGameEngine.Core.Systems
         {
             if (!_registeredLoaders.TryGetValue(type, out var loader))
             {
-                throw new EngineException($"Resource Loader of type {type} does not exist");
+                throw new ResourceException(name, $"Resource Loader of type {type} does not exist");
             }
 
             return loader.Load(name);
@@ -65,7 +65,7 @@ namespace DragonGameEngine.Core.Systems
         {
             if (!_registeredLoaders.TryGetValue(resource.ResourceType, out var loader))
             {
-                throw new EngineException($"Resource Loader of type {resource.ResourceType} does not exist so resource {resource.Name} is invalid.");
+                throw new ResourceException(resource.Name, $"Resource Loader of type {resource.ResourceType} does not exist so resource {resource.Name} is invalid.");
             }
             loader.Unload(resource);
             //invalidate resource

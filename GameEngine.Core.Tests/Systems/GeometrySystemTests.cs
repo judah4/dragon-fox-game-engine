@@ -32,8 +32,9 @@ namespace GameEngine.Core.Tests.Systems
 
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
-                new GeometrySystemConfig(1024),
-                materialSystem);
+                new GeometrySystemConfig(4096),
+                materialSystem,
+                resourceSystem);
 
             var loadGeometryCalls = 0;
             uint expectedInternalId = 0;
@@ -71,8 +72,9 @@ namespace GameEngine.Core.Tests.Systems
 
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
-                new GeometrySystemConfig(1024),
-                materialSystem);
+                new GeometrySystemConfig(4096),
+                materialSystem,
+                resourceSystem);
 
             geometrySystem.Shutdown();
         }
@@ -99,8 +101,9 @@ namespace GameEngine.Core.Tests.Systems
 
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
-                new GeometrySystemConfig(1024),
-                materialSystem);
+                new GeometrySystemConfig(4096),
+                materialSystem,
+                resourceSystem);
 
             uint expectedInternalId = 1;
             mockRenderer.OnLoadGeometry += (Geometry geometry) =>
@@ -144,8 +147,9 @@ namespace GameEngine.Core.Tests.Systems
 
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
-                new GeometrySystemConfig(1024),
-                materialSystem);
+                new GeometrySystemConfig(4096),
+                materialSystem,
+                resourceSystem);
 
             uint expectedInternalId = 1;
             mockRenderer.OnLoadGeometry += (Geometry geometry) =>

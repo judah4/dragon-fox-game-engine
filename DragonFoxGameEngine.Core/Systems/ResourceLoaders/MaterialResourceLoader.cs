@@ -14,7 +14,6 @@ namespace DragonGameEngine.Core.Systems.ResourceLoaders
 
         public string TypePath => "Materials";
 
-
         private readonly ILogger _logger;
         private readonly string _basePath;
 
@@ -26,7 +25,14 @@ namespace DragonGameEngine.Core.Systems.ResourceLoaders
 
         public Resource Load(string name)
         {
-            return MaterialLoad(name);
+            try
+            {
+                return MaterialLoad(name);
+            }
+            catch (DirectoryNotFoundException ex)
+            {
+                throw new ResourceException(name, ex.Message, ex);
+            }
         }
 
         public void Unload(Resource resource)

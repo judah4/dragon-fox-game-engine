@@ -39,7 +39,8 @@ namespace GameEngine.Core.Tests
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
                 new GeometrySystemConfig(4096),
-                materialSystem);
+                materialSystem,
+                resourceSystem);
 
             var initCalls = 0;
             mockRenderer.OnInit += () =>
@@ -89,7 +90,8 @@ namespace GameEngine.Core.Tests
             var geometrySystem = new GeometrySystem(
                 loggerMock.Object,
                 new GeometrySystemConfig(4096),
-                materialSystem);
+                materialSystem,
+                resourceSystem);
 
 
             var shutdownCalls = 0;

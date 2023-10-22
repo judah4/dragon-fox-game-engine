@@ -3,6 +3,7 @@ using DragonGameEngine.Core.Exceptions;
 using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
@@ -21,6 +22,7 @@ namespace DragonGameEngine.Core.Systems
         private readonly ILogger _logger;
         private readonly GeometrySystemConfig _config;
         private readonly MaterialSystem _materialSystem;
+        private readonly ResourceSystem _resourceSystem;
         private readonly Geometry _defaultGeometry;
         private readonly Dictionary<uint, GeometryReference> _geometries;
 
@@ -31,13 +33,14 @@ namespace DragonGameEngine.Core.Systems
         /// </summary>
         public int GeometriesCount => _geometries.Count;
 
-        public GeometrySystem(ILogger logger, GeometrySystemConfig config, MaterialSystem materialSystem)
+        public GeometrySystem(ILogger logger, GeometrySystemConfig config, MaterialSystem materialSystem, ResourceSystem resourceSystem)
         {
             _logger = logger;
             _config = config;
             _materialSystem = materialSystem;
             _geometries = new Dictionary<uint, GeometryReference>((int)config.MaxGeometryCount);
             _defaultGeometry = new Geometry(DEFAULT_GEOMETRY_NAME, materialSystem.GetDefaultMaterial());
+            _resourceSystem = resourceSystem;
         }
 
         public void Init(IRendererFrontend renderer)
@@ -54,6 +57,26 @@ namespace DragonGameEngine.Core.Systems
             _geometries.Clear();
 
             _logger.LogInformation("Geometry System shutdown");
+        }
+        public Geometry Acquire(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+            {
+                throw new ArgumentNullException(nameof(name));
+            }
+            if (name.Equals(DEFAULT_GEOMETRY_NAME))
+            {
+                return _defaultGeometry;
+            }
+
+            var resource = _resourceSystem.Load(name, ResourceType.StaticMesh);
+            var config = (GeometryConfig)resource.Data;
+
+            //Now Acquire from loaded config
+            var geometry = AcquireFromConfig(config, true);
+
+            _resourceSystem.Unload(resource);
+            return geometry;
         }
 
         public Geometry AcquireById(uint id)
@@ -306,7 +329,7 @@ namespace DragonGameEngine.Core.Systems
                     var material = _materialSystem.Acquire(config.MaterialName);
                     geometry.UpdateMaterial(material);
                 }
-                catch (EngineException e)
+                catch (ResourceException e)
                 {
                     _logger.LogError(e, "Unable to load material {matName} for geometry {geoName}, using default. {eMessage}", e.Message, config.MaterialName, geometry.Name);
                 }
