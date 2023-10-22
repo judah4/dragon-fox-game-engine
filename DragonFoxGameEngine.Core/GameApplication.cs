@@ -71,42 +71,33 @@ namespace DragonGameEngine.Core
 
         public void Init()
         {
-            try
-            {
-                _resourceSystem.Init();
+            _resourceSystem.Init();
 
-                _renderer.Init();
+            _renderer.Init();
 
-                _textureSystem.Init(_renderer);
+            _textureSystem.Init(_renderer);
 
-                _materialSystem.Init(_renderer);
+            _materialSystem.Init(_renderer);
 
-                _geometrySystem.Init(_renderer);
+            _geometrySystem.Init(_renderer);
 
-                // TODO: temp 
+            // TODO: temp 
 
-                // Load up a plane configuration, and load geometry from it.
-                var geometryConfig = _geometrySystem.GeneratePlaneConfig(10.0f, 5.0f, 5, 5, 5.0f, 2.0f, "test geometry", "test_material");
-                _testGeometry = _geometrySystem.AcquireFromConfig(geometryConfig, true);
+            // Load up a plane configuration, and load geometry from it.
+            var geometryConfig = _geometrySystem.GeneratePlaneConfig(10.0f, 5.0f, 5, 5, 5.0f, 2.0f, "test geometry", "test_material");
+            _testGeometry = _geometrySystem.AcquireFromConfig(geometryConfig, true);
 
-                // Load up default geometry.
-                //_testGeometry = _geometrySystem.GetDefaultGeometry();
+            // Load up default geometry.
+            //_testGeometry = _geometrySystem.GetDefaultGeometry();
 
-                var geometryConfig2 = _geometrySystem.GeneratePlaneConfig(10.0f, 10.0f, 5, 5, 5.0f, 5.0f, "test flat plane", "test_plane_mat");
-                _testGeometry2 = _geometrySystem.AcquireFromConfig(geometryConfig2, true);
+            var geometryConfig2 = _geometrySystem.GeneratePlaneConfig(10.0f, 10.0f, 5, 5, 5.0f, 5.0f, "test flat plane", "test_plane_mat");
+            _testGeometry2 = _geometrySystem.AcquireFromConfig(geometryConfig2, true);
 
-                _cubeGeometry = _geometrySystem.Acquire("Meshes/cube.glb");
+            _cubeGeometry = _geometrySystem.Acquire("Meshes/cube.glb");
 
-                // TODO: end temp 
+            // TODO: end temp 
 
-                _game.Initialize(this);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, e.Message);
-                throw;
-            }
-
+            _game.Initialize(this);
         }
 
         private void OnResize(Vector2D<int> size)
