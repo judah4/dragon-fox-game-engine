@@ -13,7 +13,7 @@ namespace DragonFoxGameEngine.Game
         /// <summary>
         /// Set this name once a game is in progress
         /// </summary>
-        public const string GAME_NAME = "";
+        public const string GAME_NAME = "Spinny Blob Fox";
         private readonly ILogger _logger;
 
         private GameApplication? _gameApp;

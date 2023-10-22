@@ -45,6 +45,7 @@ namespace DragonGameEngine.Core
 
         private Geometry? _cubeGeometry;
 
+        private float _blobAccumulator = 0;
 
         public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, IRendererFrontend rendererFrontend, 
             TextureSystem textureSystem, MaterialSystem materialSystem, GeometrySystem geometrySystem, ResourceSystem resourceSystem)
@@ -93,7 +94,7 @@ namespace DragonGameEngine.Core
             var geometryConfig2 = _geometrySystem.GeneratePlaneConfig(10.0f, 10.0f, 5, 5, 5.0f, 5.0f, "test flat plane", "test_plane_mat");
             _testGeometry2 = _geometrySystem.AcquireFromConfig(geometryConfig2, true);
 
-            _cubeGeometry = _geometrySystem.Acquire("SpinnyBlobs/model/tiny_blobfox.glb");
+            _cubeGeometry = _geometrySystem.Acquire("SpinnyBlobs/tiny_blobfox.glb");
 
             // TODO: end temp 
 
@@ -146,6 +147,8 @@ namespace DragonGameEngine.Core
                 _lastFpsFrameStatsTime = DateTime.UtcNow;
             }
 
+            _blobAccumulator += MathF.PI * (float)deltaTime;
+
             try
             {
                 _game.Update(deltaTime);
@@ -181,7 +184,8 @@ namespace DragonGameEngine.Core
                 new GeometryRenderData()
                 {
                     Geometry = _cubeGeometry,
-                    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 1.5f, 0)),
+                    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 1.5f, 0))
+                        * Matrix4X4.CreateFromAxisAngle(Vector3D<float>.UnitY, _blobAccumulator),
                 });
             }
 

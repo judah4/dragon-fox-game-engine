@@ -1,0 +1,6 @@
+#material file
+
+version=0.1
+name=tiny_blobfox.glb
+diffuse_color=1.0 1.0 1.0 1.0
+diffuse_map_name=SpinnyBlobs/tiny_blobfox
