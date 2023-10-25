@@ -99,12 +99,13 @@ namespace DragonGameEngine.Core
 
             _cubeGeometry = _geometrySystem.Acquire("Meshes/cube.glb");
 
+            var spriteSize = 256f;
             var verts = new Vertex3d[]
             {
                 new Vertex3d(new Vector3D<float>(0f, 0f, 0f), new Vector2D<float>(0,0)),
-                new Vertex3d(new Vector3D<float>(512f, 512f, 0f), new Vector2D<float>(1f,1f)),
-                new Vertex3d(new Vector3D<float>(0, 512f, 0f), new Vector2D<float>(0,1f)),
-                new Vertex3d(new Vector3D<float>(512f, 0f, 0f), new Vector2D<float>(1f,0)),
+                new Vertex3d(new Vector3D<float>(spriteSize, spriteSize, 0f), new Vector2D<float>(1f,1f)),
+                new Vertex3d(new Vector3D<float>(0, spriteSize, 0f), new Vector2D<float>(0,1f)),
+                new Vertex3d(new Vector3D<float>(spriteSize, 0f, 0f), new Vector2D<float>(1f,0)),
             };
 
             // 0_____3  0,0_____1,0
