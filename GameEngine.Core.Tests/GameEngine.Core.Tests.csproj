@@ -12,7 +12,9 @@
   <ItemGroup>
     <None Remove="Assets\Materials\test_material.kmt" />
     <None Remove="Assets\Materials\test_plane_mat.kmt" />
+    <None Remove="Assets\Materials\test_ui_material.kmt" />
     <None Remove="Assets\Meshes\cube.glb" />
+    <None Remove="Assets\Textures\orange_lines_512.png" />
     <None Remove="Assets\Textures\TestTexture.png" />
   </ItemGroup>
 
@@ -23,7 +25,13 @@
     <Content Include="Assets\Materials\test_plane_mat.kmt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Assets\Materials\test_ui_material.kmt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Assets\Meshes\cube.glb">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Assets\Textures\orange_lines_512.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Assets\Textures\TestTexture.png">
