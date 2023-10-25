@@ -17,7 +17,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _logger = logger;
         }
 
-        public VulkanImage ImageCreate(VulkanContext context, ImageType imageType, Vector2D<uint> size, Format format, ImageTiling tiling, ImageUsageFlags usage, MemoryPropertyFlags memoryFlags,
+        public VulkanImage ImageCreate(VulkanContext context, ImageType imageType, Vector2D<uint> size, uint mipLevels, Format format, ImageTiling tiling, ImageUsageFlags usage, MemoryPropertyFlags memoryFlags,
             bool createView, ImageAspectFlags viewAspectFlags)
         {
             var vulkanImage = new VulkanImage()
@@ -28,14 +28,14 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             ImageCreateInfo imageCreateInfo = new()
             {
                 SType = StructureType.ImageCreateInfo,
-                ImageType = ImageType.Type2D,
+                ImageType = imageType,
                 Extent =
                 {
                     Width = size.X,
                     Height = size.Y,
                     Depth = 1, // TODO: support configurable depth
                 },
-                MipLevels = 4, // TODO: support mip mapping
+                MipLevels = mipLevels, // TODO: support mip mapping
                 ArrayLayers = 1, //TODO: support number of layers in the image
                 Format = format,
                 Tiling = tiling,
@@ -76,7 +76,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             if (createView)
             {
                 vulkanImage.ImageView = default;
-                vulkanImage = ImageViewCreate(context, format, vulkanImage, viewAspectFlags);
+                vulkanImage = ImageViewCreate(context, format, vulkanImage, viewAspectFlags, mipLevels);
             }
 
             _logger.LogDebug("Vulkan Image is created!");
@@ -84,7 +84,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             return vulkanImage;
         }
 
-        public VulkanImage ImageViewCreate(VulkanContext context, Format format, VulkanImage vulkanImage, ImageAspectFlags viewAspectFlags)
+        public VulkanImage ImageViewCreate(VulkanContext context, Format format, VulkanImage vulkanImage, ImageAspectFlags viewAspectFlags, uint mipLevels)
         {
             ImageViewCreateInfo createInfo = new()
             {
@@ -93,13 +93,13 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 ViewType = ImageViewType.Type2D,
                 Format = format,
                 SubresourceRange = //TODO: make configurable
-                    {
-                        AspectMask = viewAspectFlags,
-                        BaseMipLevel = 0,
-                        LevelCount = 1,
-                        BaseArrayLayer = 0,
-                        LayerCount = 1,
-                    }
+                {
+                    AspectMask = viewAspectFlags,
+                    BaseMipLevel = 0,
+                    LevelCount = mipLevels,
+                    BaseArrayLayer = 0,
+                    LayerCount = 1,
+                }
             };
 
             var createImageResult = context.Vk!.CreateImageView(context.Device.LogicalDevice, createInfo, context.Allocator, out ImageView imageView);

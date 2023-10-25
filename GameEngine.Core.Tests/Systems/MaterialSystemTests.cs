@@ -41,7 +41,7 @@ namespace GameEngine.Core.Tests.Systems
 
             materialSystem.Init(mockRenderer);
 
-            Assert.AreEqual(1, loadMaterialCalls, "Expected creae material to be called once for the default material.");
+            Assert.AreEqual(2, loadMaterialCalls, "Expected creae material to be called twice for the default materials.");
             Assert.AreEqual(expectedInternalId, materialSystem.Acquire(MaterialSystem.DEFAULT_MATERIAL_NAME).InternalId);
         }
 

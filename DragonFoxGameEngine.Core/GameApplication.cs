@@ -1,8 +1,11 @@
+using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
+using Silk.NET.Core.Native;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -45,6 +48,7 @@ namespace DragonGameEngine.Core
 
         private Geometry? _cubeGeometry;
 
+        private Geometry? _testUiGeometry;
         private float _blobAccumulator = 0;
 
         public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, IRendererFrontend rendererFrontend, 
@@ -95,6 +99,31 @@ namespace DragonGameEngine.Core
             _testGeometry2 = _geometrySystem.AcquireFromConfig(geometryConfig2, true);
 
             _cubeGeometry = _geometrySystem.Acquire("SpinnyBlobs/tiny_blobfox.glb");
+
+            var spriteSize = 256f;
+            var verts = new Vertex3d[]
+            {
+                new Vertex3d(new Vector3D<float>(0f, 0f, 0f), new Vector2D<float>(0,0)),
+                new Vertex3d(new Vector3D<float>(spriteSize, spriteSize, 0f), new Vector2D<float>(1f,1f)),
+                new Vertex3d(new Vector3D<float>(0, spriteSize, 0f), new Vector2D<float>(0,1f)),
+                new Vertex3d(new Vector3D<float>(spriteSize, 0f, 0f), new Vector2D<float>(1f,0)),
+            };
+
+            // 0_____3  0,0_____1,0
+            //  |  /|      |  /|
+            //  | / |      | / |
+            //  |/  |      |/  | 
+            // 2-----1  0,1-----1,1   
+
+            var indices2d = new uint[]
+            {
+                2,1,0,
+                3,0,1,
+            };
+
+            var uiConfig = new GeometryConfig("test_ui_geometry", verts, indices2d, "test_ui_material");
+
+            _testUiGeometry = _geometrySystem.AcquireFromConfig(uiConfig, true);
 
             // TODO: end temp 
 
@@ -164,8 +193,9 @@ namespace DragonGameEngine.Core
             _game.Render(deltaTime);
 
             var geometries = ImmutableArray<GeometryRenderData>.Empty;
+            var uiGeometries = ImmutableArray<GeometryRenderData>.Empty;
 
-            if(_testGeometry == null || _testGeometry2 == null || _cubeGeometry == null)
+            if (_testGeometry == null || _testGeometry2 == null || _cubeGeometry == null)
             {
                 _logger.LogWarning("Expected test geometry to exist.");
             }
@@ -189,7 +219,21 @@ namespace DragonGameEngine.Core
                 });
             }
 
-            var renderPacket = new RenderPacket(deltaTime, geometries);
+            if (_testUiGeometry == null)
+            {
+                //_logger.LogWarning("Expected test ui geometry to exist.");
+            }
+            else
+            {
+                uiGeometries = ImmutableArray.Create(
+                new GeometryRenderData()
+                {
+                    Geometry = _testUiGeometry,
+                    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 0f, 0)),
+                });
+            }
+
+            var renderPacket = new RenderPacket(deltaTime, geometries, uiGeometries);
 
             _renderer.DrawFrame(renderPacket);
 

@@ -1,6 +1,7 @@
 ﻿using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Resources;
 using Silk.NET.Maths;
+using Silk.NET.Vulkan;
 using System;
 using System.Drawing;
 
@@ -18,9 +19,14 @@ namespace DragonGameEngine.Core.Rendering
 
         public bool BeginFrame(double deltaTime);
 
-        public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode);
+        public void UpdateGlobalWorldState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode);
+        public void UpdateGlobalUiState(Matrix4X4<float> projection, Matrix4X4<float> view, int mode);
 
         public void EndFrame(double deltaTime);
+
+        public bool BeginRenderpass(RenderpassId renderpassId);
+
+        public void EndRenderpass(RenderpassId renderpassId);
 
         /// <summary>
         /// Loads the pixels into the texture

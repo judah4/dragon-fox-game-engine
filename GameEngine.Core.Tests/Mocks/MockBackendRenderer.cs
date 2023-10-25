@@ -47,6 +47,16 @@ namespace GameEngine.Core.Tests.Mocks
             throw new NotImplementedException();
         }
 
+        public bool BeginRenderpass(RenderpassId renderpassId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void EndRenderpass(RenderpassId renderpassId)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Resized(Vector2D<uint> size)
         {
             throw new NotImplementedException();
@@ -57,7 +67,13 @@ namespace GameEngine.Core.Tests.Mocks
             OnShutdown?.Invoke();
         }
 
-        public void UpdateGlobalState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode)
+        public void UpdateGlobalWorldState(Matrix4X4<float> projection, Matrix4X4<float> view, Vector3D<float> viewPosition, Color ambientColor, int mode)
+        {
+            throw new NotImplementedException();
+        }
+
+
+        public void UpdateGlobalUiState(Matrix4X4<float> projection, Matrix4X4<float> view, int mode)
         {
             throw new NotImplementedException();
         }

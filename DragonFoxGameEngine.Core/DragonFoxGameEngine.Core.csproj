@@ -4,7 +4,7 @@
     <TargetFramework>net7.0</TargetFramework>
     <Nullable>enable</Nullable>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<Version>0.3.8.2</Version>
+	<Version>0.4.0.1</Version>
 	<RootNamespace>DragonGameEngine.Core</RootNamespace>
   </PropertyGroup>
 

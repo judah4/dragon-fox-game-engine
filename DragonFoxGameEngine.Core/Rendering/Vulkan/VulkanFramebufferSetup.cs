@@ -3,7 +3,6 @@ using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
-using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
@@ -16,18 +15,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _logger = logger;
         }
 
-        public VulkanFramebuffer FramebufferCreate(VulkanContext context, VulkanRenderpass vulkanRenderpass, Vector2D<uint> size, ImageView[] attachments)
+        public Framebuffer FramebufferCreate(VulkanContext context, VulkanRenderpass vulkanRenderpass, Vector2D<uint> size, ImageView[] attachments)
         {
-            VulkanFramebuffer vulkanFramebuffer = new VulkanFramebuffer()
-            {
-                Renderpass = vulkanRenderpass,
-                Attachments = new ImageView[attachments.Length],
-            };
-            for (int cnt = 0; cnt < attachments.Length; cnt++)
-            {
-                vulkanFramebuffer.Attachments[cnt] = attachments[cnt];
-            }
-
             fixed (ImageView* attachmentsPtr = attachments)
             {
                 FramebufferCreateInfo framebufferInfo = new()
@@ -46,20 +35,16 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 {
                     throw new VulkanResultException(frameBufferResult, "Failed to create framebuffer!");
                 }
-                vulkanFramebuffer.Framebuffer = framebuffer;
+                _logger.LogDebug($"Framebuffer created");
+                return framebuffer;
             }
-            _logger.LogDebug($"Framebuffer created");
-            return vulkanFramebuffer;
         }
 
-        public VulkanFramebuffer FramebufferDestroy(VulkanContext context, VulkanFramebuffer vulkanFramebuffer)
+        public Framebuffer FramebufferDestroy(VulkanContext context, Framebuffer framebuffer)
         {
-            context.Vk.DestroyFramebuffer(context.Device.LogicalDevice, vulkanFramebuffer.Framebuffer, context.Allocator);
-            vulkanFramebuffer.Attachments = Array.Empty<ImageView>();
-            vulkanFramebuffer.Framebuffer = default;
-            vulkanFramebuffer.Renderpass = default;
+            context.Vk.DestroyFramebuffer(context.Device.LogicalDevice, framebuffer, context.Allocator);
             _logger.LogDebug($"Framebuffer destroyed");
-            return vulkanFramebuffer;
+            return framebuffer;
         }
     }
 }

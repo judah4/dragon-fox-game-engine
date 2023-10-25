@@ -9,19 +9,21 @@ using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Xml.Linq;
 
 namespace DragonGameEngine.Core.Systems
 {
     public sealed class MaterialSystem
     {
         public const string DEFAULT_MATERIAL_NAME = "default";
+        public const string DEFAULT_2D_MATERIAL_NAME = "default2d";
 
         private readonly ILogger _logger;
         private readonly MaterialSystemConfig _config;
         private readonly TextureSystem _textureSystem;
         private readonly ResourceSystem _resourceSystem;
         private readonly Material _defaultMaterial;
+        private readonly Material _default2dMaterial;
         private readonly Dictionary<string, MaterialReference> _materials;
 
         private IRendererFrontend? _renderer;
@@ -37,14 +39,15 @@ namespace DragonGameEngine.Core.Systems
             _config = config;
             _textureSystem = textureSystem;
             _materials = new Dictionary<string, MaterialReference>((int)config.MaxMaterialCount);
-            _defaultMaterial = new Material(DEFAULT_MATERIAL_NAME);
+            _defaultMaterial = new Material(MaterialType.World, DEFAULT_MATERIAL_NAME);
+            _default2dMaterial = new Material(MaterialType.Ui, DEFAULT_2D_MATERIAL_NAME);
             _resourceSystem = resourceSystem;
         }
 
         public void Init(IRendererFrontend renderer)
         {
             _renderer = renderer;
-            CreateDefaultMaterial();
+            CreateDefaultMaterials();
 
             _logger.LogInformation("Material System initialized");
         }
@@ -72,6 +75,11 @@ namespace DragonGameEngine.Core.Systems
             return _defaultMaterial;
         }
 
+        public Material GetDefault2dMaterial()
+        {
+            return _default2dMaterial;
+        }
+
         public Material Acquire(string name)
         {
             if (string.IsNullOrWhiteSpace(name))
@@ -81,6 +89,10 @@ namespace DragonGameEngine.Core.Systems
             if (name.Equals(DEFAULT_MATERIAL_NAME))
             {
                 return _defaultMaterial;
+            }
+            if (name.Equals(DEFAULT_2D_MATERIAL_NAME))
+            {
+                return _default2dMaterial;
             }
 
             var resource = _resourceSystem.Load(name, ResourceType.Material);
@@ -99,6 +111,10 @@ namespace DragonGameEngine.Core.Systems
             {
                 return _defaultMaterial;
             }
+            if (materialConfig.Name.Equals(DEFAULT_2D_MATERIAL_NAME))
+            {
+                return _default2dMaterial;
+            }
 
             //Find the existing reference
             if (!_materials.TryGetValue(materialConfig.Name, out var materialRef))
@@ -107,7 +123,7 @@ namespace DragonGameEngine.Core.Systems
                 {
                     ReferenceCount = 0,
                     AutoRelease = materialConfig.AutoRelease, //set only the first time it's loaded
-                    Handle = new Material(materialConfig.Name),
+                    Handle = new Material(materialConfig.MaterialType, materialConfig.Name),
                 };
                 _materials.Add(materialConfig.Name, materialRef);
             }
@@ -138,6 +154,10 @@ namespace DragonGameEngine.Core.Systems
                 throw new ArgumentNullException(nameof(name));
             }
             if (name.Equals(DEFAULT_MATERIAL_NAME))
+            {
+                return;
+            }
+            if (name.Equals(DEFAULT_2D_MATERIAL_NAME))
             {
                 return;
             }
@@ -245,7 +265,7 @@ namespace DragonGameEngine.Core.Systems
             material.ResetGeneration();
         }
 
-        private void CreateDefaultMaterial()
+        private void CreateDefaultMaterials()
         {
             //white, default texture
             _defaultMaterial.UpdateMetaData(Vector4D<float>.One, new TextureMap()
@@ -255,6 +275,15 @@ namespace DragonGameEngine.Core.Systems
             });
 
             _renderer?.LoadMaterial(_defaultMaterial);
+
+            //ui
+            _default2dMaterial.UpdateMetaData(Vector4D<float>.One, new TextureMap()
+            {
+                TextureUse = TextureUse.MapDiffuse,
+                Texture = _textureSystem.GetDefaultTexture(),
+            });
+
+            _renderer?.LoadMaterial(_default2dMaterial);
         }
     }
 }
