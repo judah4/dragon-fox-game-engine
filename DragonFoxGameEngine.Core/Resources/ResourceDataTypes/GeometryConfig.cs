@@ -2,7 +2,7 @@
 using DragonGameEngine.Core.Resources;
 using System.Collections.Generic;
 
-namespace DragonGameEngine.Core.Systems.Domain
+namespace DragonGameEngine.Core.Resources.ResourceDataTypes
 {
     public readonly struct GeometryConfig
     {

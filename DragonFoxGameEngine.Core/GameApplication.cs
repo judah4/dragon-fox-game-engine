@@ -1,8 +1,11 @@
-﻿using DragonGameEngine.Core.Platforms;
+﻿using DragonGameEngine.Core.Maths;
+using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
+using Silk.NET.Core.Native;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
@@ -45,7 +48,7 @@ namespace DragonGameEngine.Core
 
         private Geometry? _cubeGeometry;
 
-        private Geometry? _uiGeometry;
+        private Geometry? _testUiGeometry;
 
         public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, IRendererFrontend rendererFrontend, 
             TextureSystem textureSystem, MaterialSystem materialSystem, GeometrySystem geometrySystem, ResourceSystem resourceSystem)
@@ -95,6 +98,30 @@ namespace DragonGameEngine.Core
             _testGeometry2 = _geometrySystem.AcquireFromConfig(geometryConfig2, true);
 
             _cubeGeometry = _geometrySystem.Acquire("Meshes/cube.glb");
+
+            var verts = new Vertex3d[]
+            {
+                new Vertex3d(new Vector3D<float>(0f, 0f, 0f), new Vector2D<float>(0,0)),
+                new Vertex3d(new Vector3D<float>(512f, 512f, 0f), new Vector2D<float>(1f,1f)),
+                new Vertex3d(new Vector3D<float>(0, 512f, 0f), new Vector2D<float>(0,1f)),
+                new Vertex3d(new Vector3D<float>(512f, 0f, 0f), new Vector2D<float>(1f,0)),
+            };
+
+            // 0_____3  0,0_____1,0
+            //  |  /|      |  /|
+            //  | / |      | / |
+            //  |/  |      |/  | 
+            // 2-----1  0,1-----1,1   
+
+            var indices2d = new uint[]
+            {
+                2,1,0,
+                3,0,1,
+            };
+
+            var uiConfig = new GeometryConfig("test_ui_geometry", verts, indices2d, "test_ui_material");
+
+            _testUiGeometry = _geometrySystem.AcquireFromConfig(uiConfig, true);
 
             // TODO: end temp 
 
@@ -184,6 +211,20 @@ namespace DragonGameEngine.Core
                 {
                     Geometry = _cubeGeometry,
                     Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 1.5f, 0)),
+                });
+            }
+
+            if (_testUiGeometry == null)
+            {
+                //_logger.LogWarning("Expected test ui geometry to exist.");
+            }
+            else
+            {
+                uiGeometries = ImmutableArray.Create(
+                new GeometryRenderData()
+                {
+                    Geometry = _testUiGeometry,
+                    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 0f, 0)),
                 });
             }
 

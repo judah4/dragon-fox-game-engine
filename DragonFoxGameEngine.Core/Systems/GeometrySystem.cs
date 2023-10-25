@@ -18,12 +18,15 @@ namespace DragonGameEngine.Core.Systems
         /// TODO: setup default primatives for Square, Circle, and Capsule.
         /// </summary>
         public const string DEFAULT_GEOMETRY_NAME = "default";
+        public const string DEFAULT_2D_GEOMETRY_NAME = "default2d";
+
 
         private readonly ILogger _logger;
         private readonly GeometrySystemConfig _config;
         private readonly MaterialSystem _materialSystem;
         private readonly ResourceSystem _resourceSystem;
         private readonly Geometry _defaultGeometry;
+        private readonly Geometry _default2dGeometry;
         private readonly Dictionary<uint, GeometryReference> _geometries;
 
         private IRendererFrontend? _renderer;
@@ -40,13 +43,14 @@ namespace DragonGameEngine.Core.Systems
             _materialSystem = materialSystem;
             _geometries = new Dictionary<uint, GeometryReference>((int)config.MaxGeometryCount);
             _defaultGeometry = new Geometry(DEFAULT_GEOMETRY_NAME, materialSystem.GetDefaultMaterial());
+            _default2dGeometry = new Geometry(DEFAULT_2D_GEOMETRY_NAME, materialSystem.GetDefault2dMaterial());
             _resourceSystem = resourceSystem;
         }
 
         public void Init(IRendererFrontend renderer)
         {
             _renderer = renderer;
-            CreateDefaultGeometry();
+            CreateDefaultGeometries();
 
             _logger.LogInformation("Geometry System initialized");
         }
@@ -67,6 +71,10 @@ namespace DragonGameEngine.Core.Systems
             if (name.Equals(DEFAULT_GEOMETRY_NAME))
             {
                 return _defaultGeometry;
+            }
+            if (name.Equals(DEFAULT_2D_GEOMETRY_NAME))
+            {
+                return _default2dGeometry;
             }
 
             var resource = _resourceSystem.Load(name, ResourceType.StaticMesh);
@@ -105,6 +113,10 @@ namespace DragonGameEngine.Core.Systems
             {
                 return _defaultGeometry;
             }
+            if (config.Name.Equals(DEFAULT_2D_GEOMETRY_NAME))
+            {
+                return _default2dGeometry;
+            }
 
             //Find the existing reference
             if (!_geometries.TryGetValue(config.Id, out var geometryRef))
@@ -134,6 +146,10 @@ namespace DragonGameEngine.Core.Systems
         public void Release(Geometry geometry) 
         {
             if (geometry.Name.Equals(DEFAULT_GEOMETRY_NAME))
+            {
+                return;
+            }
+            if (geometry.Name.Equals(DEFAULT_2D_GEOMETRY_NAME))
             {
                 return;
             }
@@ -176,6 +192,15 @@ namespace DragonGameEngine.Core.Systems
         public Geometry GetDefaultGeometry()
         {
             return _defaultGeometry;
+        }
+
+        /// <summary>
+        /// Get default ui geometry
+        /// </summary>
+        /// <returns></returns>
+        public Geometry GetDefault2dGeometry()
+        {
+            return _default2dGeometry;
         }
 
         /// <summary>
@@ -359,7 +384,7 @@ namespace DragonGameEngine.Core.Systems
             geometry.UpdateMaterial(_materialSystem.GetDefaultMaterial());
         }
 
-        private void CreateDefaultGeometry()
+        private void CreateDefaultGeometries()
         {
             if (_renderer == null)
             {
@@ -392,6 +417,29 @@ namespace DragonGameEngine.Core.Systems
             _renderer.LoadGeometry(_defaultGeometry, verts, indices);
 
             //already has the default material so no need to call it here.
+
+            //ui default
+            var verts2d = new Vertex3d[]
+           {
+                new Vertex3d(new Vector3D<float>(0f, 0f, 0f), new Vector2D<float>(0,0)),
+                new Vertex3d(new Vector3D<float>(512f, 512f, 0f), new Vector2D<float>(1f,1f)),
+                new Vertex3d(new Vector3D<float>(0, 512f, 0f), new Vector2D<float>(0,1f)),
+                new Vertex3d(new Vector3D<float>(512f, 0f, 0f), new Vector2D<float>(1f,0)),
+           };
+
+            // 0_____3  0,0_____1,0
+            //  |  /|      |  /|
+            //  | / |      | / |
+            //  |/  |      |/  | 
+            // 2-----1  0,1-----1,1   
+
+            var indices2d = new uint[]
+            {
+                2,1,0,
+                3,0,1,
+            };
+
+            _renderer.LoadGeometry(_default2dGeometry, verts2d, indices2d);
         }
     }
 }

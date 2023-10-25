@@ -680,24 +680,42 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public void LoadMaterial(Material material)
         {
-            if(_context == null || _context.MaterialShader == null)
+            if(_context == null || _context.MaterialShader == null || _context.UiShader == null)
             {
                 return;
             }
 
-            _materialShaderManager.AcquireResources(_context, _context.MaterialShader, material);
-            _logger.LogTrace("Renderer: Material '{name}' ({instanceId}) Created", material.Name, material.InternalId);
+            switch(material.MaterialType)
+            {
+                case MaterialType.World:
+                    _materialShaderManager.AcquireResources(_context, _context.MaterialShader, material);
+                    break;
+                case MaterialType.Ui:
+                    _uiShaderManager.AcquireResources(_context, _context.UiShader, material);
+                    break;
+            }
+
+            _logger.LogTrace("Renderer: {matType} Material '{name}' ({instanceId}) Created", material.MaterialType, material.Name, material.InternalId);
         }
 
         public void DestroyMaterial(Material material)
         {
-            if (_context == null || _context.MaterialShader == null)
+            if (_context == null || _context.MaterialShader == null || _context.UiShader == null)
             {
                 return;
             }
 
-            _materialShaderManager.ReleaseResources(_context, _context.MaterialShader, material);
-            _logger.LogTrace("Renderer: Material Destroyed");
+            switch (material.MaterialType)
+            {
+                case MaterialType.World:
+                    _materialShaderManager.ReleaseResources(_context, _context.MaterialShader, material);
+                    break;
+                case MaterialType.Ui:
+                    _uiShaderManager.ReleaseResources(_context, _context.UiShader, material);
+                    break;
+            }
+
+            _logger.LogTrace("Renderer: {matType} Material Destroyed", material.MaterialType);
         }
 
         public void LoadGeometry(Geometry geometry, Vertex3d[] vertices, uint[] indices)
@@ -818,20 +836,29 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public void DrawGeometry(GeometryRenderData data)
         {
-            if (_context == null || _context.MaterialShader == null || data.Geometry == null || data.Geometry.InternalId == EntityIdService.INVALID_ID)
+            if (_context == null || _context.MaterialShader == null || _context.UiShader == null || data.Geometry == null || data.Geometry.InternalId == EntityIdService.INVALID_ID)
             {
                 return;
             }
 
             var bufferData = _context.Geometries[data.Geometry.InternalId];
 
-            //TODO: check if this is actually needed.
-            _materialShaderManager.ShaderUse(_context, _context.MaterialShader);
-
-            _materialShaderManager.SetModel(_context, _context.MaterialShader, data.Model);
-
             //assume we always have a material set, even if it's the default material
-            _materialShaderManager.ApplyMaterial(_context, _context.MaterialShader, data.Geometry.Material);
+            var material = data.Geometry.Material;
+            switch (data.Geometry.Material.MaterialType)
+            {
+                case MaterialType.World:
+                    _materialShaderManager.SetModel(_context, _context.MaterialShader, data.Model);
+                    _materialShaderManager.ApplyMaterial(_context, _context.MaterialShader, material);
+                    break;
+                case MaterialType.Ui:
+                    _uiShaderManager.SetModel(_context, _context.UiShader, data.Model);
+                    _uiShaderManager.ApplyMaterial(_context, _context.UiShader, material);
+                    break;
+                default:
+                    _logger.LogError("Unknown material type for draw: {matType} {matName}", material.MaterialType, material.Name);
+                    return;
+            }
 
             var commandBuffer = _context!.GraphicsCommandBuffers![_context.ImageIndex];
 
@@ -1110,6 +1137,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             _context.SetupMainRenderpass(renderPass);
 
+            var uiRenderPass = _context.UiRenderPass;
+            uiRenderPass.Rect = rect;
+            _context.SetupUiRenderpass(uiRenderPass);
+
             //update framebuffer size generation
             _context.SetFramebufferSizeGenerationLastGeneration(_context.FramebufferSizeGeneration);
 
@@ -1129,6 +1160,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             rect.Extent.Height = _context.FramebufferSize.Y;
             renderPass.Rect = rect;
             _context.SetupMainRenderpass(renderPass);
+
+            uiRenderPass = _context.UiRenderPass;
+            uiRenderPass.Rect = rect;
+            _context.SetupUiRenderpass(uiRenderPass);
 
             _context.SetupSwapchain(RegenerateFramebuffers());
 
