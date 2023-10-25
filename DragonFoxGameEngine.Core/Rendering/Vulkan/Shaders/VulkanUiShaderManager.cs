@@ -199,7 +199,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
             };
 
             //attributes
-            VertexInputAttributeDescription[] attributeDescriptions = Vertex2d.GetAttributeDescriptions();
+            VertexInputAttributeDescription[] attributeDescriptions = Vertex3d.GetAttributeDescriptions();
 
             //Descriptor set layouts
             DescriptorSetLayout[] descriptorSetLayouts = new DescriptorSetLayout[] { globalDescriptorSetLayout, localDescriptorSetLayout };
@@ -212,7 +212,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 stages[cnt] = uiShader.ShaderStages[cnt].ShaderStageCreateInfo;
             }
 
-            var vulkanPipeline = _pipelineSetup.PipelineCreate(context, context.UiRenderPass, (uint)sizeof(Vertex2d), attributeDescriptions, descriptorSetLayouts, stages, viewport, scissor, false, false);
+            var vulkanPipeline = _pipelineSetup.PipelineCreate(context, context.UiRenderPass, (uint)sizeof(Vertex3d), attributeDescriptions, descriptorSetLayouts, stages, viewport, scissor, false, false);
 
             uiShader.Pipeline = vulkanPipeline;
 

@@ -46,7 +46,7 @@ namespace GameEngine.Core.Tests.Systems
 
             geometrySystem.Init(mockRenderer);
 
-            Assert.AreEqual(1, loadGeometryCalls, "Expected create geometry to be called once for the default geometry.");
+            Assert.AreEqual(2, loadGeometryCalls, "Expected create geometry to be called twice for the default geometries.");
             Assert.AreEqual(expectedInternalId, geometrySystem.GetDefaultGeometry().InternalId);
         }
 

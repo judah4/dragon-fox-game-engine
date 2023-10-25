@@ -47,6 +47,7 @@ namespace DragonGameEngine.Core.Systems.ResourceLoaders
             string matName = string.Empty;
             string diffuseMapName = string.Empty;
             Vector4D<float>? diffuseColor = default;
+            MaterialType? materialType = default;
 
             int lineNumber = 0;
             using (var reader = File.OpenText(filePath))
@@ -89,6 +90,13 @@ namespace DragonGameEngine.Core.Systems.ResourceLoaders
                     {
                         diffuseColor = ParseColor(value, filePath);
                     }
+                    else if (valName.Equals("type", StringComparison.InvariantCultureIgnoreCase))
+                    {
+                        if(Enum.TryParse(value, true, out MaterialType matType) && Enum.IsDefined(matType))
+                        {
+                            materialType = matType;
+                        }
+                    }
                 }
             }
 
@@ -106,8 +114,13 @@ namespace DragonGameEngine.Core.Systems.ResourceLoaders
                 _logger.LogWarning("No parsed diffuse_color in file '{file}'. Using default of white instead.", filePath);
                 diffuseColor = Vector4D<float>.One;
             }
+            if (!materialType.HasValue)
+            {
+                _logger.LogWarning("No parsed type in file '{file}'. Using default of MaterialType.World instead.", filePath);
+                materialType = MaterialType.World;
+            }
 
-            var config = new MaterialConfig(matName, true, diffuseColor.Value, diffuseMapName);
+            var config = new MaterialConfig(materialType.Value, matName, true, diffuseColor.Value, diffuseMapName);
 
             return new Resource(ResourceType, name, filePath, (uint)config.Name.Length, config);
         }

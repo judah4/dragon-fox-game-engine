@@ -68,6 +68,7 @@ namespace DragonGameEngine.Core.Systems
                 throw new ResourceException(resource.Name, $"Resource Loader of type {resource.ResourceType} does not exist so resource {resource.Name} is invalid.");
             }
             loader.Unload(resource);
+
             //invalidate resource
         }
 
