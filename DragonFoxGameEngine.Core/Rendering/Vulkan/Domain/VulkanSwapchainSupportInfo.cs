@@ -2,10 +2,10 @@
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
-    public record struct VulkanSwapchainSupportInfo
+    public readonly record struct VulkanSwapchainSupportInfo
     {
-        public SurfaceCapabilitiesKHR Capabilities { get; init; }
-        public SurfaceFormatKHR[] Formats { get; init; }
-        public PresentModeKHR[] PresentModes { get; init; }
+        public readonly SurfaceCapabilitiesKHR Capabilities { get; init; }
+        public readonly SurfaceFormatKHR[] Formats { get; init; }
+        public readonly PresentModeKHR[] PresentModes { get; init; }
     }
 }

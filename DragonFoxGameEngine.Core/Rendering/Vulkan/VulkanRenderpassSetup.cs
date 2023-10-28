@@ -38,7 +38,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             AttachmentDescription colorAttachment = new()
             {
-                Format = context.Swapchain.ImageFormat.Format, //TODO: configurable
+                Format = context.Swapchain!.ImageFormat.Format, //TODO: configurable
                 Samples = SampleCountFlags.Count1Bit,
                 LoadOp = doClearColor ? AttachmentLoadOp.Clear : AttachmentLoadOp.Load,
                 StoreOp = AttachmentStoreOp.Store,

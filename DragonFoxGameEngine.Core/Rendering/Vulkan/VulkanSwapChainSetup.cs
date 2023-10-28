@@ -2,6 +2,7 @@
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
+using Silk.NET.OpenAL;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.KHR;
 using System;
@@ -25,7 +26,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public VulkanSwapchain Create(VulkanContext context, Vector2D<uint> size)
         {
-            return InnerCreate(context, size, new VulkanSwapchain());
+            return InnerCreate(context, size, InitialCreate(context));
         }
 
         public VulkanSwapchain Recreate(VulkanContext context, Vector2D<uint> size, VulkanSwapchain swapchain)
@@ -100,6 +101,16 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             context.SetCurrentFrame(currentFrame);
         }
 
+        private VulkanSwapchain InitialCreate(VulkanContext context)
+        {
+            if (!context.Vk.TryGetDeviceExtension(context.Instance, context.Device.LogicalDevice, out KhrSwapchain khrSwapchain))
+            {
+                throw new NotSupportedException("VK_KHR_swapchain extension not found.");
+            }
+
+            return new VulkanSwapchain(khrSwapchain);
+        }
+
         private VulkanSwapchain InnerCreate(VulkanContext context, Vector2D<uint> size, VulkanSwapchain swapchain)
         {
             var swapchainExtent = new Extent2D(size.X, size.Y);
@@ -164,15 +175,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 //OldSwapchain = 0,
             };
 
-            if (swapchain.KhrSwapchain == null)
-            {
-                if (!context.Vk!.TryGetDeviceExtension(context.Instance, context.Device.LogicalDevice, out KhrSwapchain khrSwapchain))
-                {
-                    throw new NotSupportedException("VK_KHR_swapchain extension not found.");
-                }
-                swapchain.KhrSwapchain = khrSwapchain;
-            }
-
             var createSwapchainResult = swapchain.KhrSwapchain.CreateSwapchain(context.Device.LogicalDevice, createInfo, context.Allocator, out SwapchainKHR swapchainKhr);
             if (createSwapchainResult != Result.Success)
             {
@@ -223,11 +225,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     throw new VulkanResultException(createResult, "Failed to create image views!");
                 }
                 swapchain.ImageViews[cnt] = imageView;
-            }
-
-            if(swapchain.Framebuffers == null)
-            {
-                swapchain.Framebuffers = new Framebuffer[swapImageCount];
             }
 
             //Depth resources

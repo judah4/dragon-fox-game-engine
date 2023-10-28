@@ -22,7 +22,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         ClearStencilBufferFlag = 0x4,
     }
 
-    public struct VulkanRenderpass
+    public class VulkanRenderpass
     {
         public RenderPass Handle { get; init; }
         public Rect2D Rect { get; set; }
