@@ -1,4 +1,5 @@
-﻿using DragonGameEngine.Core.Exceptions.Vulkan;
+﻿using DragonGameEngine.Core.Exceptions;
+using DragonGameEngine.Core.Exceptions.Vulkan;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Vulkan;
@@ -7,13 +8,13 @@ using Buffer = Silk.NET.Vulkan.Buffer;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe sealed class VulkanBufferSetup
+    public unsafe sealed class VulkanBufferManager
     {
         private readonly VulkanImageSetup _imageSetup;
         private readonly VulkanCommandBufferSetup _commandBufferSetup;
         private readonly ILogger _logger;
 
-        public VulkanBufferSetup(VulkanImageSetup imageSetup, VulkanCommandBufferSetup commandBufferSetup, ILogger logger)
+        public VulkanBufferManager(VulkanImageSetup imageSetup, VulkanCommandBufferSetup commandBufferSetup, ILogger logger)
         {
             _imageSetup = imageSetup;
             _commandBufferSetup = commandBufferSetup;
@@ -61,6 +62,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 Usage = usage,
                 MemoryPropertyFlags = memoryPropertyFlags,
                 MemoryIndex = memoryIndex,
+                Freelist = new Foxis.Library.Freelists.FreeList(size),
             };
 
             if (bindOnCreate)
@@ -73,6 +75,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public VulkanBuffer BufferDestroy(VulkanContext context, VulkanBuffer vulkanBuffer)
         {
+            vulkanBuffer.Freelist?.Destroy();
+
             if (vulkanBuffer.Memory.Handle != default)
             {
                 context.Vk.FreeMemory(context.Device.LogicalDevice, vulkanBuffer.Memory, context.Allocator);
@@ -90,6 +94,13 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public VulkanBuffer BufferResize(VulkanContext context, ulong newSize, VulkanBuffer vulkanBuffer, Queue queue, CommandPool pool)
         {
+            if(newSize < vulkanBuffer.TotalSize)
+            {
+                throw new EngineException("vulkan_buffer_resize requires that new size be larger than the old. Not doing this could lead to data loss.");
+            }
+
+            vulkanBuffer.Freelist.Resize(newSize);
+
             BufferCreateInfo bufferInfo = new()
             {
                 SType = StructureType.BufferCreateInfo,
@@ -179,6 +190,44 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             context.Vk.UnmapMemory(context.Device.LogicalDevice, vulkanBuffer.Memory);
         }
 
+        /// <summary>
+        /// Allocates space from a vulkan buffer. Provides the offset at which the allocation occurred. This will be required fir data copying and freeing.
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="vulkanBuffer">Buffer for which to allocate</param>
+        /// <param name="size">The size in bytes to be allocated.</param>
+        /// <returns>The offset in bytes from the beginning of the buffer.</returns>
+        public Foxis.Library.Result<ulong> Allocate(VulkanBuffer vulkanBuffer, ulong size)
+        {
+            return vulkanBuffer.Freelist.AllocateBlock(size);
+        }
+
+        /// <summary>
+        /// Frees space in the vulkan buffer
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="vulkanBuffer">buffer to free data from.</param>
+        /// <param name="size">The size in bytes to be freed.</param>
+        /// <param name="offset">The offset in bytes from the beginning of the buffer.</param>
+        public void Free(VulkanBuffer vulkanBuffer, ulong size, ulong offset)
+        {
+            var result = vulkanBuffer.Freelist.FreeBlock(size, offset);
+            if(result.IsFailure)
+            {
+                _logger.LogWarning(result.Error);
+            }
+        }
+
+        /// <summary>
+        /// Loads a data range into the given buffer at a given offset. Internally performs a map, copy, and unmap.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="context"></param>
+        /// <param name="vulkanBuffer"></param>
+        /// <param name="offset"></param>
+        /// <param name="size"></param>
+        /// <param name="flags"></param>
+        /// <param name="data"></param>
         public void BufferLoadData<T>(VulkanContext context, VulkanBuffer vulkanBuffer, ulong offset, ulong size, uint flags, Span<T> data)
         {
             var bufferSpan = BufferLockMemory<T>(context, vulkanBuffer, offset, size, flags);

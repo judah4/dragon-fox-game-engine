@@ -14,9 +14,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 
     public struct VulkanCommandBuffer
     {
-        public CommandBuffer Handle;
+        public CommandBuffer Handle { get; init; }
 
         //Command buffer state.
-        public CommandBufferState State;
+        public CommandBufferState State { get; set; }
     }
 }

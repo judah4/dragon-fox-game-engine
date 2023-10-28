@@ -31,9 +31,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public ulong FramebufferSizeGeneration { get; private set; }
         public ulong FramebufferSizeGenerationLastGeneration { get; private set; }
 
-        public VulkanSwapchain Swapchain { get; private set; }
-        public VulkanRenderpass MainRenderPass { get; private set; }
-        public VulkanRenderpass UiRenderPass { get; private set; }
+        public VulkanSwapchain? Swapchain { get; private set; }
+        public VulkanRenderpass? MainRenderPass { get; private set; }
+        public VulkanRenderpass? UiRenderPass { get; private set; }
 
         #region Buffers
         public VulkanBuffer ObjectVertexBuffer { get; private set; }
@@ -49,7 +49,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         /// <summary>
         /// Holds refs to fences which exist and are owned elsewhere.
         /// </summary>
-        public VulkanFence*[]? ImagesInFlight { get; private set; }
+        public VulkanFence[]? ImagesInFlight { get; private set; }
 
         public uint ImageIndex { get; private set; }
         public uint CurrentFrame { get; private set; }
@@ -58,9 +58,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         //shaders
         public VulkanMaterialShader? MaterialShader { get; private set; }
         public VulkanUiShader? UiShader { get; private set; }
-
-        public ulong GeometryVertexOffset { get; private set; }
-        public ulong GeometryIndexOffset { get; private set; }
 
         //TODO: make dynamic
         public VulkanGeometryData[] Geometries { get; private set; } = new VulkanGeometryData[VulkanGeometryData.MAX_GEOMENTRY_COUNT];
@@ -137,7 +134,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
             QueueCompleteSemaphores = queueCompleteSemaphores;
         }
 
-        public void SetupFences(VulkanFence[] inFlightFences, VulkanFence*[] imagesInFlight)
+        public void SetupFences(VulkanFence[] inFlightFences, VulkanFence[] imagesInFlight)
         {
             InFlightFences = inFlightFences;
             ImagesInFlight = imagesInFlight;
@@ -189,12 +186,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         {
             ObjectVertexBuffer = objectVertexBuffer;
             ObjectIndexBuffer = objectIndexBuffer;
-        }
-
-        public void SetupBufferOffsets(ulong geometryVertexOffset, ulong geometryIndexOffset)
-        {
-            GeometryVertexOffset = geometryVertexOffset;
-            GeometryIndexOffset = geometryIndexOffset;
         }
     }
 }

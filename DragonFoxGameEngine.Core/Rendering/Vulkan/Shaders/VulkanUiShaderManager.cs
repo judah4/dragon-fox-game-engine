@@ -20,10 +20,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
         private readonly ILogger _logger;
         private readonly VulkanShaderManager _shaderSetup;
         private readonly VulkanPipelineSetup _pipelineSetup;
-        private readonly VulkanBufferSetup _bufferSetup;
+        private readonly VulkanBufferManager _bufferSetup;
         private readonly TextureSystem _textureSystem;
 
-        public VulkanUiShaderManager(ILogger logger, VulkanShaderManager shaderSetup, VulkanPipelineSetup pipelineSetup, VulkanBufferSetup bufferSetup, TextureSystem textureSystem)
+        public VulkanUiShaderManager(ILogger logger, VulkanShaderManager shaderSetup, VulkanPipelineSetup pipelineSetup, VulkanBufferManager bufferSetup, TextureSystem textureSystem)
         {
             _logger = logger;
             _shaderSetup = shaderSetup;
@@ -82,7 +82,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 new DescriptorPoolSize()
                 {
                     Type = DescriptorType.UniformBuffer,
-                    DescriptorCount = (uint)context.Swapchain.SwapchainImages.Length,
+                    DescriptorCount = (uint)context.Swapchain!.SwapchainImages!.Length,
                 },
             };
 
@@ -212,7 +212,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 stages[cnt] = uiShader.ShaderStages[cnt].ShaderStageCreateInfo;
             }
 
-            var vulkanPipeline = _pipelineSetup.PipelineCreate(context, context.UiRenderPass, (uint)sizeof(Vertex3d), attributeDescriptions, descriptorSetLayouts, stages, viewport, scissor, false, false);
+            var vulkanPipeline = _pipelineSetup.PipelineCreate(context, context.UiRenderPass!, (uint)sizeof(Vertex3d), attributeDescriptions, descriptorSetLayouts, stages, viewport, scissor, false, false);
 
             uiShader.Pipeline = vulkanPipeline;
 
@@ -226,7 +226,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 true);
             uiShader.GlobalUniformBuffer = globalUboBuffer;
 
-            var globalLayouts = new DescriptorSetLayout[3];
+            var globalLayouts = new DescriptorSetLayout[context.Swapchain.SwapchainImages.Length];
             for (int cnt = 0; cnt < globalLayouts.Length; cnt++)
             {
                 globalLayouts[cnt] = uiShader.GlobalDescriptorSetLayout;
@@ -527,7 +527,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 Array.Fill(instanceState.DescriptorStates[cnt].Ids, EntityIdService.INVALID_ID);
             }
 
-            var layouts = new DescriptorSetLayout[3];
+            var layouts = new DescriptorSetLayout[context.Swapchain!.SwapchainImages!.Length];
             for (int cnt = 0; cnt < layouts.Length; cnt++)
             {
                 layouts[cnt] = shader.ObjectDescriptorSetLayout;
