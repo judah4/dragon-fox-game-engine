@@ -440,10 +440,19 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             {
                 ushort currentTransferScore = 0;
                 //graphic queue?
-                if (queueFamily.QueueFlags.HasFlag(QueueFlags.GraphicsBit))
+                if (!queueFamilyInfo.GraphicsFamilyIndex.HasValue && queueFamily.QueueFlags.HasFlag(QueueFlags.GraphicsBit))
                 {
                     queueFamilyInfo.GraphicsFamilyIndex = i;
                     currentTransferScore++;
+
+                    // If also a present queue, this prioritizes grouping of the 2.
+                    context.KhrSurface!.GetPhysicalDeviceSurfaceSupport(device, i, context.Surface!.Value, out var presentSupport);
+                    if (presentSupport)
+                    {
+                        queueFamilyInfo.PresentFamilyIndex = i;
+                        currentTransferScore++;
+                    }
+
                 }
                 //compute queue?
                 if (queueFamily.QueueFlags.HasFlag(QueueFlags.ComputeBit))
@@ -461,15 +470,33 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                         queueFamilyInfo.TransferFamilyIndex = i;
                         minTransferScore = currentTransferScore;
                     }
-                }
-                context.KhrSurface!.GetPhysicalDeviceSurfaceSupport(device, i, context.Surface!.Value, out var presentSupport);
-
-                if (presentSupport)
-                {
-                    queueFamilyInfo.PresentFamilyIndex = i;
-                }
+                }                    
 
                 i++;
+            }
+
+            // If a present queue hasn't been found, iterate again and take the first one.
+            // This should only happen if there is a queue that supports graphics but NOT
+            // present.
+            if (queueFamilyInfo.PresentFamilyIndex == -1)
+            {
+                for (uint cnt = 0; cnt < queueFamilies.Length; cnt++)
+                {
+                    context.KhrSurface!.GetPhysicalDeviceSurfaceSupport(device, cnt, context.Surface!.Value, out var presentSupport);
+
+                    if (presentSupport)
+                    {
+                        queueFamilyInfo.PresentFamilyIndex = i;
+
+                        // If they differ, bleat about it and move on. This is just here for troubleshooting
+                        // purposes.
+                        if (queueFamilyInfo.PresentFamilyIndex != queueFamilyInfo.GraphicsFamilyIndex)
+                        {
+                            _logger.LogWarning("Different queue index used for present vs graphics: {index}.", cnt);
+                        }
+                        break;
+                    }
+                }
             }
 
             return queueFamilyInfo;

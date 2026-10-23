@@ -6,7 +6,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 {
     public unsafe sealed class VulkanCommandBufferSetup
     {
-        private ILogger _logger;
+        private readonly ILogger _logger;
 
         public VulkanCommandBufferSetup(ILogger logger)
         {
@@ -40,8 +40,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         {
             context.Vk.FreeCommandBuffers(context.Device.LogicalDevice, commandPool, 1, vulkanCommandBuffer.Handle);
 
-            vulkanCommandBuffer.Handle = default;
-            vulkanCommandBuffer.State = CommandBufferState.NotAllocated;
+            vulkanCommandBuffer = new VulkanCommandBuffer()
+            {
+                Handle = default,
+                State = CommandBufferState.NotAllocated,
+            };
             return vulkanCommandBuffer;
         }
 
@@ -117,12 +120,13 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //end the buffer
             vulkanCommandBuffer = CommandBufferEnd(context, vulkanCommandBuffer);
 
+            var commandBufferHande = vulkanCommandBuffer.Handle;
             // Submit the queue
             SubmitInfo submitInfo = new()
             {
                 SType = StructureType.SubmitInfo,
                 CommandBufferCount = 1,
-                PCommandBuffers = &vulkanCommandBuffer.Handle,
+                PCommandBuffers = &commandBufferHande,
             };
 
             context.Vk.QueueSubmit(queue, 1, submitInfo, default);

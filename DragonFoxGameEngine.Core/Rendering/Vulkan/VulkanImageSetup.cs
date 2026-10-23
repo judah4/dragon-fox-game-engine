@@ -79,7 +79,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 vulkanImage = ImageViewCreate(context, format, vulkanImage, viewAspectFlags, mipLevels);
             }
 
-            _logger.LogDebug("Vulkan Image is created!");
+            _logger.LogDebug("Vulkan Image is created! Size {size}", size);
 
             return vulkanImage;
         }

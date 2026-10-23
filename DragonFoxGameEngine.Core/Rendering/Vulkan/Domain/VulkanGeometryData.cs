@@ -2,6 +2,9 @@
 using System;
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
+    /// <summary>
+    /// Internal buffer data for geometry. This data gets loaded directly into a buffer
+    /// </summary>
     public readonly struct VulkanGeometryData
     {
         //TODO: make configurable
