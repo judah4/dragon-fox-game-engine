@@ -41,7 +41,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         private readonly VulkanBufferManager _bufferManager;
 
 #if DEBUG
-        private readonly bool EnableValidationLayers = true; //enable when tools are installed. Add to config
+        private readonly bool EnableValidationLayers = true; //TODO: enable when tools are installed. Add to config
 #else
         private readonly bool EnableValidationLayers = false;
 #endif
