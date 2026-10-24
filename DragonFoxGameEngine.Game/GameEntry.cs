@@ -37,6 +37,7 @@ namespace DragonFoxGameEngine.Game
 
         public void Initialize(GameApplication gameApp)
         {
+            // Temp geometry is in GameApplication.cs
             _gameApp = gameApp;
             IInputContext input = _gameApp.Window.CreateInput();
             _keyboard = input.Keyboards.FirstOrDefault();
