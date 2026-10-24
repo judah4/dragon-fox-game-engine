@@ -1035,9 +1035,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 {
                     _context.Swapchain.ImageViews[cnt],
                 };
+                // TODO: Find where Framebuffers and ImageViews and why the framebuffer is smaller than image views (3 v 4 on laptop
                 _context.Swapchain.Framebuffers[cnt] = _framebufferSetup.FramebufferCreate(_context, _context.UiRenderPass!, _context.FramebufferSize, uiAttachments);
             }
-            _logger.LogDebug($"Regening Frame buffers with size {_context!.FramebufferSize}");
+            _logger.LogDebug($"Regenerating Frame buffers with size {_context!.FramebufferSize}");
             return _context.Swapchain;
         }
 

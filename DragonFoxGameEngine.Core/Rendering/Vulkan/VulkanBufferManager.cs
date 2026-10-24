@@ -94,6 +94,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             return vulkanBuffer;
         }
 
+        // TODO: Find where BufferResize should be used!!!
         public VulkanBuffer BufferResize(VulkanContext context, ulong newSize, VulkanBuffer vulkanBuffer, Queue queue, CommandPool pool)
         {
             if(newSize < vulkanBuffer.TotalSize)
