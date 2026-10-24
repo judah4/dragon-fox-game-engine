@@ -4,11 +4,11 @@ using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems.Domain;
-using Foxis.Library;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
+using DragonFox.Utilities;
 
 namespace DragonGameEngine.Core.Systems
 {

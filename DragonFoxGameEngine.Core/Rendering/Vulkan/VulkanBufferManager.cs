@@ -4,7 +4,9 @@ using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Vulkan;
 using System;
+using DragonFox.Utilities;
 using Buffer = Silk.NET.Vulkan.Buffer;
+using Result = Silk.NET.Vulkan.Result;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
@@ -62,7 +64,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 Usage = usage,
                 MemoryPropertyFlags = memoryPropertyFlags,
                 MemoryIndex = memoryIndex,
-                Freelist = new Foxis.Library.Freelists.FreeList(size),
+                Freelist = new FreeList(size),
             };
 
             if (bindOnCreate)
@@ -193,11 +195,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         /// <summary>
         /// Allocates space from a vulkan buffer. Provides the offset at which the allocation occurred. This will be required fir data copying and freeing.
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="vulkanBuffer">Buffer for which to allocate</param>
         /// <param name="size">The size in bytes to be allocated.</param>
         /// <returns>The offset in bytes from the beginning of the buffer.</returns>
-        public Foxis.Library.Result<ulong> Allocate(VulkanBuffer vulkanBuffer, ulong size)
+        public DragonFox.Utilities.Result<ulong> Allocate(VulkanBuffer vulkanBuffer, ulong size)
         {
             return vulkanBuffer.Freelist.AllocateBlock(size);
         }
@@ -205,12 +206,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         /// <summary>
         /// Frees space in the vulkan buffer
         /// </summary>
-        /// <param name="context"></param>
         /// <param name="vulkanBuffer">buffer to free data from.</param>
         /// <param name="size">The size in bytes to be freed.</param>
         /// <param name="offset">The offset in bytes from the beginning of the buffer.</param>
         public void Free(VulkanBuffer vulkanBuffer, ulong size, ulong offset)
         {
+            //update free list with this range being free.
             var result = vulkanBuffer.Freelist.FreeBlock(size, offset);
             if(result.IsFailure)
             {

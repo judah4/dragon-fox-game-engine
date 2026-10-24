@@ -1,4 +1,3 @@
-using DragonGameEngine.Core;
 using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Exceptions;
 using DragonGameEngine.Core.Exceptions.Vulkan;
@@ -776,7 +775,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 return;
             }
             var indexSize = 0U;
-            var indexDataResult = Foxis.Library.Result.Ok<ulong>();
+            var indexDataResult = DragonFox.Utilities.Result.Ok<ulong>();
             if (indices.Length > 0)
             {
                 // Index data, if applicable
@@ -1217,7 +1216,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             context.SetupBuffers(vertBuffer, indexBuffer);
         }
 
-        private Foxis.Library.Result<ulong> UploadDataRange<T>(VulkanContext context, CommandPool pool, Fence fence, Queue queue, VulkanBuffer buffer, ulong size, Span<T> data)
+        private DragonFox.Utilities.Result<ulong> UploadDataRange<T>(VulkanContext context, CommandPool pool, Fence fence, Queue queue, VulkanBuffer buffer, ulong size, Span<T> data)
         {
             //the offset
             var allocateResult = _bufferManager.Allocate(buffer, size);
@@ -1248,8 +1247,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             {
                 return;
             }
-            //update free list with this range being free.
-            buffer.Freelist.FreeBlock(size, offset);
+            
+            _bufferManager.Free(buffer, offset, size);
         }
     }
 }

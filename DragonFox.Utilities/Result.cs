@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Foxis.Library
+namespace DragonFox.Utilities
 {
     /// <summary>
     /// Result for status, error, and value.
