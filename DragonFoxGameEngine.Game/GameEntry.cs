@@ -2,7 +2,6 @@
 using Microsoft.Extensions.Logging;
 using Silk.NET.Input;
 using Silk.NET.Maths;
-using Silk.NET.SDL;
 using System;
 using System.Linq;
 

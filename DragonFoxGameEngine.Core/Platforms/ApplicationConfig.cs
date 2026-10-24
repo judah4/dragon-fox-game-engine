@@ -45,10 +45,13 @@ namespace DragonGameEngine.Core.Platforms
             FramesPerSecond = 0;
         }
 
+        /// <summary>
+        /// The default game name when unset
+        /// </summary>
+        /// <returns></returns>
         public string DefaultGameName()
         {
-            //TODO: Make this a constant
-            return "Dragon Fox Game Engine";
+            return $"{ApplicationInfo.GetGameEngineName()} Game";
         }
     }
 }

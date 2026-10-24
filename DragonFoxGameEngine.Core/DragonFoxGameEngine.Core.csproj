@@ -1,10 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-	<Version>0.4.0.1</Version>
 	<RootNamespace>DragonGameEngine.Core</RootNamespace>
   </PropertyGroup>
 
