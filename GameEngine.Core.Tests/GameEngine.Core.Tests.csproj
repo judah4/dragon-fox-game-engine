@@ -47,6 +47,7 @@
   </ItemGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\DragonFox.Utilities\DragonFox.Utilities.csproj" />
     <ProjectReference Include="..\DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj" />
   </ItemGroup>
 
