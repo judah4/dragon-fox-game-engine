@@ -6,12 +6,8 @@ using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
-using System.IO;
 
 namespace DragonGameEngine.Core.Systems
 {
@@ -21,10 +17,9 @@ namespace DragonGameEngine.Core.Systems
 
         private readonly ILogger _logger;
 
-        public readonly TextureSystemConfig _config;
-        public readonly Texture _defaultTexture;
-        public readonly Dictionary<string, TextureReference> _textures;
-        public readonly ResourceSystem _resourceSystem;
+        private readonly Texture _defaultTexture;
+        private readonly Dictionary<string, TextureReference> _textures;
+        private readonly ResourceSystem _resourceSystem;
 
         private IRendererFrontend? _renderer;
 
@@ -85,7 +80,7 @@ namespace DragonGameEngine.Core.Systems
             }
             if (name.Equals(DEFAULT_TEXTURE_NAME))
             {
-                _logger.LogWarning("TexureSystem Aquire called for default texture. Use GetDefaultTexture for texture 'default'");
+                _logger.LogWarning("TextureSystem Acquire called for default texture. Use GetDefaultTexture for texture 'default'");
                 return _defaultTexture;
             }
 
@@ -122,7 +117,7 @@ namespace DragonGameEngine.Core.Systems
             }
             if (name.Equals(DEFAULT_TEXTURE_NAME))
             {
-                _logger.LogWarning("TexureSystem tried to release the default texture. Don't do that.");
+                _logger.LogWarning("TextureSystem tried to release the default texture. Don't do that.");
                 return;
             }
             //Find the existing texture reference

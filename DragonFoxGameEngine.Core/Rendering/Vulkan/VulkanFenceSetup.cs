@@ -2,7 +2,6 @@
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using Foxis.Library;
 using Microsoft.Extensions.Logging;
-using Silk.NET.OpenAL;
 using Silk.NET.Vulkan;
 using System;
 using System.Collections.Generic;

@@ -1,5 +1,4 @@
-﻿using DragonGameEngine.Core;
-using Silk.NET.Maths;
+﻿using Silk.NET.Maths;
 
 namespace DragonGameEngine.Core.Platforms
 {
@@ -49,7 +48,7 @@ namespace DragonGameEngine.Core.Platforms
         public string DefaultGameName()
         {
             //TODO: Make this a constant
-            return "Game";
+            return "Dragon Fox Game Engine";
         }
     }
 }

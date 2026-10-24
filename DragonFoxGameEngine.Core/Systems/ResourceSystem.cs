@@ -4,7 +4,6 @@ using DragonGameEngine.Core.Systems.Domain;
 using DragonGameEngine.Core.Systems.ResourceLoaders;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
-using System.Xml.Linq;
 
 namespace DragonGameEngine.Core.Systems
 {

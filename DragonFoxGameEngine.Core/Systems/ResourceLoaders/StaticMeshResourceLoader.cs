@@ -2,7 +2,6 @@
 using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Resources.ResourceDataTypes;
-using DragonGameEngine.Core.Systems.Domain;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Assimp;
 using Silk.NET.Maths;
