@@ -16,6 +16,8 @@ using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Windowing;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Buffer = Silk.NET.Vulkan.Buffer;
 
@@ -39,27 +41,26 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         private readonly VulkanUiShaderManager _uiShaderManager;
         private readonly VulkanPipelineSetup _pipelineSetup;
         private readonly VulkanBufferManager _bufferManager;
-
-#if DEBUG
-        private readonly bool EnableValidationLayers = true; //TODO: enable when tools are installed. Add to config
-#else
-        private readonly bool EnableValidationLayers = false;
-#endif
-
-        private readonly string[] _validationLayers = new[]
-{
-            "VK_LAYER_KHRONOS_validation"
-        };
+        private readonly IReadOnlyList<string> _validationLayers;
 
         private VulkanContext? _context;
 
         private Vector2D<uint> _cachedFramebufferSize;
 
-        public VulkanBackendRenderer(string applicationName, IWindow window, TextureSystem textureSystem, ResourceSystem resourceSystem, ILogger logger)
+        private bool HasValidationLayers => _validationLayers.Any();
+
+        public VulkanBackendRenderer(
+            string applicationName, 
+            IWindow window, 
+            TextureSystem textureSystem, 
+            ResourceSystem resourceSystem, 
+            ILogger logger,
+            IReadOnlyList<string> validationLayers)
         {
             _applicationName = applicationName;
             _window = window;
             _logger = logger;
+            _validationLayers = validationLayers;
             _deviceSetup = new VulkanDeviceSetup(logger);
             _imageSetup = new VulkanImageSetup(logger);
             _swapchainSetup = new VulkanSwapchainSetup(logger, _deviceSetup, _imageSetup);
@@ -113,7 +114,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             createInfo.EnabledExtensionCount = (uint)extensions.Length;
             createInfo.PpEnabledExtensionNames = (byte**)SilkMarshal.StringArrayToPtr(extensions);
 
-            if (EnableValidationLayers)
+            if (HasValidationLayers)
             {
                 uint availableLayerCount = 0;
                 vk.EnumerateInstanceLayerProperties(ref availableLayerCount, null); //get count
@@ -146,7 +147,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     }
                 }
 
-                createInfo.EnabledLayerCount = (uint)_validationLayers.Length;
+                createInfo.EnabledLayerCount = (uint)_validationLayers.Count();
                 createInfo.PpEnabledLayerNames = (byte**)SilkMarshal.StringArrayToPtr(_validationLayers);
 
                 DebugUtilsMessengerCreateInfoEXT debugCreateInfo = new();
@@ -168,7 +169,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             }
             ExtDebugUtils? debugUtils = null;
             DebugUtilsMessengerEXT debugMessenger = default;
-            if (EnableValidationLayers)
+            if (HasValidationLayers)
             {
                 var debuggingUtils = SetupDebugMessenger(vk, instance);
                 if (debuggingUtils.HasValue)
@@ -182,7 +183,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             Marshal.FreeHGlobal((nint)appInfo.PEngineName);
             SilkMarshal.Free((nint)createInfo.PpEnabledExtensionNames);
 
-            if (EnableValidationLayers)
+            if (HasValidationLayers)
             {
                 SilkMarshal.Free((nint)createInfo.PpEnabledLayerNames);
             }
@@ -275,9 +276,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             _deviceSetup.Destroy(_context);
 
-            if (EnableValidationLayers)
+            if (HasValidationLayers)
             {
-                //DestroyDebugUtilsMessenger equivilant to method DestroyDebugUtilsMessengerEXT from original tutorial.
+                //DestroyDebugUtilsMessenger equivalent to method DestroyDebugUtilsMessengerEXT from original tutorial.
                 _context!.DebugUtils?.DestroyDebugUtilsMessenger(_context.Instance, _context.DebugMessenger, null);
             }
 
@@ -920,7 +921,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         /// <remarks>I'm not 100% what this does -Judah</remarks>
         private (ExtDebugUtils, DebugUtilsMessengerEXT)? SetupDebugMessenger(Vk vk, Instance instance)
         {
-            if (!EnableValidationLayers) return null;
+            if (!HasValidationLayers) return null;
 
             ExtDebugUtils debugUtils;
             DebugUtilsMessengerEXT debugMessenger;
