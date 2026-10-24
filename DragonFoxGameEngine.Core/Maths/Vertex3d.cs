@@ -9,7 +9,7 @@ namespace DragonGameEngine.Core.Maths
         //Use fields for marshaling
         private readonly Vector3D<float> _position;
         //public readonly Vector3D<float> _color;
-        public readonly Vector2D<float> _textureCoordinate;
+        private readonly Vector2D<float> _textureCoordinate;
 
         public Vector3D<float> Position => _position;
         //public Vector3D<float> Color => _color;
