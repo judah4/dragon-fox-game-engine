@@ -1015,7 +1015,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             }
             if (_context.Swapchain.ImageViews == null)
             {
-                _logger.LogWarning("Image views are emtpy for regenerating frame buffers. Why?");
+                _logger.LogWarning("Image views are empty for regenerating frame buffers. Why?");
                 return _context.Swapchain;
             }
 
