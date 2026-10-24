@@ -1,15 +1,2 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <Version>0.9.1</Version>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Resources.dist.all.last.stripped" />
-    <EmbeddedResource Include="Resources.dist.female.first.stripped" />
-    <EmbeddedResource Include="Resources.dist.male.first.stripped" />
-    <EmbeddedResource Include="Resources.places2k.txt.stripped">
-      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
-    </EmbeddedResource>
-  </ItemGroup>
 </Project>
