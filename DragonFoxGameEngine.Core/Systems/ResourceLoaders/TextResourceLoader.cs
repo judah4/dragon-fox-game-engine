@@ -1,7 +1,6 @@
 ﻿using DragonGameEngine.Core.Exceptions;
 using DragonGameEngine.Core.Resources;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 

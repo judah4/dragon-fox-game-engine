@@ -1,5 +1,4 @@
-﻿using DragonGameEngine.Core;
-using Silk.NET.Maths;
+﻿using Silk.NET.Maths;
 
 namespace DragonGameEngine.Core.Platforms
 {
@@ -46,10 +45,13 @@ namespace DragonGameEngine.Core.Platforms
             FramesPerSecond = 0;
         }
 
+        /// <summary>
+        /// The default game name when unset
+        /// </summary>
+        /// <returns></returns>
         public string DefaultGameName()
         {
-            //TODO: Make this a constant
-            return "Game";
+            return $"{ApplicationInfo.GetGameEngineName()} Game";
         }
     }
 }

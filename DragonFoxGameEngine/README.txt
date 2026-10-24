@@ -1,4 +1,4 @@
-﻿# Untitle Dragon Game Engine Test Game
+﻿# Untitled Dragon Game Engine Test Game
 
 This is for testing the game! So far there is just a spinning square that textures can be loaded from disk to.
 

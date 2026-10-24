@@ -54,7 +54,8 @@ namespace GameEngine.Core.Tests
                 texture.UpdateTextureInternalData(new object());
             };
 
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, mockRenderer, textureSystem, materialSystem, geometrySystem, resourceSystem);
+            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object,
+                mockRenderer, textureSystem, materialSystem, geometrySystem, resourceSystem);
 
             gameApp.Init();
 

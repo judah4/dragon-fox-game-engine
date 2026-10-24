@@ -6,6 +6,10 @@ Prototype game engine in C# and Vulkan. Based on Travis Roman's [Kohi Engine](ht
 
 The projects require the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to build/run. The SDK provides the Vulkan validation layers as well as the command line tools to compile the shaders. The projects include a targets file that compiles the shaders.
 
+### Linux
+
+https://vulkan.lunarg.com/doc/view/latest/linux/getting_started.html
+
 ## Asset Licenses
 
 This repository includes the same assets as the original tutorial assets. They are located in the `Assets/` folder.

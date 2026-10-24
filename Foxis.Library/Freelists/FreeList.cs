@@ -5,7 +5,6 @@ namespace Foxis.Library.Freelists
 {
     public sealed class FreeList
     {
-
         private sealed class FreeListNode
         {
             public FreeListNode(ulong offset, ulong size, FreeListNode? next)

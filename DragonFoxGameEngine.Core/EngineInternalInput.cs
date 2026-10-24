@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Silk.NET.Input;
 using Silk.NET.Windowing;
-using System.Linq;
 
 namespace DragonGameEngine.Core
 {
