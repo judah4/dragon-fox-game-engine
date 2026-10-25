@@ -143,7 +143,7 @@ namespace DragonGameEngine.Core.Systems
                 DestroyTexture(textureRef.TextureHandle);
                 _textures.Remove(name);
 
-                //TODO: pool thse texture classes later so they don't hit the GC.
+                //TODO: pool these texture classes later so they don't hit the GC.
             }
 
             _logger.LogDebug("Release texture {name}, now has a ref count of {refCount} (auto release = {autoRelease})", name, textureRef.ReferenceCount, textureRef.AutoRelease);
@@ -152,6 +152,49 @@ namespace DragonGameEngine.Core.Systems
         public Texture GetDefaultTexture()
         {
             return _defaultTexture;
+        }
+
+        public void CreateInMemoryTexture(Texture texture, byte[] pixels)
+        {
+            if(_renderer == null)
+            {
+                throw new EngineException("Renderer not initialized!");
+            }
+
+            if (!_textures.TryGetValue(texture.Name, out var textureRef))
+            {
+                _renderer.LoadTexture(pixels, texture);
+
+                textureRef = new TextureReference()
+                {
+                    ReferenceCount = 0,
+                    AutoRelease = true, //set only the first time it's loaded
+                    TextureHandle = texture,
+                };
+                _textures.Add(texture.Name, textureRef);
+            }
+            else
+            {
+                throw new EngineException($"{texture.Name} already exists!");
+            }
+        }
+
+        /// <summary>
+        /// Update the texture and reload it.
+        /// </summary>
+        /// <param name="texture"></param>
+        /// <param name="pixels"></param>
+        /// <exception cref="EngineException"></exception>
+        public void UpdateTexture(Texture texture, byte[] pixels)
+        {
+            if(_renderer == null)
+            {
+                throw new EngineException("Renderer not initialized!");
+            }
+            
+            _renderer.DestroyTexture(texture); //destroy/release the old
+            
+            _renderer.LoadTexture(pixels, texture);
         }
 
         private Texture CreateDefaultTextures()

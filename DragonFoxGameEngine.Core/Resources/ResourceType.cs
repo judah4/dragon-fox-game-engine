@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DragonGameEngine.Core.Resources
 {
@@ -16,6 +12,10 @@ namespace DragonGameEngine.Core.Resources
         public static readonly ResourceType Image = new ResourceType("Image");
         public static readonly ResourceType Material = new ResourceType("Material");
         public static readonly ResourceType StaticMesh = new ResourceType("StaticMesh");
+        /// <summary>
+        /// In Memory Image for manipulating
+        /// </summary>
+        public static readonly ResourceType DynamicImage = new ResourceType("DynamicImage");
 
         public string Name { get; }
 

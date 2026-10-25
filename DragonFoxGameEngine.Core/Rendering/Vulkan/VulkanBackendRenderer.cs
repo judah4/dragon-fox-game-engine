@@ -628,7 +628,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //copy from the buffer
             _imageSetup.CopyFromBuffer(_context, image, staging.Handle, tempBuffer);
 
-            //transition from optimal for data reciept to shader read only optimal layout
+            //transition from optimal for data receipt to shader read only optimal layout
             _imageSetup.TransitionLayout(_context, tempBuffer, image, imageFormat, ImageLayout.TransferDstOptimal, ImageLayout.ShaderReadOnlyOptimal);
 
             _commandBufferSetup.CommandBufferEndSingleUse(_context, pool, tempBuffer, queue);
