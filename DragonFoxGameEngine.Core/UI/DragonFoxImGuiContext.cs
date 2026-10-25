@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Numerics;
-using System.Runtime.CompilerServices;
-using DragonGameEngine.Core.Rendering;
+using DragonGameEngine.Core.Maths;
+using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems;
 using ImGuiNET;
+using Silk.NET.Maths;
 
 namespace DragonGameEngine.Core.UI;
 
@@ -16,12 +18,14 @@ public sealed class DragonFoxImGuiContext : IDisposable
     private int _windowHeight;
     private Vector2 _scaleFactor = Vector2.One;
     private readonly GeometrySystem _geometrySystem;
+    private readonly TextureSystem _textureSystem;
     
-    public DragonFoxImGuiContext(int width, int height, GeometrySystem geometrySystem)
+    public DragonFoxImGuiContext(int width, int height, GeometrySystem geometrySystem, TextureSystem textureSystem)
     {
         _windowWidth = width;
         _windowHeight = height;
         _geometrySystem = geometrySystem;
+        _textureSystem = textureSystem;
 
         _context = ImGui.CreateContext();
         ImGui.SetCurrentContext(_context);
@@ -30,6 +34,37 @@ public sealed class DragonFoxImGuiContext : IDisposable
         io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard |
                           ImGuiConfigFlags.DockingEnable;
         io.Fonts.Flags |= ImFontAtlasFlags.NoBakedLines;
+    }
+
+    public void InitTexture()
+    {
+        ImGuiIOPtr io = ImGui.GetIO();
+        // Build
+        IntPtr pixels;
+        int width, height, bytesPerPixel;
+        io.Fonts.GetTexDataAsRGBA32(out pixels, out width, out height, out bytesPerPixel);
+        // Store our identifier
+        io.Fonts.SetTexID(_fontAtlasID);
+
+        // Should be 4 bytes per pixel for channels
+        var channels = (byte)bytesPerPixel;
+
+        io.Fonts.ClearTexData();
+
+        var texture = new Texture(
+            "ImGui.NETFontTexture",
+            new Vector2D<uint>((uint)width, (uint)height),
+            channels,
+            true,
+            new object(),
+            0);
+        
+        var pixelCount = width * height;
+        
+        byte[] pixelsArray = new byte[pixelCount * channels];
+        Array.Fill<byte>(pixelsArray, 255); //set full
+        
+        _textureSystem.CreateInMemoryTexture(texture, pixelsArray);
     }
     
     public void WindowResized(int width, int height)
@@ -47,117 +82,60 @@ public sealed class DragonFoxImGuiContext : IDisposable
         
         ImGui.NewFrame();
     }
-    /*
-    public GeometryRenderData? Render()
+
+    public void Render()
     {
         //https://github.com/ImGuiNET/ImGui.NET/blob/master/src/ImGui.NET.SampleProgram/ImGuiController.cs
-        var draw_data = ImGui.GetDrawData();
+        var drawData = ImGui.GetDrawData();
         
         uint vertexOffsetInVertices = 0;
-            uint indexOffsetInElements = 0;
+        uint indexOffsetInElements = 0;
 
-            if (draw_data.CmdListsCount == 0)
+        if (drawData.CmdListsCount == 0)
+        {
+            return;
+        }
+
+        var vertices = new List<Vertex3d>();
+        var indices = new List<uint>();
+        
+        // Setup orthographic projection matrix into our constant buffer
+        ImGuiIOPtr io = ImGui.GetIO();
+
+        drawData.ScaleClipRects(io.DisplayFramebufferScale);
+
+        // Render verts
+        int vtx_offset = 0;
+        int idx_offset = 0;
+        for (int n = 0; n < drawData.CmdListsCount; n++)
+        {
+            ImDrawListPtr cmd_list = drawData.CmdLists[n];
+            for (int vertI = 0; vertI < cmd_list.VtxBuffer.Size; vertI++)
             {
-                return null;
+                ImDrawVertPtr vert = cmd_list.VtxBuffer[vertI];
+                vertices.Add(new Vertex3d(new Vector3D<float>(vert.pos.X, vert.pos.Y, 0),
+                    new Vector2D<float>(vert.uv.X, vert.uv.Y)));
             }
-
-            uint totalVBSize = (uint)(draw_data.TotalVtxCount * Unsafe.SizeOf<ImDrawVert>());
-            if (totalVBSize > _vertexBuffer.SizeInBytes)
+            
+            for (int indI = 0; indI < cmd_list.IdxBuffer.Size; indI++)
             {
-                gd.DisposeWhenIdle(_vertexBuffer);
-                _vertexBuffer = gd.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalVBSize * 1.5f), BufferUsage.VertexBuffer | BufferUsage.Dynamic));
+                ushort idx = cmd_list.IdxBuffer[indI];
+                indices.Add(idx);
             }
+            vtx_offset += cmd_list.VtxBuffer.Size;
+            idx_offset += cmd_list.IdxBuffer.Size;
+        }
 
-            uint totalIBSize = (uint)(draw_data.TotalIdxCount * sizeof(ushort));
-            if (totalIBSize > _indexBuffer.SizeInBytes)
-            {
-                gd.DisposeWhenIdle(_indexBuffer);
-                _indexBuffer = gd.ResourceFactory.CreateBuffer(new BufferDescription((uint)(totalIBSize * 1.5f), BufferUsage.IndexBuffer | BufferUsage.Dynamic));
-            }
-
-            for (int i = 0; i < draw_data.CmdListsCount; i++)
-            {
-                ImDrawListPtr cmd_list = draw_data.CmdLists[i];
-
-                cl.UpdateBuffer(
-                    _vertexBuffer,
-                    vertexOffsetInVertices * (uint)Unsafe.SizeOf<ImDrawVert>(),
-                    cmd_list.VtxBuffer.Data,
-                    (uint)(cmd_list.VtxBuffer.Size * Unsafe.SizeOf<ImDrawVert>()));
-
-                cl.UpdateBuffer(
-                    _indexBuffer,
-                    indexOffsetInElements * sizeof(ushort),
-                    cmd_list.IdxBuffer.Data,
-                    (uint)(cmd_list.IdxBuffer.Size * sizeof(ushort)));
-
-                vertexOffsetInVertices += (uint)cmd_list.VtxBuffer.Size;
-                indexOffsetInElements += (uint)cmd_list.IdxBuffer.Size;
-            }
-
-            // Setup orthographic projection matrix into our constant buffer
-            ImGuiIOPtr io = ImGui.GetIO();
-            Matrix4x4 mvp = Matrix4x4.CreateOrthographicOffCenter(
-                0f,
-                io.DisplaySize.X,
-                io.DisplaySize.Y,
-                0.0f,
-                -1.0f,
-                1.0f);
-
-            _gd.UpdateBuffer(_projMatrixBuffer, 0, ref mvp);
-
-            cl.SetVertexBuffer(0, _vertexBuffer);
-            cl.SetIndexBuffer(_indexBuffer, IndexFormat.UInt16);
-            cl.SetPipeline(_pipeline);
-            cl.SetGraphicsResourceSet(0, _mainResourceSet);
-
-            draw_data.ScaleClipRects(io.DisplayFramebufferScale);
-
-            // Render command lists
-            int vtx_offset = 0;
-            int idx_offset = 0;
-            for (int n = 0; n < draw_data.CmdListsCount; n++)
-            {
-                ImDrawListPtr cmd_list = draw_data.CmdLists[n];
-                for (int cmd_i = 0; cmd_i < cmd_list.CmdBuffer.Size; cmd_i++)
-                {
-                    ImDrawCmdPtr pcmd = cmd_list.CmdBuffer[cmd_i];
-                    if (pcmd.UserCallback != IntPtr.Zero)
-                    {
-                        throw new NotImplementedException();
-                    }
-                    else
-                    {
-                        if (pcmd.TextureId != IntPtr.Zero)
-                        {
-                            if (pcmd.TextureId == _fontAtlasID)
-                            {
-                                cl.SetGraphicsResourceSet(1, _fontTextureResourceSet);
-                            }
-                            else
-                            {
-                                cl.SetGraphicsResourceSet(1, GetImageResourceSet(pcmd.TextureId));
-                            }
-                        }
-
-                        cl.SetScissorRect(
-                            0,
-                            (uint)pcmd.ClipRect.X,
-                            (uint)pcmd.ClipRect.Y,
-                            (uint)(pcmd.ClipRect.Z - pcmd.ClipRect.X),
-                            (uint)(pcmd.ClipRect.W - pcmd.ClipRect.Y));
-
-                        cl.DrawIndexed(pcmd.ElemCount, 1, pcmd.IdxOffset + (uint)idx_offset, (int)pcmd.VtxOffset + vtx_offset, 0);
-                    }
-                }
-                vtx_offset += cmd_list.VtxBuffer.Size;
-                idx_offset += cmd_list.IdxBuffer.Size;
-            }
-
-        var geometry = _geometrySystem.AcquireFromConfig(new GeometryConfig("ImGui", vertices, indices, "default2d")); // Get from material system.
+        var matName = "imgui_ui_mat";
+        var geometry = _geometrySystem.AcquireFromConfig(
+            new GeometryConfig("ImGui", vertices.ToArray(), indices.ToArray(), matName),
+            true); // Get from material system.
+        
+        // get texture command data
+        
+        
     }
-*/
+
     public void Dispose()
     {
         ImGui.DestroyContext(_context);
