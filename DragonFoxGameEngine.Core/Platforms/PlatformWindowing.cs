@@ -1,7 +1,6 @@
 ﻿using DragonGameEngine.Core.Exceptions;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
-using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using SixLabors.ImageSharp.Advanced;
 using SixLabors.ImageSharp.PixelFormats;

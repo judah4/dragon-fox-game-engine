@@ -10,6 +10,18 @@ The projects require the [Vulkan SDK](https://www.lunarg.com/vulkan-sdk/) to bui
 
 https://vulkan.lunarg.com/doc/view/latest/linux/getting_started.html
 
+Fedora
+
+```shell
+dnf install libassimp-dev
+```
+
+Ubuntu
+
+```shell
+apt install assimp assimp-devel
+```
+
 ## Asset Licenses
 
 This repository includes the same assets as the original tutorial assets. They are located in the `Assets/` folder.
