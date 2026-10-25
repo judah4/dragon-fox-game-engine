@@ -9,6 +9,7 @@ using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using DragonGameEngine.Core.UI;
 
@@ -29,7 +30,7 @@ namespace DragonGameEngine.Core
         private readonly MaterialSystem _materialSystem;
         private readonly GeometrySystem _geometrySystem;
         private readonly ResourceSystem _resourceSystem;
-        private readonly DragonFoxImGuiContext _imGuiContext;
+        private readonly IDebugGuiContext _imGuiContext;
 
         private long _frame;
         private string _gameTitleData = string.Empty;
@@ -95,7 +96,7 @@ namespace DragonGameEngine.Core
 
             _geometrySystem.Init(_renderer);
             
-            //_imGuiContext.InitTexture();
+            _imGuiContext.Init();
 
             // TODO: temp 
 
@@ -202,7 +203,7 @@ namespace DragonGameEngine.Core
             
             try
             {
-                //_imGuiContext.Update((float)deltaTime);
+                _imGuiContext.Update((float)deltaTime);
             }
             catch(Exception e)
             {
@@ -215,7 +216,7 @@ namespace DragonGameEngine.Core
             _game.Render(deltaTime);
 
             var geometries = ImmutableArray<GeometryRenderData>.Empty;
-            var uiGeometries = ImmutableArray<GeometryRenderData>.Empty;
+            var uiGeometries = new List<GeometryRenderData>();
 
             if (_testGeometry == null || _testGeometry2 == null || _cubeGeometry == null)
             {
@@ -237,6 +238,11 @@ namespace DragonGameEngine.Core
                 {
                     Geometry = _cubeGeometry,
                     Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 1.5f, 0)),
+                },
+                new GeometryRenderData()
+                {
+                    Geometry = _cubeGeometry,
+                    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0.15f, 2.5f, -0.15f)), // TODO: Rotate a little
                 });
             }
 
@@ -246,15 +252,19 @@ namespace DragonGameEngine.Core
             }
             else
             {
-                uiGeometries = ImmutableArray.Create(
-                new GeometryRenderData()
-                {
-                    Geometry = _testUiGeometry,
-                    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 0f, 0)),
-                });
+                uiGeometries.Add(
+                    new GeometryRenderData()
+                    {
+                        Geometry = _testUiGeometry,
+                        Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 0f, 0)),
+                    });
             }
 
-            //_imGuiContext.Render();
+            var imGuiGeometry = _imGuiContext.Render();
+            if (imGuiGeometry.HasValue)
+            {
+                uiGeometries.Add(imGuiGeometry.Value);
+            }
             
             var renderPacket = new RenderPacket(deltaTime, geometries, uiGeometries);
 

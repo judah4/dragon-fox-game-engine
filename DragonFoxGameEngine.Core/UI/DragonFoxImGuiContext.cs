@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Numerics;
 using DragonGameEngine.Core.Maths;
+using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems;
@@ -10,13 +11,15 @@ using Silk.NET.Maths;
 
 namespace DragonGameEngine.Core.UI;
 
-public sealed class DragonFoxImGuiContext : IDisposable
+public sealed class DragonFoxImGuiContext : IDebugGuiContext
 {
     private readonly IntPtr _fontAtlasID = 1;
     private readonly IntPtr _context;
+
     private int _windowWidth;
     private int _windowHeight;
     private Vector2 _scaleFactor = Vector2.One;
+    
     private readonly GeometrySystem _geometrySystem;
     private readonly TextureSystem _textureSystem;
     
@@ -36,7 +39,7 @@ public sealed class DragonFoxImGuiContext : IDisposable
         io.Fonts.Flags |= ImFontAtlasFlags.NoBakedLines;
     }
 
-    public void InitTexture()
+    public void Init()
     {
         ImGuiIOPtr io = ImGui.GetIO();
         // Build
@@ -85,7 +88,7 @@ public sealed class DragonFoxImGuiContext : IDisposable
         ImGui.EndFrame();
     }
 
-    public void Render()
+    public GeometryRenderData? Render()
     {
         //https://github.com/ImGuiNET/ImGui.NET/blob/master/src/ImGui.NET.SampleProgram/ImGuiController.cs
         var drawData = ImGui.GetDrawData();
@@ -95,7 +98,7 @@ public sealed class DragonFoxImGuiContext : IDisposable
 
         if (drawData.CmdListsCount == 0)
         {
-            return;
+            return null;
         }
 
         var vertices = new List<Vertex3d>();
@@ -128,14 +131,23 @@ public sealed class DragonFoxImGuiContext : IDisposable
             idx_offset += cmd_list.IdxBuffer.Size;
         }
 
-        var matName = "imgui_ui_mat";
-        var geometry = _geometrySystem.AcquireFromConfig(
-            new GeometryConfig("ImGui", vertices.ToArray(), indices.ToArray(), matName),
-            true); // Get from material system.
+        // TODO: Why is this geometry corrupting the others?
+        //var matName = "imgui_ui_mat";
+        //var geometry = _geometrySystem.AcquireFromConfig(
+        //    new GeometryConfig("ImGui", vertices.ToArray(), indices.ToArray(), matName),
+        //    true); // Get from material system.
         
+        var uiConfig = new GeometryConfig("ImGui", vertices.ToArray(), indices.ToArray(), "test_ui_material");
+        var geometry = _geometrySystem.AcquireFromConfig(uiConfig, true); // Get from material system.
+
         // get texture command data
-        
-        
+//
+        //return new GeometryRenderData()
+        //{
+        //    Geometry = geometry,
+        //    Model = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 0f, 0)),
+        //};
+        return null;
     }
 
     public void Dispose()
