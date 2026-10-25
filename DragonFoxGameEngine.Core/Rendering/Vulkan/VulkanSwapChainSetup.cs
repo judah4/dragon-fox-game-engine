@@ -9,7 +9,7 @@ using System.Collections.Generic;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe sealed class VulkanSwapchainSetup
+    public sealed unsafe class VulkanSwapchainSetup
     {
 
         private readonly ILogger _logger;
@@ -25,23 +25,26 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         public VulkanSwapchain Create(VulkanContext context, Vector2D<uint> size)
         {
-            return InnerCreate(context, size, InitialCreate(context));
+            var swapchain = InitialCreate(context);
+            context.SetupSwapchain(swapchain);
+            InnerCreate(context, size, swapchain);
+            return  swapchain;
         }
 
-        public VulkanSwapchain Recreate(VulkanContext context, Vector2D<uint> size, VulkanSwapchain swapchain)
+        public void Recreate(VulkanContext context, Vector2D<uint> size, VulkanSwapchain swapchain)
         {
-            swapchain = InnerDestroy(context, swapchain);
-            return InnerCreate(context, size, swapchain);
+            InnerDestroy(context, swapchain);
+            InnerCreate(context, size, swapchain);
         }
 
-        public VulkanSwapchain Destroy(VulkanContext context, VulkanSwapchain swapchain)
+        public void Destroy(VulkanContext context, VulkanSwapchain swapchain)
         {
             context.Vk.DeviceWaitIdle(context.Device.LogicalDevice);
-            return InnerDestroy(context, swapchain);
+            InnerDestroy(context, swapchain);
         }
 
         /// <summary>
-        /// Aquire the next image index
+        /// Acquire the next image index
         /// </summary>
         /// <param name="context"></param>
         /// <param name="swapchain"></param>
@@ -50,15 +53,25 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         /// <param name="fence"></param>
         /// <returns>The image index</returns>
         /// <exception cref="Exception">Throws if not successful.</exception>
-        public uint AquireNextImageIndex(VulkanContext context, VulkanSwapchain swapchain, ulong timeoutNs, Semaphore semaphore, Fence fence)
+        public uint AcquireNextImageIndex(
+            VulkanContext context,
+            VulkanSwapchain swapchain,
+            ulong timeoutNs,
+            Semaphore semaphore,
+            Fence fence)
         {
             uint imageIndex = 0;
-            var result = swapchain.KhrSwapchain.AcquireNextImage(context.Device.LogicalDevice, swapchain.Swapchain, timeoutNs, semaphore, fence, ref imageIndex);
+            var result = swapchain.KhrSwapchain.AcquireNextImage(
+                context.Device.LogicalDevice,
+                swapchain.Swapchain,
+                timeoutNs,
+                semaphore,
+                fence,
+                ref imageIndex);
 
             if (result == Result.ErrorOutOfDateKhr)
             {
-                swapchain = Recreate(context, context.FramebufferSize, swapchain);
-                return imageIndex;
+                Recreate(context, context.FramebufferSize, swapchain);
             }
             else if (result != Result.Success && result != Result.SuboptimalKhr)
             {
@@ -68,7 +81,13 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             return imageIndex;
         }
 
-        public void Present(VulkanContext context, VulkanSwapchain swapchain, Queue graphicsQueue, Queue presentQueue, Semaphore* renderCompleteSemaphore, uint presentImageIndex)
+        public void Present(
+            VulkanContext context,
+            VulkanSwapchain swapchain,
+            Queue graphicsQueue,
+            Queue presentQueue,
+            Semaphore* renderCompleteSemaphore,
+            uint presentImageIndex)
         {
             var swapchainKhr = swapchain.Swapchain;
             PresentInfoKHR presentInfo = new()
@@ -102,7 +121,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         private VulkanSwapchain InitialCreate(VulkanContext context)
         {
-            if (!context.Vk.TryGetDeviceExtension(context.Instance, context.Device.LogicalDevice, out KhrSwapchain khrSwapchain))
+            if (!context.Vk.TryGetDeviceExtension(
+                    context.Instance,
+                    context.Device.LogicalDevice,
+                    out KhrSwapchain khrSwapchain))
             {
                 throw new NotSupportedException("VK_KHR_swapchain extension not found.");
             }
@@ -110,10 +132,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             return new VulkanSwapchain(khrSwapchain);
         }
 
-        private VulkanSwapchain InnerCreate(VulkanContext context, Vector2D<uint> size, VulkanSwapchain swapchain)
+        private void InnerCreate(VulkanContext context, Vector2D<uint> size, VulkanSwapchain swapchain)
         {
             var swapchainExtent = new Extent2D(size.X, size.Y);
-            swapchain.MaxFramesInFlight = 2;
 
             swapchain.ImageFormat = ChooseSwapSurfaceFormat(context.Device.SwapchainSupport.Formats);
             var presentMode = ChoosePresentMode(context.Device.SwapchainSupport.PresentModes);
@@ -132,7 +153,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             swapchainExtent.Height = Math.Clamp(swapchainExtent.Height, min.Height, max.Height);
 
             var imageCount = swapchainSupport.Capabilities.MinImageCount + 1;
-            if (swapchainSupport.Capabilities.MaxImageCount > 0 && imageCount > swapchainSupport.Capabilities.MaxImageCount)
+            if (swapchainSupport.Capabilities.MaxImageCount > 0 &&
+                imageCount > swapchainSupport.Capabilities.MaxImageCount)
             {
                 imageCount = swapchainSupport.Capabilities.MaxImageCount;
             }
@@ -149,9 +171,14 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 ImageUsage = ImageUsageFlags.ColorAttachmentBit,
             };
 
-            if (context.Device.QueueFamilyIndices.GraphicsFamilyIndex != context.Device.QueueFamilyIndices.PresentFamilyIndex)
+            if (context.Device.QueueFamilyIndices.GraphicsFamilyIndex !=
+                context.Device.QueueFamilyIndices.PresentFamilyIndex)
             {
-                var queueFamilyIndices = stackalloc[] { context.Device.QueueFamilyIndices.GraphicsFamilyIndex, context.Device.QueueFamilyIndices.PresentFamilyIndex };
+                var queueFamilyIndices = stackalloc[]
+                {
+                    context.Device.QueueFamilyIndices.GraphicsFamilyIndex,
+                    context.Device.QueueFamilyIndices.PresentFamilyIndex
+                };
                 createInfo = createInfo with
                 {
                     ImageSharingMode = SharingMode.Concurrent,
@@ -174,7 +201,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 //OldSwapchain = 0,
             };
 
-            var createSwapchainResult = swapchain.KhrSwapchain.CreateSwapchain(context.Device.LogicalDevice, createInfo, context.Allocator, out SwapchainKHR swapchainKhr);
+            var createSwapchainResult = swapchain.KhrSwapchain.CreateSwapchain(
+                context.Device.LogicalDevice,
+                createInfo,
+                context.Allocator,
+                out SwapchainKHR swapchainKhr);
             if (createSwapchainResult != Result.Success)
             {
                 throw new VulkanResultException(createSwapchainResult, "Failed to create swap chain!");
@@ -185,18 +216,22 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             //Images
             uint swapImageCount = 0;
 
-            swapchain.KhrSwapchain.GetSwapchainImages(context.Device.LogicalDevice, swapchain.Swapchain, ref swapImageCount, null);
-            if (swapchain.SwapchainImages == null)
+            swapchain.KhrSwapchain.GetSwapchainImages(
+                context.Device.LogicalDevice,
+                swapchain.Swapchain,
+                ref swapImageCount,
+                null);
+            
+            var swapchainImages = new Image[swapImageCount];
+            var imageViews = new ImageView[swapImageCount];
+
+            fixed (Image* swapChainImagesPtr = swapchainImages)
             {
-                swapchain.SwapchainImages = new Image[swapImageCount];
-            }
-            if (swapchain.ImageViews == null)
-            {
-                swapchain.ImageViews = new ImageView[swapImageCount];
-            }
-            fixed (Image* swapChainImagesPtr = swapchain.SwapchainImages)
-            {
-                swapchain.KhrSwapchain.GetSwapchainImages(context.Device.LogicalDevice, swapchain.Swapchain, ref swapImageCount, swapChainImagesPtr);
+                swapchain.KhrSwapchain.GetSwapchainImages(
+                    context.Device.LogicalDevice,
+                    swapchain.Swapchain,
+                    ref swapImageCount,
+                    swapChainImagesPtr);
             }
 
             //views
@@ -205,7 +240,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 ImageViewCreateInfo imageCreateInfo = new()
                 {
                     SType = StructureType.ImageViewCreateInfo,
-                    Image = swapchain.SwapchainImages[cnt],
+                    Image = swapchainImages[cnt],
                     ViewType = ImageViewType.Type2D,
                     Format = swapchain.ImageFormat.Format,
                     SubresourceRange =
@@ -218,12 +253,17 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     }
                 };
 
-                var createResult = context.Vk!.CreateImageView(context.Device.LogicalDevice, imageCreateInfo, context.Allocator, out ImageView imageView);
+                var createResult = context.Vk.CreateImageView(
+                    context.Device.LogicalDevice,
+                    imageCreateInfo,
+                    context.Allocator,
+                    out ImageView imageView);
                 if (createResult != Result.Success)
                 {
                     throw new VulkanResultException(createResult, "Failed to create image views!");
                 }
-                swapchain.ImageViews[cnt] = imageView;
+
+                imageViews[cnt] = imageView;
             }
 
             //Depth resources
@@ -242,28 +282,27 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 true,
                 ImageAspectFlags.DepthBit);
 
+            swapchain.UpdateSwapchain(swapchainImages, imageViews);
             _logger.LogDebug("Swapchain created successfully!");
-            context.SetupSwapchain(swapchain);
-            return swapchain;
         }
 
-        private VulkanSwapchain InnerDestroy(VulkanContext context, VulkanSwapchain swapchain)
+        private void InnerDestroy(VulkanContext context, VulkanSwapchain swapchain)
         {
             swapchain.DepthAttachment = _vulkanImageSetup.ImageDestroy(context, swapchain.DepthAttachment);
 
-            if (swapchain.ImageViews != null)
+            if (swapchain.ImageViews.Count > 0)
             {
-                //only destroy the views, not the images, since those aer owned by the swapchain and are this destroyed when it is.
-                for (int cnt = 0; cnt < swapchain.ImageViews.Length; cnt++)
+                //only destroy the views, not the images, since those are owned by the swapchain and are this destroyed when it is.
+                for (int cnt = 0; cnt < swapchain.ImageViews.Count; cnt++)
                 {
                     context.Vk.DestroyImageView(context.Device.LogicalDevice, swapchain.ImageViews[cnt], context.Allocator);
                 }
-                swapchain.ImageViews = null;
             }
-
+            
             swapchain.KhrSwapchain.DestroySwapchain(context.Device.LogicalDevice, swapchain.Swapchain, context.Allocator);
+            
+            swapchain.UpdateSwapchain(Array.Empty<Image>(), Array.Empty<ImageView>());
             _logger.LogDebug("Swapchain destroyed.");
-            return swapchain;
         }
 
         /// <summary>

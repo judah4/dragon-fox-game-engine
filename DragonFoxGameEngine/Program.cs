@@ -11,8 +11,9 @@ using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core;
 using System.Threading;
 using DragonGameEngine.Core.Systems.Domain;
-using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Rendering;
+using DragonGameEngine.Core.Rendering.Headless;
+using DragonGameEngine.Core.Rendering.Vulkan;
 using DragonGameEngine.Core.Systems;
 
 namespace DragonFoxGameEngine
@@ -20,6 +21,12 @@ namespace DragonFoxGameEngine
     internal class Program
     {
         private static string? _logPath;
+        
+        private static readonly string[] _vulkanValidationLayers =
+        [
+            // TODO: Enable with config
+            //"VK_LAYER_KHRONOS_validation"
+        ];
 
         private static void Main(string[] args)
         {
@@ -60,18 +67,42 @@ namespace DragonFoxGameEngine
             ApplicationRun(config, platform, window, game, logger);
         }
 
-        static void ApplicationRun(ApplicationConfig config, PlatformWindowing platform, IWindow window, IGameEntry game, ILogger engineLogger)
+        static void ApplicationRun(
+            ApplicationConfig config,
+            PlatformWindowing platform,
+            IWindow window,
+            IGameEntry game,
+            ILogger engineLogger)
         {
             //for debugging, lets use the default path for now
             var resourceSystem = new ResourceSystem(engineLogger, new ResourceSystemConfig(32, "Assets"));
 
             var textureSystem = new TextureSystem(engineLogger, new TextureSystemConfig(65536), resourceSystem);
 
-            var materialSystem = new MaterialSystem(engineLogger, new MaterialSystemConfig(4096), textureSystem, resourceSystem);
-            var geometrySystem = new GeometrySystem(engineLogger, new GeometrySystemConfig(4096), materialSystem, resourceSystem);
+            var materialSystem = new MaterialSystem(engineLogger, new MaterialSystemConfig(4096), textureSystem,
+                resourceSystem);
+            var geometrySystem = new GeometrySystem(engineLogger, new GeometrySystemConfig(4096), materialSystem,
+                resourceSystem);
+            
+            var backendRenderer = SetupRenderer(config, window, textureSystem, resourceSystem, engineLogger);
 
-            var rendererFrontend = new RendererFrontend(config, window, textureSystem, materialSystem, resourceSystem, engineLogger);
-            var application = new GameApplication(config, game, window, engineLogger, rendererFrontend, textureSystem, materialSystem, geometrySystem, resourceSystem);
+            var rendererFrontend = new RendererFrontend(
+                config, 
+                window, 
+                textureSystem, 
+                materialSystem, 
+                engineLogger,
+                backendRenderer);
+            var application = new GameApplication(
+                config,
+                game,
+                window,
+                engineLogger,
+                rendererFrontend,
+                textureSystem,
+                materialSystem,
+                geometrySystem,
+                resourceSystem);
 
             try
             {
@@ -120,6 +151,32 @@ namespace DragonFoxGameEngine
                 });
             });
             return factory;
+        }
+
+        private static IRenderer SetupRenderer(
+            ApplicationConfig config,
+            IWindow window,
+            TextureSystem textureSystem,
+            ResourceSystem resourceSystem,
+            ILogger logger)
+        {
+            IRenderer renderer;
+            if (!config.HeadlessMode)
+            {
+                renderer = new VulkanBackendRenderer(
+                    config.Title,
+                    window, 
+                    textureSystem, 
+                    resourceSystem,
+                    logger,
+                    _vulkanValidationLayers);
+            }
+            else
+            {
+                renderer = new HeadlessRenderer(logger);
+            }
+
+            return renderer;
         }
     }
 }

@@ -1,7 +1,5 @@
 using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Platforms;
-using DragonGameEngine.Core.Rendering.Headless;
-using DragonGameEngine.Core.Rendering.Vulkan;
 using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
@@ -25,7 +23,13 @@ namespace DragonGameEngine.Core.Rendering
 
         private RenderSystemState _systemState;
 
-        public RendererFrontend(ApplicationConfig config, IWindow window, TextureSystem textureSystem, MaterialSystem materialSystem, ILogger logger, IRenderer renderer)
+        public RendererFrontend(
+            ApplicationConfig config,
+            IWindow window,
+            TextureSystem textureSystem,
+            MaterialSystem materialSystem,
+            ILogger logger,
+            IRenderer renderer)
         {
             _config = config;
             _window = window;
@@ -33,11 +37,6 @@ namespace DragonGameEngine.Core.Rendering
             _materialSystem = materialSystem;
             _logger = logger;
             _rendererBackend = renderer;
-        }
-
-        public RendererFrontend(ApplicationConfig config, IWindow window, TextureSystem textureSystem, MaterialSystem materialSystem, ResourceSystem resourceSystem, ILogger logger)
-            : this(config, window, textureSystem, materialSystem, logger, SetupRenderer(config, window, textureSystem, resourceSystem, logger))
-        {
         }
 
         public void Init()
@@ -66,12 +65,14 @@ namespace DragonGameEngine.Core.Rendering
         {
             if (_rendererBackend.BeginFrame(packet.DeltaTime))
             {
-                if(!_rendererBackend.BeginRenderpass(RenderpassId.World))
+                if (!_rendererBackend.BeginRenderpass(RenderpassId.World))
                 {
                     _logger.LogError("Could not being render pass for World");
                     return;
                 }
-                _rendererBackend.UpdateGlobalWorldState(_systemState.Projection, _systemState.View, Vector3D<float>.Zero, Color.White, 0);
+
+                _rendererBackend.UpdateGlobalWorldState(_systemState.Projection, _systemState.View,
+                    Vector3D<float>.Zero, Color.White, 0);
 
                 for (int cnt = 0; cnt < packet.Geometries.Count; cnt++)
                 {
@@ -85,6 +86,7 @@ namespace DragonGameEngine.Core.Rendering
                     _logger.LogError("Could not being render pass for UI");
                     return;
                 }
+
                 _rendererBackend.UpdateGlobalUiState(_systemState.UiProjection, _systemState.UiView, 0);
 
                 for (int cnt = 0; cnt < packet.UiGeometries.Count; cnt++)
@@ -135,31 +137,19 @@ namespace DragonGameEngine.Core.Rendering
 
         private RenderSystemState RegenProjectionMatrix(float nearClip, float farClip)
         {
-            var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45f), (float)_window.Size.X / (float)_window.Size.Y, nearClip, farClip);
+            var projection = Matrix4X4.CreatePerspectiveFieldOfView(Scalar.DegreesToRadians(45f),
+                (float)_window.Size.X / (float)_window.Size.Y, nearClip, farClip);
 
             //ui projection /view
-            var uiProjection = Matrix4X4.CreateOrthographicOffCenter(0, (float)_window.Size.X, (float)_window.Size.Y, 0, -100f, 100f);
+            var uiProjection =
+                Matrix4X4.CreateOrthographicOffCenter(0, (float)_window.Size.X, (float)_window.Size.Y, 0, -100f, 100f);
 
             var uiView = Matrix4X4<float>.Identity;
             Matrix4X4.Invert(uiView, out uiView);
 
-            var renderSystemState = new RenderSystemState(projection, _systemState.View, farClip, nearClip, uiProjection, uiView);
+            var renderSystemState =
+                new RenderSystemState(projection, _systemState.View, farClip, nearClip, uiProjection, uiView);
             return renderSystemState;
-        }
-
-        private static IRenderer SetupRenderer(ApplicationConfig config, IWindow window, TextureSystem textureSystem, ResourceSystem resourceSystem, ILogger logger)
-        {
-            IRenderer renderer;
-            if (!config.HeadlessMode)
-            {
-                renderer = new VulkanBackendRenderer(config.Title, window, textureSystem, resourceSystem, logger);
-            }
-            else
-            {
-                renderer = new HeadlessRenderer(logger);
-            }
-
-            return renderer;
         }
     }
 }

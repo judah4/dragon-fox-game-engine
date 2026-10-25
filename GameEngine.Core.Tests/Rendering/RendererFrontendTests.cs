@@ -1,10 +1,9 @@
-using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Rendering;
-using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems;
 using DragonGameEngine.Core.Systems.Domain;
 using GameEngine.Core.Tests.Mocks;
-using Silk.NET.Maths;
+using Microsoft.Extensions.Logging;
+using Moq;
 using Silk.NET.Windowing;
 
 namespace GameEngine.Core.Tests.Rendering

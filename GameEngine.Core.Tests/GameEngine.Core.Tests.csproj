@@ -7,49 +7,23 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Assets\Materials\test_material.kmt" />
-    <None Remove="Assets\Materials\test_plane_mat.kmt" />
-    <None Remove="Assets\Materials\test_ui_material.kmt" />
-    <None Remove="Assets\Meshes\cube.glb" />
-    <None Remove="Assets\Textures\orange_lines_512.png" />
-    <None Remove="Assets\Textures\TestTexture.png" />
+    <None Include="Assets\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Assets\Materials\test_material.kmt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Materials\test_plane_mat.kmt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Materials\test_ui_material.kmt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Meshes\cube.glb">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Textures\orange_lines_512.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Assets\Textures\TestTexture.png">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="18.11.0" />
     <PackageReference Include="Moq" Version="4.20.69" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.1.1" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.1.1" />
-    <PackageReference Include="coverlet.collector" Version="10.1.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="MSTest" Version="4.0.1"/>
   </ItemGroup>
-
+  
   <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting"/>
+  </ItemGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\DragonFox.Utilities\DragonFox.Utilities.csproj" />
     <ProjectReference Include="..\DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj" />
-    <ProjectReference Include="..\Foxis.Library\Foxis.Library.csproj" />
   </ItemGroup>
 
 </Project>

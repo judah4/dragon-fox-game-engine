@@ -10,7 +10,8 @@ namespace Foxis.Library.RandomNameGenerator
     /// </summary>
     public abstract class BaseNameGenerator
     {
-        private const string ResourcePathPrefix = "Foxis.Library.Resources.";
+        // TODO: Use reflection to get the assembly name instead of hardcoding it here.
+        private const string ResourcePathPrefix = "Foxis.RandomNameGenerator.Resources.";
         protected readonly Random RandGen;
 
         protected BaseNameGenerator()

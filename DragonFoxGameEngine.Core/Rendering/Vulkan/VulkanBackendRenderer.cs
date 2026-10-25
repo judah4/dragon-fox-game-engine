@@ -1,4 +1,3 @@
-using DragonGameEngine.Core;
 using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Exceptions;
 using DragonGameEngine.Core.Exceptions.Vulkan;
@@ -16,12 +15,14 @@ using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
 using Silk.NET.Windowing;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Buffer = Silk.NET.Vulkan.Buffer;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe sealed class VulkanBackendRenderer : IRenderer
+    public sealed unsafe class VulkanBackendRenderer : IRenderer
     {
         private readonly ILogger _logger;
         private readonly string _applicationName;
@@ -39,27 +40,26 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         private readonly VulkanUiShaderManager _uiShaderManager;
         private readonly VulkanPipelineSetup _pipelineSetup;
         private readonly VulkanBufferManager _bufferManager;
-
-#if DEBUG
-        private readonly bool EnableValidationLayers = true; //TODO: enable when tools are installed. Add to config
-#else
-        private readonly bool EnableValidationLayers = false;
-#endif
-
-        private readonly string[] _validationLayers = new[]
-{
-            "VK_LAYER_KHRONOS_validation"
-        };
+        private readonly IReadOnlyList<string> _validationLayers;
 
         private VulkanContext? _context;
 
         private Vector2D<uint> _cachedFramebufferSize;
 
-        public VulkanBackendRenderer(string applicationName, IWindow window, TextureSystem textureSystem, ResourceSystem resourceSystem, ILogger logger)
+        private bool HasValidationLayers => _validationLayers.Any();
+
+        public VulkanBackendRenderer(
+            string applicationName, 
+            IWindow window, 
+            TextureSystem textureSystem, 
+            ResourceSystem resourceSystem, 
+            ILogger logger,
+            IReadOnlyList<string> validationLayers)
         {
             _applicationName = applicationName;
             _window = window;
             _logger = logger;
+            _validationLayers = validationLayers;
             _deviceSetup = new VulkanDeviceSetup(logger);
             _imageSetup = new VulkanImageSetup(logger);
             _swapchainSetup = new VulkanSwapchainSetup(logger, _deviceSetup, _imageSetup);
@@ -113,7 +113,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             createInfo.EnabledExtensionCount = (uint)extensions.Length;
             createInfo.PpEnabledExtensionNames = (byte**)SilkMarshal.StringArrayToPtr(extensions);
 
-            if (EnableValidationLayers)
+            if (HasValidationLayers)
             {
                 uint availableLayerCount = 0;
                 vk.EnumerateInstanceLayerProperties(ref availableLayerCount, null); //get count
@@ -146,7 +146,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     }
                 }
 
-                createInfo.EnabledLayerCount = (uint)_validationLayers.Length;
+                createInfo.EnabledLayerCount = (uint)_validationLayers.Count;
                 createInfo.PpEnabledLayerNames = (byte**)SilkMarshal.StringArrayToPtr(_validationLayers);
 
                 DebugUtilsMessengerCreateInfoEXT debugCreateInfo = new();
@@ -168,7 +168,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             }
             ExtDebugUtils? debugUtils = null;
             DebugUtilsMessengerEXT debugMessenger = default;
-            if (EnableValidationLayers)
+            if (HasValidationLayers)
             {
                 var debuggingUtils = SetupDebugMessenger(vk, instance);
                 if (debuggingUtils.HasValue)
@@ -182,14 +182,21 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             Marshal.FreeHGlobal((nint)appInfo.PEngineName);
             SilkMarshal.Free((nint)createInfo.PpEnabledExtensionNames);
 
-            if (EnableValidationLayers)
+            if (HasValidationLayers)
             {
                 SilkMarshal.Free((nint)createInfo.PpEnabledLayerNames);
             }
 
             var framebufferSize = new Vector2D<uint>((uint)_window.Size.X, (uint)_window.Size.Y);
             _cachedFramebufferSize = framebufferSize;
-            _context = new VulkanContext(vk, _window, instance, allocator, debugUtils, debugMessenger, framebufferSize);
+            _context = new VulkanContext(
+                vk,
+                _window,
+                instance,
+                allocator,
+                debugUtils,
+                debugMessenger,
+                framebufferSize);
 
             VulkanPlatform.CreateSurface(_context, _logger);
 
@@ -197,7 +204,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _deviceSetup.Create(_context);
 
             //Swapchain
-            var swapchain = _swapchainSetup.Create(_context, _context.FramebufferSize);
+            _swapchainSetup.Create(_context, _context.FramebufferSize);
 
             //World Renderpass
             _context.SetupMainRenderpass(
@@ -211,7 +218,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     false,
                     true));
 
-            //UI renderpass
+            //UI Renderpass
             _context.SetupUiRenderpass(
                 _renderpassSetup.Create(
                     _context,
@@ -223,10 +230,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     true,
                     false));
 
-            //Create frame buffers.
-            _context.SetupSwapchain(swapchain);
-            swapchain = RegenerateFramebuffers();
-            _context.SetupSwapchain(swapchain); //this all feels real nasty but it works I guess
+            //Create framebuffers.
+            GenerateFramebuffers();
 
             //Create command buffers
             CreateCommandBuffers();
@@ -236,7 +241,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             var materialShader = _materialShaderManager.Create(_context);
             _context.SetupBuiltinMaterialShader(materialShader);
             var uiShader = _uiShaderManager.Create(_context);
-            _context.SetupBuiltinUiShader(uiShader); //this is probably the only time we need to set thiss
+            _context.SetupBuiltinUiShader(uiShader); //this is probably the only time we need to set this
 
             CreateBuffers(_context);
 
@@ -255,18 +260,20 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             DestroyBuffers(_context);
 
-            _uiShaderManager.Destroy(_context, _context.UiShader!);
-            _materialShaderManager.Destroy(_context, _context.MaterialShader!);
+            if (_context.UiShader != null)
+            {
+                _uiShaderManager.Destroy(_context, _context.UiShader);
+            }
+            if (_context.MaterialShader != null)
+            {
+                _materialShaderManager.Destroy(_context, _context.MaterialShader);
+            }
 
             DestroySemaphoresAndFences();
 
             CleanUpCommandBuffers();
 
-            if(_context.Swapchain != null)
-            {
-                var swapchain = DestroyFramebuffers(_context.Swapchain!);
-                _context.SetupSwapchain(swapchain); //this all feels real nasty but it works I guess
-            }
+            DestroyFramebuffers();
 
             _renderpassSetup.Destory(_context, _context.UiRenderPass!);
             _renderpassSetup.Destory(_context, _context.MainRenderPass!);
@@ -275,9 +282,9 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             _deviceSetup.Destroy(_context);
 
-            if (EnableValidationLayers)
+            if (HasValidationLayers)
             {
-                //DestroyDebugUtilsMessenger equivilant to method DestroyDebugUtilsMessengerEXT from original tutorial.
+                //DestroyDebugUtilsMessenger equivalent to method DestroyDebugUtilsMessengerEXT from original tutorial.
                 _context!.DebugUtils?.DestroyDebugUtilsMessenger(_context.Instance, _context.DebugMessenger, null);
             }
 
@@ -358,7 +365,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             //Acquire the next image from the swapchain. Pass along the semaphore that should signal when this completes.
             //This same semaphore will alter be waited on by the queue submission to ensure this image is available.
-            var imageIndex = _swapchainSetup.AquireNextImageIndex(_context, _context.Swapchain!, ulong.MaxValue, _context.ImageAvailableSemaphores![_context.CurrentFrame], default);
+            var imageIndex = _swapchainSetup.AcquireNextImageIndex(_context, _context.Swapchain!, ulong.MaxValue, _context.ImageAvailableSemaphores![_context.CurrentFrame], default);
             _context.SetImageIndex(imageIndex);
 
             //begin reporting commands
@@ -481,12 +488,12 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             if(renderpassId == RenderpassId.World)
             {
                 renderpass = _context.MainRenderPass!;
-                framebuffer = _context.WorldFramebuffers[_context.ImageIndex];
+                framebuffer = _context.WorldFramebuffers[(int)_context.ImageIndex];
             }
             else if (renderpassId == RenderpassId.Ui)
             {
                 renderpass = _context.UiRenderPass!;
-                framebuffer = _context.Swapchain!.Framebuffers[_context.ImageIndex];
+                framebuffer = _context.UiFramebuffers[(int)_context.ImageIndex];
             }
             else
             {
@@ -775,7 +782,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 return;
             }
             var indexSize = 0U;
-            var indexDataResult = Foxis.Library.Result.Ok<ulong>();
+            var indexDataResult = DragonFox.Utilities.Result.Ok<ulong>();
             if (indices.Length > 0)
             {
                 // Index data, if applicable
@@ -920,7 +927,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
         /// <remarks>I'm not 100% what this does -Judah</remarks>
         private (ExtDebugUtils, DebugUtilsMessengerEXT)? SetupDebugMessenger(Vk vk, Instance instance)
         {
-            if (!EnableValidationLayers) return null;
+            if (!HasValidationLayers) return null;
 
             ExtDebugUtils debugUtils;
             DebugUtilsMessengerEXT debugMessenger;
@@ -966,10 +973,10 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             }
 
             var commandBuffers = _context!.GraphicsCommandBuffers;
-            if (commandBuffers == null || commandBuffers.Length != _context.Swapchain.SwapchainImages!.Length)
+            if (commandBuffers == null || commandBuffers.Length != _context.Swapchain.SwapchainImages.Count)
             {
                 //destroy previous if needed?
-                commandBuffers = new VulkanCommandBuffer[_context.Swapchain.SwapchainImages!.Length];
+                commandBuffers = new VulkanCommandBuffer[_context.Swapchain.SwapchainImages.Count];
             }
 
             for (int cnt = 0; cnt < commandBuffers.Length; cnt++)
@@ -1007,19 +1014,16 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _logger.LogDebug("Graphics command buffers cleaned up.");
         }
 
-        private VulkanSwapchain RegenerateFramebuffers()
+        private void GenerateFramebuffers()
         {
             if (_context == null || _context.Swapchain == null)
             {
                 throw new EngineException("Context is not set up. Was RegenerateFramebuffers called before Vulkan is initialized?");
             }
-            if (_context.Swapchain.ImageViews == null)
-            {
-                _logger.LogWarning("Image views are empty for regenerating frame buffers. Why?");
-                return _context.Swapchain;
-            }
 
-            var imageCount = _context.Swapchain.ImageViews.Length;
+            var imageCount = _context.Swapchain.ImageViews.Count;
+            var worldFramebuffers = new Framebuffer[imageCount];
+            var uiFramebuffers = new Framebuffer[imageCount];
             for (int cnt = 0; cnt < imageCount; cnt++)
             {
                 var worldAttachments = new[]
@@ -1028,31 +1032,34 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                     _context.Swapchain.DepthAttachment.ImageView,
                 };
 
-                _context.WorldFramebuffers[cnt] = _framebufferSetup.FramebufferCreate(_context, _context.MainRenderPass!, _context.FramebufferSize, worldAttachments);
+                worldFramebuffers[cnt] = _framebufferSetup.FramebufferCreate(_context, _context.MainRenderPass!, _context.FramebufferSize, worldAttachments);
 
                 // Swapchain framebuffers (UI pass). outputs to swapchain images
                 var uiAttachments = new[]
                 {
                     _context.Swapchain.ImageViews[cnt],
                 };
-                _context.Swapchain.Framebuffers[cnt] = _framebufferSetup.FramebufferCreate(_context, _context.UiRenderPass!, _context.FramebufferSize, uiAttachments);
+                uiFramebuffers[cnt] = _framebufferSetup.FramebufferCreate(_context, _context.UiRenderPass!, _context.FramebufferSize, uiAttachments);
             }
-            _logger.LogDebug($"Regening Frame buffers with size {_context!.FramebufferSize}");
-            return _context.Swapchain;
+            
+            _context.SetupFramebuffers(worldFramebuffers, uiFramebuffers);
+            _logger.LogDebug($"Regenerating Framebuffers with size {_context.FramebufferSize}");
         }
 
-        private VulkanSwapchain DestroyFramebuffers(VulkanSwapchain swapchain)
+        private void DestroyFramebuffers()
         {
             if(_context == null || _context.Swapchain == null)
             {
-                return swapchain;
+                return;
             }    
-            for (int cnt = 0; cnt < _context.Swapchain.ImageViews!.Length; cnt++)
+            for (int cnt = 0; cnt < _context.WorldFramebuffers.Count; cnt++)
             {
-                _context.WorldFramebuffers[cnt] = _framebufferSetup.FramebufferDestroy(_context, _context.WorldFramebuffers[cnt]);
-                swapchain.Framebuffers[cnt] = _framebufferSetup.FramebufferDestroy(_context, swapchain.Framebuffers[cnt]);
+                _framebufferSetup.FramebufferDestroy(_context, _context.WorldFramebuffers[cnt]);
+                _framebufferSetup.FramebufferDestroy(_context, _context.UiFramebuffers[cnt]);
             }
-            return swapchain;
+            
+            _context.SetupFramebuffers(Array.Empty<Framebuffer>(), Array.Empty<Framebuffer>());
+            _logger.LogDebug("Destroyed Framebuffers");
         }
 
         private void CreateSemaphoresAndFences()
@@ -1085,7 +1092,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
                 inFlightFences[i] = _fenceSetup.FenceCreate(_context, true);
             }
 
-            var imagesInflight = new VulkanFence[_context.Swapchain.SwapchainImages!.Length];
+            var imagesInflight = new VulkanFence[_context.Swapchain.SwapchainImages.Count];
 
             _context.SetupSemaphores(imageAvailableSemaphores, renderFinishedSemaphores);
             _context.SetupFences(inFlightFences, imagesInflight);
@@ -1138,10 +1145,20 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _context.SetupDevice(device);
             _deviceSetup.DetectDepthFormat(_context);
 
-            var swapchain = _swapchainSetup.Recreate(_context, _cachedFramebufferSize, _context.Swapchain);
-            _context.SetupSwapchain(swapchain);
+            _swapchainSetup.Recreate(_context, _cachedFramebufferSize, _context.Swapchain);
 
             _context.SetFramebufferSize(_cachedFramebufferSize, _context.FramebufferSizeGeneration);
+
+            //update framebuffer size generation
+            _context.SetFramebufferSizeGenerationLastGeneration(_context.FramebufferSizeGeneration);
+
+            for (int cnt = 0; cnt < _context.GraphicsCommandBuffers!.Length; cnt++)
+            {
+                _context.GraphicsCommandBuffers[cnt] = _commandBufferSetup.CommandBufferFree(_context, _context.Device.GraphicsCommandPool, _context.GraphicsCommandBuffers[cnt]);
+            }
+
+            DestroyFramebuffers();
+
             VulkanRenderpass renderPass = _context.MainRenderPass!;
             var rect = renderPass.Rect;
             rect.Offset = new Offset2D(0,0);
@@ -1155,32 +1172,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             uiRenderPass.Rect = rect;
             _context.SetupUiRenderpass(uiRenderPass);
 
-            //update framebuffer size generation
-            _context.SetFramebufferSizeGenerationLastGeneration(_context.FramebufferSizeGeneration);
-
-            for (int cnt = 0; cnt < _context.GraphicsCommandBuffers!.Length; cnt++)
-            {
-                _context.GraphicsCommandBuffers[cnt] = _commandBufferSetup.CommandBufferFree(_context, _context.Device.GraphicsCommandPool, _context.GraphicsCommandBuffers[cnt]);
-            }
-
-            swapchain = DestroyFramebuffers(swapchain);
-            _context.SetupSwapchain(swapchain);
-
-            //TODO: something something struct later
-            renderPass = _context.MainRenderPass!;
-            rect = renderPass.Rect;
-            rect.Offset = new Offset2D(0, 0);
-            rect.Extent.Width = _context.FramebufferSize.X;
-            rect.Extent.Height = _context.FramebufferSize.Y;
-            renderPass.Rect = rect;
-            _context.SetupMainRenderpass(renderPass);
-
-            uiRenderPass = _context.UiRenderPass!;
-            uiRenderPass.Rect = rect;
-            _context.SetupUiRenderpass(uiRenderPass);
-
-            _context.SetupSwapchain(RegenerateFramebuffers());
-
+            GenerateFramebuffers();
+            
             CreateCommandBuffers();
 
             // Clear the recreating flag.
@@ -1211,12 +1204,19 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
         private void DestroyBuffers(VulkanContext context)
         {
-            var vertBuffer = _bufferManager.BufferDestroy(context, context.ObjectVertexBuffer);
-            var indexBuffer = _bufferManager.BufferDestroy(context, context.ObjectIndexBuffer);
-            context.SetupBuffers(vertBuffer, indexBuffer);
+            if (context.ObjectVertexBuffer != null)
+            {
+                _bufferManager.BufferDestroy(context, context.ObjectVertexBuffer);
+            }
+            
+            if(context.ObjectIndexBuffer != null)
+            {
+                _bufferManager.BufferDestroy(context, context.ObjectIndexBuffer);
+            }
+            context.SetupBuffers(null, null);
         }
 
-        private Foxis.Library.Result<ulong> UploadDataRange<T>(VulkanContext context, CommandPool pool, Fence fence, Queue queue, VulkanBuffer buffer, ulong size, Span<T> data)
+        private DragonFox.Utilities.Result<ulong> UploadDataRange<T>(VulkanContext context, CommandPool pool, Fence fence, Queue queue, VulkanBuffer buffer, ulong size, Span<T> data)
         {
             //the offset
             var allocateResult = _bufferManager.Allocate(buffer, size);
@@ -1247,8 +1247,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             {
                 return;
             }
-            //update free list with this range being free.
-            buffer.Freelist.FreeBlock(size, offset);
+            
+            _bufferManager.Free(buffer, offset, size);
         }
     }
 }
