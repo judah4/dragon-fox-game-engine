@@ -204,7 +204,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _deviceSetup.Create(_context);
 
             //Swapchain
-            var swapchain = _swapchainSetup.Create(_context, _context.FramebufferSize);
+            _swapchainSetup.Create(_context, _context.FramebufferSize);
 
             //World Renderpass
             _context.SetupMainRenderpass(
@@ -1148,18 +1148,6 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             _swapchainSetup.Recreate(_context, _cachedFramebufferSize, _context.Swapchain);
 
             _context.SetFramebufferSize(_cachedFramebufferSize, _context.FramebufferSizeGeneration);
-            VulkanRenderpass renderPass = _context.MainRenderPass!;
-            var rect = renderPass.Rect;
-            rect.Offset = new Offset2D(0,0);
-            rect.Extent.Width = _context.FramebufferSize.X;
-            rect.Extent.Height = _context.FramebufferSize.Y;
-            renderPass.Rect = rect;
-
-            _context.SetupMainRenderpass(renderPass);
-
-            VulkanRenderpass uiRenderPass = _context.UiRenderPass!;
-            uiRenderPass.Rect = rect;
-            _context.SetupUiRenderpass(uiRenderPass);
 
             //update framebuffer size generation
             _context.SetFramebufferSizeGenerationLastGeneration(_context.FramebufferSizeGeneration);
@@ -1171,16 +1159,16 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
 
             DestroyFramebuffers();
 
-            //TODO: something something struct later
-            renderPass = _context.MainRenderPass!;
-            rect = renderPass.Rect;
-            rect.Offset = new Offset2D(0, 0);
+            VulkanRenderpass renderPass = _context.MainRenderPass!;
+            var rect = renderPass.Rect;
+            rect.Offset = new Offset2D(0,0);
             rect.Extent.Width = _context.FramebufferSize.X;
             rect.Extent.Height = _context.FramebufferSize.Y;
             renderPass.Rect = rect;
+
             _context.SetupMainRenderpass(renderPass);
 
-            uiRenderPass = _context.UiRenderPass!;
+            VulkanRenderpass uiRenderPass = _context.UiRenderPass!;
             uiRenderPass.Rect = rect;
             _context.SetupUiRenderpass(uiRenderPass);
 

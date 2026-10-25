@@ -10,7 +10,7 @@ using Result = Silk.NET.Vulkan.Result;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe sealed class VulkanBufferManager
+    public sealed unsafe class VulkanBufferManager
     {
         private readonly VulkanImageSetup _imageSetup;
         private readonly VulkanCommandBufferSetup _commandBufferSetup;
