@@ -22,7 +22,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         /// <summary>
         /// Vertex, Fragment
         /// </summary>
-        public VulkanShaderStage[] ShaderStages;
+        public readonly VulkanShaderStage[] ShaderStages;
 
         public DescriptorPool GlobalDescriptorPool;
         /// <summary>
@@ -35,6 +35,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         /// </summary>
         /// <remarks>
         /// One descriptor set per frame - max 3 for triple buffering.
+        /// 3 is a bad assumption. My laptop supports 4 for some reason.
         /// </remarks>
         public readonly DescriptorSet[] GlobalDescriptorSets;
 
@@ -60,18 +61,18 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         public TextureUse[] SamplerUses { get; } = new TextureUse[SAMPLER_COUNT];
 
         //TODO: make dynamic
-        public VulkanMaterialShaderInstanceState[] InstanceStates { get; init; }
+        public VulkanMaterialShaderInstanceState[] InstanceStates { get; }
 
-        public VulkanMaterialShader()
+        public VulkanMaterialShader(int maxFrameBufferCount)
         {
             ShaderStages = new VulkanShaderStage[MATERIAL_SHADER_STAGE_COUNT];
-            GlobalDescriptorSets = new DescriptorSet[5];
+            GlobalDescriptorSets = new DescriptorSet[maxFrameBufferCount];
             InstanceStates = new VulkanMaterialShaderInstanceState[MAX_MATERIAL_COUNT];
             for(int cnt = 0; cnt < InstanceStates.Length; cnt++)
             {
                 InstanceStates[cnt] = new VulkanMaterialShaderInstanceState()
                 {
-                    DescriptorSets = new DescriptorSet[5],
+                    DescriptorSets = new DescriptorSet[maxFrameBufferCount],
                     DescriptorStates = new VulkanDescriptorState[DESCRIPTOR_COUNT],
                 };
             }

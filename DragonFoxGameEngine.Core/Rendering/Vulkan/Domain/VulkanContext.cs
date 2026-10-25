@@ -11,6 +11,11 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
     public sealed unsafe class VulkanContext
     {
+        /// <summary>
+        /// Hard code a max framebuffer count to fix some inconsistencies with how many swapchains and framebuffers are supported.
+        /// </summary>
+        public const int MAX_FRAMEBUFFER_COUNT = 5;
+        
         public Vk Vk { get; }
 
         public IWindow Window { get; }

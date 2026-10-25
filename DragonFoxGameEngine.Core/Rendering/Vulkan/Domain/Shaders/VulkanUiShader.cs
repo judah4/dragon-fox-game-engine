@@ -35,6 +35,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         /// </summary>
         /// <remarks>
         /// One descriptor set per frame - max 3 for triple buffering.
+        /// 3 is a bad assumption. My laptop supports 4 for some reason.
         /// </remarks>
         public DescriptorSet[] GlobalDescriptorSets;
 
@@ -62,16 +63,16 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         //TODO: make dynamic
         public VulkanUiShaderInstanceState[] InstanceStates { get; init; }
 
-        public VulkanUiShader()
+        public VulkanUiShader(int maxFameBufferCapacity)
         {
             ShaderStages = new VulkanShaderStage[UI_SHADER_STAGE_COUNT];
-            GlobalDescriptorSets = new DescriptorSet[3];
+            GlobalDescriptorSets = new DescriptorSet[maxFameBufferCapacity];
             InstanceStates = new VulkanUiShaderInstanceState[MAX_UI_COUNT];
             for(int cnt = 0; cnt < InstanceStates.Length; cnt++)
             {
                 InstanceStates[cnt] = new VulkanUiShaderInstanceState()
                 {
-                    DescriptorSets = new DescriptorSet[3],
+                    DescriptorSets = new DescriptorSet[maxFameBufferCapacity],
                     DescriptorStates = new VulkanDescriptorState[DESCRIPTOR_COUNT],
                 };
             }
