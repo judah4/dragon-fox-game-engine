@@ -6,7 +6,7 @@ namespace DragonGameEngine.Core
 {
     public static class ApplicationInfo
     {
-        public static readonly string[] GAME_ENGINE_NAMES = new[]
+        private static readonly string[] GAME_ENGINE_NAMES = new[]
         {
             "Coffee Dragon Engine",
             "Dragon Fox Engine",
@@ -21,7 +21,7 @@ namespace DragonGameEngine.Core
 
         public static readonly Version EngineVersion;
 
-        private static int _nameIndex;
+        private static readonly int _nameIndex;
 
         static ApplicationInfo()
         {
@@ -33,8 +33,7 @@ namespace DragonGameEngine.Core
             var entryInterface = typeof(IGameEntry);
             var entryType = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(s => s.GetTypes())
-                .Where(p => p.IsClass && entryInterface.IsAssignableFrom(p))
-                .FirstOrDefault();
+                .FirstOrDefault(p => p.IsClass && entryInterface.IsAssignableFrom(p));
 
             if (entryType == null)
                 return;
