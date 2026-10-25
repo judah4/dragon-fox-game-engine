@@ -13,7 +13,7 @@ using System;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 {
-    public unsafe sealed class VulkanUiShaderManager
+    public sealed unsafe class VulkanUiShaderManager
     {
         public const string BUILTIN_SHADER_NAME_OBJECT = "Builtin.UIShader";
 
@@ -82,7 +82,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 new DescriptorPoolSize()
                 {
                     Type = DescriptorType.UniformBuffer,
-                    DescriptorCount = (uint)context.Swapchain!.SwapchainImages!.Length,
+                    DescriptorCount = (uint)context.Swapchain!.SwapchainImages.Count,
                 },
             };
 
@@ -95,7 +95,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                     SType = StructureType.DescriptorPoolCreateInfo,
                     PoolSizeCount = (uint)poolSizes.Length,
                     PPoolSizes = poolSizesPtr,
-                    MaxSets = (uint)context.Swapchain.SwapchainImages.Length,
+                    MaxSets = (uint)context.Swapchain.SwapchainImages.Count,
                 };
 
                 var createDescriptorPoolResult = context.Vk.CreateDescriptorPool(context.Device.LogicalDevice, poolInfo, context.Allocator, &descriptorPool);
@@ -226,7 +226,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 true);
             uiShader.GlobalUniformBuffer = globalUboBuffer;
 
-            var globalLayouts = new DescriptorSetLayout[context.Swapchain.SwapchainImages.Length];
+            var globalLayouts = new DescriptorSetLayout[context.Swapchain.SwapchainImages.Count];
             for (int cnt = 0; cnt < globalLayouts.Length; cnt++)
             {
                 globalLayouts[cnt] = uiShader.GlobalDescriptorSetLayout;
@@ -527,7 +527,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
                 Array.Fill(instanceState.DescriptorStates[cnt].Ids, EntityIdService.INVALID_ID);
             }
 
-            var layouts = new DescriptorSetLayout[context.Swapchain!.SwapchainImages!.Length];
+            var layouts = new DescriptorSetLayout[context.Swapchain!.SwapchainImages.Count];
             for (int cnt = 0; cnt < layouts.Length; cnt++)
             {
                 layouts[cnt] = shader.ObjectDescriptorSetLayout;

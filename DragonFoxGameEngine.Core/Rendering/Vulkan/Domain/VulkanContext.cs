@@ -1,4 +1,6 @@
-﻿using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
+﻿using System;
+using System.Collections.Generic;
+using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using Silk.NET.Maths;
 using Silk.NET.Vulkan;
 using Silk.NET.Vulkan.Extensions.EXT;
@@ -7,7 +9,7 @@ using Silk.NET.Windowing;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {
-    public unsafe sealed class VulkanContext
+    public sealed unsafe class VulkanContext
     {
         public Vk Vk { get; }
 
@@ -36,8 +38,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public VulkanRenderpass? UiRenderPass { get; private set; }
 
         #region Buffers
-        public VulkanBuffer ObjectVertexBuffer { get; private set; }
-        public VulkanBuffer ObjectIndexBuffer { get; private set; }
+        public VulkanBuffer? ObjectVertexBuffer { get; private set; }
+        public VulkanBuffer? ObjectIndexBuffer { get; private set; }
         #endregion
         public VulkanCommandBuffer[]? GraphicsCommandBuffers { get; private set; }
 
@@ -62,8 +64,16 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         //TODO: make dynamic
         public VulkanGeometryData[] Geometries { get; private set; } = new VulkanGeometryData[VulkanGeometryData.MAX_GEOMENTRY_COUNT];
 
-        public Framebuffer[] WorldFramebuffers { get; set; } = new Framebuffer[3];
-
+        /// <summary>
+        /// World Geometry Framebuffers
+        /// </summary>
+        public IReadOnlyList<Framebuffer> WorldFramebuffers { get; private set; }
+        
+        /// <summary>
+        /// UI Space Framebuffers
+        /// </summary>
+        public IReadOnlyList<Framebuffer> UiFramebuffers { get; private set; }
+        
         public VulkanContext(
             Vk vk,
             IWindow window,
@@ -80,6 +90,8 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
             DebugUtils = debugUtils;
             DebugMessenger = debugMessenger;
             FramebufferSize = framebufferSize;
+            WorldFramebuffers = Array.Empty<Framebuffer>();
+            UiFramebuffers = Array.Empty<Framebuffer>();
         }
 
         /// <summary>
@@ -96,8 +108,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         /// <summary>
         /// For Device setup
         /// </summary>
-        /// <param name="khrSurface"></param>
-        /// <param name="surface"></param>
+        /// <param name="device"></param>
         public void SetupDevice(VulkanDevice device)
         {
             Device = device;
@@ -106,8 +117,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         /// <summary>
         /// For Swapchain setup
         /// </summary>
-        /// <param name="khrSurface"></param>
-        /// <param name="surface"></param>
+        /// <param name="swapchain"></param>
         public void SetupSwapchain(VulkanSwapchain swapchain)
         {
             Swapchain = swapchain;
@@ -182,10 +192,23 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
             UiShader = uiShader;
         }
 
-        public void SetupBuffers(VulkanBuffer objectVertexBuffer, VulkanBuffer objectIndexBuffer)
+        public void SetupBuffers(VulkanBuffer? objectVertexBuffer, VulkanBuffer? objectIndexBuffer)
         {
             ObjectVertexBuffer = objectVertexBuffer;
             ObjectIndexBuffer = objectIndexBuffer;
+        }
+
+        /// <summary>
+        /// Set and replace the framebuffers
+        /// </summary>
+        /// <param name="worldFramebuffers"></param>
+        /// <param name="uiFramebuffers"></param>
+        public void SetupFramebuffers(
+            IReadOnlyList<Framebuffer> worldFramebuffers,
+            IReadOnlyList<Framebuffer> uiFramebuffers)
+        {
+            WorldFramebuffers = worldFramebuffers;
+            UiFramebuffers = uiFramebuffers;
         }
     }
 }

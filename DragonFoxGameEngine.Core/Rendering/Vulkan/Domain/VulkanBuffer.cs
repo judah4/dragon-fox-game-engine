@@ -1,4 +1,5 @@
-﻿using DragonFox.Utilities;
+﻿using System.ComponentModel.DataAnnotations;
+using DragonFox.Utilities;
 using Silk.NET.Vulkan;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
@@ -13,6 +14,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
         public uint MemoryIndex { get; init; }
         public MemoryPropertyFlags MemoryPropertyFlags { get; set; }
 
+        [Required]
         public FreeList Freelist { get; init; }
     }
 }
