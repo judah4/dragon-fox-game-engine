@@ -7,13 +7,15 @@ using System.Collections.Generic;
 
 namespace DragonGameEngine.Core.Systems
 {
+    /// <summary>
+    /// Resource loading system from disk
+    /// </summary>
     public sealed class ResourceSystem
     {
         private readonly ILogger _logger;
         private readonly ResourceSystemConfig _config;
         private readonly Dictionary<ResourceType, IResourceLoader> _registeredLoaders;
-
-
+        
         public ResourceSystem(ILogger logger, ResourceSystemConfig config)
         {
             _logger = logger;

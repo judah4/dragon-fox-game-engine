@@ -65,7 +65,7 @@ namespace DragonGameEngine.Core.Systems
         }
 
         /// <summary>
-        /// 
+        /// Grab the texture, loading it from memory if needed.
         /// </summary>
         /// <param name="name"></param>
         /// <param name="autoRelease"></param>
