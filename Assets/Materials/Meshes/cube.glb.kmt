@@ -3,5 +3,5 @@
 version=0.1
 name=cube.glb
 diffuse_color=1.0 1.0 1.0 1.0
-diffuse_map_name=texture
+diffuse_map_name=CoffeeDragon
 type=world
