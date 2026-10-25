@@ -10,6 +10,7 @@ using Silk.NET.Maths;
 using Silk.NET.Windowing;
 using System;
 using System.Collections.Immutable;
+using DragonGameEngine.Core.UI;
 
 namespace DragonGameEngine.Core
 {
@@ -28,6 +29,7 @@ namespace DragonGameEngine.Core
         private readonly MaterialSystem _materialSystem;
         private readonly GeometrySystem _geometrySystem;
         private readonly ResourceSystem _resourceSystem;
+        private readonly DragonFoxImGuiContext _imGuiContext;
 
         private long _frame;
         private string _gameTitleData = string.Empty;
@@ -49,8 +51,16 @@ namespace DragonGameEngine.Core
 
         private Geometry? _testUiGeometry;
 
-        public GameApplication(ApplicationConfig config, IGameEntry game, IWindow window, ILogger logger, IRendererFrontend rendererFrontend, 
-            TextureSystem textureSystem, MaterialSystem materialSystem, GeometrySystem geometrySystem, ResourceSystem resourceSystem)
+        public GameApplication(
+            ApplicationConfig config,
+            IGameEntry game,
+            IWindow window,
+            ILogger logger,
+            IRendererFrontend rendererFrontend,
+            TextureSystem textureSystem,
+            MaterialSystem materialSystem,
+            GeometrySystem geometrySystem,
+            ResourceSystem resourceSystem)
         {
             _config = config;
             _game = game;
@@ -65,6 +75,7 @@ namespace DragonGameEngine.Core
             _textureSystem = textureSystem;
             _materialSystem = materialSystem;
             _geometrySystem = geometrySystem;
+            _imGuiContext = new DragonFoxImGuiContext(_window.Size.X, _window.Size.Y, geometrySystem, textureSystem);
 
             IInputContext input = window!.CreateInput();
             _engineInternalInput = new EngineInternalInput(input, window, logger);
@@ -83,6 +94,8 @@ namespace DragonGameEngine.Core
             _materialSystem.Init(_renderer);
 
             _geometrySystem.Init(_renderer);
+            
+            //_imGuiContext.InitTexture();
 
             // TODO: temp 
 
@@ -133,6 +146,9 @@ namespace DragonGameEngine.Core
             var unsignedSize = new Vector2D<uint>((uint)size.X, (uint)size.Y);
             _renderer.Resized(unsignedSize);
             _game.OnResize(unsignedSize);
+            
+            // Resize ImGui
+            _imGuiContext.WindowResized(size.X, size.Y);
         }
 
         public void Run()
@@ -150,13 +166,14 @@ namespace DragonGameEngine.Core
             {
                 _logger.LogError(e, e.Message);
             }
+            
+            _imGuiContext.Dispose();
 
             _geometrySystem.Shutdown();
             _materialSystem.Shutdown();
             _textureSystem.Shutdown();
             _renderer.Shutdown();
             _resourceSystem.Shutdown();
-
         }
 
         private void OnUpdate(double deltaTime)
@@ -182,9 +199,18 @@ namespace DragonGameEngine.Core
             {
                 _logger.LogError(e, e.Message);
             }
+            
+            try
+            {
+                //_imGuiContext.Update((float)deltaTime);
+            }
+            catch(Exception e)
+            {
+                _logger.LogError(e, e.Message);
+            }
         }
 
-        public void OnDrawFrame(double deltaTime)
+        private void OnDrawFrame(double deltaTime)
         {
             _game.Render(deltaTime);
 
@@ -228,10 +254,12 @@ namespace DragonGameEngine.Core
                 });
             }
 
+            //_imGuiContext.Render();
+            
             var renderPacket = new RenderPacket(deltaTime, geometries, uiGeometries);
 
             _renderer.DrawFrame(renderPacket);
-
+            
             //end, to the next frame
             _frame++;
         }

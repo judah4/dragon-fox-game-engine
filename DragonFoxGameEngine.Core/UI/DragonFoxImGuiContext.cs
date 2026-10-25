@@ -74,13 +74,15 @@ public sealed class DragonFoxImGuiContext : IDisposable
     }
     public void Update(float deltaSeconds)
     {
-        ImGui.Render();
-        
-        ImGui.Text("Hello World!");
-        
         SetPerFrameImGuiData(deltaSeconds);
         
         ImGui.NewFrame();
+        
+        ImGui.Text("Hello World!");
+        
+        ImGui.Render();
+        
+        ImGui.EndFrame();
     }
 
     public void Render()
