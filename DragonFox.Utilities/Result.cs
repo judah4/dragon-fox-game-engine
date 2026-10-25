@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Foxis.Library
+namespace DragonFox.Utilities
 {
     /// <summary>
     /// Result for status, error, and value.
@@ -23,7 +23,10 @@ namespace Foxis.Library
         }
     }
 
-    public struct Result<T>
+    /// <summary>
+    /// Result for status, error, and value.
+    /// </summary>
+    public readonly struct Result<T>
     {
         public T? Value { get; }
         public bool Success { get; }

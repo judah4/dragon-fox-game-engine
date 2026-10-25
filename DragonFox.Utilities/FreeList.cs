@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Foxis.Library.Freelists
+namespace DragonFox.Utilities
 {
+    /// <summary>
+    /// Free List Implementation
+    /// </summary>
     public sealed class FreeList
     {
         private sealed class FreeListNode

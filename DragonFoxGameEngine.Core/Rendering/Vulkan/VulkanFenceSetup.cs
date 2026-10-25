@@ -1,17 +1,14 @@
 ﻿using DragonGameEngine.Core.Exceptions.Vulkan;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
-using Foxis.Library;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Vulkan;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan
 {
-    public unsafe sealed class VulkanFenceSetup
+    /// <summary>
+    /// Vulkan Fence
+    /// </summary>
+    public sealed unsafe class VulkanFenceSetup
     {
         private readonly ILogger _logger;
         public VulkanFenceSetup(ILogger logger)
@@ -55,15 +52,15 @@ namespace DragonGameEngine.Core.Rendering.Vulkan
             return vulkanFence;
         }
 
-        public Result<VulkanFence> FenceWait(VulkanContext context, VulkanFence vulkanFence, ulong timeoutNs)
+        public DragonFox.Utilities.Result<VulkanFence> FenceWait(VulkanContext context, VulkanFence vulkanFence, ulong timeoutNs)
         {
             var result = context.Vk.WaitForFences(context.Device.LogicalDevice, 1, vulkanFence.Handle, true, timeoutNs);
 
             if(VulkanUtils.ResultIsSuccess(result))
             {
-                return Foxis.Library.Result.Ok(vulkanFence);
+                return DragonFox.Utilities.Result.Ok(vulkanFence);
             }
-            return Foxis.Library.Result.Fail<VulkanFence>(VulkanUtils.FormattedResult(result));
+            return DragonFox.Utilities.Result.Fail<VulkanFence>(VulkanUtils.FormattedResult(result));
         }
 
         public VulkanFence FenceReset(VulkanContext context, VulkanFence vulkanFence)
