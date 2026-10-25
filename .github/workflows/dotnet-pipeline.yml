@@ -24,7 +24,7 @@ jobs:
         dotnet-version: 10.0.x
 
     - name: Install asset-importer
-        run: apt-get update; apt-get -y install --no-install-recommends assimp
+      run: apt-get update; apt-get -y install --no-install-recommends assimp
 
     - name: Prepare Vulkan SDK
       uses: humbletim/setup-vulkan-sdk@v1.2.1
