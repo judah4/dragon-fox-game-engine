@@ -36,7 +36,7 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         /// <remarks>
         /// One descriptor set per frame - max 3 for triple buffering.
         /// </remarks>
-        public DescriptorSet[] GlobalDescriptorSets;
+        public readonly DescriptorSet[] GlobalDescriptorSets;
 
         /// <summary>
         /// Global uniform object
@@ -65,13 +65,13 @@ namespace DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders
         public VulkanMaterialShader()
         {
             ShaderStages = new VulkanShaderStage[MATERIAL_SHADER_STAGE_COUNT];
-            GlobalDescriptorSets = new DescriptorSet[3];
+            GlobalDescriptorSets = new DescriptorSet[5];
             InstanceStates = new VulkanMaterialShaderInstanceState[MAX_MATERIAL_COUNT];
             for(int cnt = 0; cnt < InstanceStates.Length; cnt++)
             {
                 InstanceStates[cnt] = new VulkanMaterialShaderInstanceState()
                 {
-                    DescriptorSets = new DescriptorSet[3],
+                    DescriptorSets = new DescriptorSet[5],
                     DescriptorStates = new VulkanDescriptorState[DESCRIPTOR_COUNT],
                 };
             }
