@@ -61,3 +61,9 @@ dotnet publish -c Release -r win-x64 --self-contained true
 dotnet publish -c Release -r linux-x64 --self-contained true
 
 ```
+
+## Rendering Stuff
+
+https://github.com/KhronosGroup/glTF-Sample-Assets/tree/main/Models/Sponza
+
+https://www.intel.com/content/www/us/en/developer/topic-technology/graphics-research/samples.html

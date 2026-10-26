@@ -1,0 +1,7 @@
+#material file
+
+version=0.1
+name=Sponza.gltf
+diffuse_color=1.0 1.0 1.0 1.0
+diffuse_map_name=Sponza/5792855332885324923
+type=world

@@ -46,7 +46,7 @@ namespace DragonGameEngine.Core.Rendering
             var initialView = Matrix4X4.CreateTranslation(new Vector3D<float>(0, 0, 10));
             Matrix4X4.Invert(initialView, out initialView);
 
-            _systemState = RegenProjectionMatrix(0.1f, 1000.0f)
+            _systemState = RegenProjectionMatrix(0.1f, 2000.0f)
                 .UpdateWorldView(initialView);
         }
 
