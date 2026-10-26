@@ -10,6 +10,9 @@ using System.IO;
 
 namespace DragonGameEngine.Core.Systems.ResourceLoaders
 {
+    // TODO: Load multiple meshes following the scene graph
+    // Load expected textures from glb/glTF.
+    // Lets read up on the format...
     public sealed class StaticMeshResourceLoader : IResourceLoader
     {
         public ResourceType ResourceType => ResourceType.StaticMesh;
