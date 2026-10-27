@@ -10,6 +10,7 @@ using Microsoft.Extensions.Configuration;
 using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core;
 using System.Threading;
+using DragonFox.Assets;
 using DragonGameEngine.Core.Systems.Domain;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Rendering.Headless;
@@ -75,7 +76,8 @@ namespace DragonFoxGameEngine
             ILogger engineLogger)
         {
             //for debugging, lets use the default path for now
-            var resourceSystem = new ResourceSystem(engineLogger, new ResourceSystemConfig(32, "Assets"));
+            var assetsFolder = new AssetFolder("Assets");
+            var resourceSystem = new ResourceSystem(engineLogger, new ResourceSystemConfig(32, assetsFolder.AsString()));
 
             var textureSystem = new TextureSystem(engineLogger, new TextureSystemConfig(65536), resourceSystem);
 
@@ -102,7 +104,8 @@ namespace DragonFoxGameEngine
                 textureSystem,
                 materialSystem,
                 geometrySystem,
-                resourceSystem);
+                resourceSystem,
+                assetsFolder);
 
             try
             {

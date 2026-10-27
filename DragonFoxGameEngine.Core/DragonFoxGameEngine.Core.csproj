@@ -18,6 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DragonFox.Assets\DragonFox.Assets.csproj" />
+    <ProjectReference Include="..\DragonFox.Loader.GltfModels\DragonFox.Loader.GltfModels.csproj" />
     <ProjectReference Include="..\DragonFox.Utilities\DragonFox.Utilities.csproj" />
   </ItemGroup>
 

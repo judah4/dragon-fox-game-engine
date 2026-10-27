@@ -13,6 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DragonFox.Assets\DragonFox.Assets.csproj" />
     <ProjectReference Include="..\DragonFox.Utilities\DragonFox.Utilities.csproj" />
     <ProjectReference Include="..\DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj" />
     <ProjectReference Include="..\DragonFoxGameEngine.Game\DragonFoxGameEngine.Game.csproj" />
