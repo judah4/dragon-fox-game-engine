@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using DragonFox.Abstractions;
 using DragonFox.Assets;
 using SharpGLTF.Schema2;
@@ -32,30 +33,40 @@ public class GltfSceneResourceLoader
         {
             foreach (var meshPrimitive in mesh.Primitives)
             {
+                if (meshPrimitive.DrawPrimitiveType == PrimitiveType.POINTS
+                    || meshPrimitive.DrawPrimitiveType == PrimitiveType.LINES
+                    || meshPrimitive.DrawPrimitiveType == PrimitiveType.LINE_LOOP
+                    || meshPrimitive.DrawPrimitiveType == PrimitiveType.LINE_STRIP)
+                {
+                    continue;
+                }
                 var positions = meshPrimitive.GetVertexAccessor("POSITION")?.AsVector3Array();
+                if (positions.Count < 3)
+                {
+                    continue;
+                }
+                
                 var normals  = meshPrimitive.GetVertexAccessor("NORMAL")?.AsVector3Array();
                 var texCoord0s = meshPrimitive.GetVertexAccessor("TEXCOORD_0")?.AsVector2Array();
                 
-                var trigs = meshPrimitive.GetTriangleIndices();
+                var primIndices = meshPrimitive.GetIndices();
 
-                foreach (var valueTuple in trigs)
+                foreach (var index in primIndices)
                 {
-                    indices.Add((uint)valueTuple.A);
-                    indices.Add((uint)valueTuple.B);
-                    indices.Add((uint)valueTuple.C);
+                    var position = positions[(int)index];
+                    var texCoord = texCoord0s[(int)index];
+                    
+                    var vertex = new Vertex3D(
+                        new Vector3(position.X, position.Y, position.Z),
+                        new Vector2(texCoord.X, texCoord.Y));
+                    
+                    // index should be usable once the meshes are no longer being merged
+                    indices.Add((uint)vertices.Count);
+                    vertices.Add(vertex);
                 }
-                
-                var position = positions[meshPrimitive.LogicalIndex];
-                var texCoord = texCoord0s[meshPrimitive.LogicalIndex];
-
-                var vertex = new Vertex3D(
-                    new Vector3(position.X, position.Y, position.Z),
-                    new Vector3(texCoord.X, texCoord.Y, 0));
-                
-                vertices.Add(vertex);
             }
         }
         
-        return new SimpleMesh(vertices, indices);
+        return new SimpleMesh(vertices.ToImmutableList(), indices.ToImmutableList());
     }
 }

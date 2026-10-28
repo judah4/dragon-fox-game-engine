@@ -291,10 +291,10 @@ namespace DragonGameEngine.Core
                         new Vector2D<float>(v.TextureCoordinate.X, v.TextureCoordinate.Y)))
                     .ToArray(),
                 simpleMesh.Indicies.ToArray(),
-                "Sponza.gltf");
+                "Meshes/Sponza/glTF/Sponza.gltf");
 
-            _cubeGeometry = _geometrySystem.AcquireFromConfig(config, true);
-            //_cubeGeometry = _geometrySystem.Acquire("Meshes/Sponza/glTF/Sponza.gltf");
+            //_cubeGeometry = _geometrySystem.AcquireFromConfig(config, true);
+            _cubeGeometry = _geometrySystem.Acquire("Meshes/Sponza/glTF/Sponza.gltf");
         }
     }
 }
