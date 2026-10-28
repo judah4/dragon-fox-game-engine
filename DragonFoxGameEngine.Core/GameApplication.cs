@@ -2,7 +2,6 @@
 using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
-using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Input;
@@ -11,9 +10,10 @@ using Silk.NET.Windowing;
 using System;
 using System.Collections.Immutable;
 using System.IO;
+using System.Linq;
 using DragonFox.Assets;
 using DragonFox.Loader.GltfModels;
-using glTFLoader;
+using DragonGameEngine.Core.Resources.ResourceDataTypes;
 
 namespace DragonGameEngine.Core
 {
@@ -283,35 +283,18 @@ namespace DragonGameEngine.Core
         private void InitLoadSponza()
         {
             var assetId = new AssetIdentifier(Guid.NewGuid(), new AssetPath("Meshes/Sponza/glTF/Sponza.gltf"));
-            var gltfScene = new GltfSceneResourceLoader(_assetFolder).Load(assetId);
+            var simpleMesh = new GltfSceneResourceLoader(_assetFolder).Load(assetId);
+            var config = new GeometryConfig(
+                "SponzaTest",
+                simpleMesh.Vertices.Select(v => new Vertex3d(
+                        new Vector3D<float>(v.Position.X, v.Position.Y, v.Position.Z),
+                        new Vector2D<float>(v.TextureCoordinate.X, v.TextureCoordinate.Y)))
+                    .ToArray(),
+                simpleMesh.Indicies.ToArray(),
+                "Sponza.gltf");
 
-            foreach (var mesh in gltfScene.Meshes)
-            {
-                foreach (var meshPrimitive in mesh.Primitives)
-                {
-                    var position = meshPrimitive.Attributes["POSITION"];
-                    // Skip NORMAL and any other value for now
-                    var accessor = gltfScene.Accessors[position];
-                    var bufferView = gltfScene.BufferViews[accessor.BufferView.Value];
-                    var bufferBinary = gltfScene.LoadBinaryBuffer(
-                        bufferView.Buffer,
-                        Path.Combine(_assetFolder.AsString(), assetId.AssetPath.AsString()));
-
-                    // Quick assumption that this is a vec3 float
-                    var strideOffset = 0;
-                    var x = BitConverter.ToSingle(bufferBinary, accessor.ByteOffset + bufferView.ByteOffset + strideOffset);
-                    strideOffset += 4;
-                    var y = BitConverter.ToSingle(bufferBinary, accessor.ByteOffset + bufferView.ByteOffset + strideOffset);
-                    strideOffset += 4;
-                    var z = BitConverter.ToSingle(bufferBinary, accessor.ByteOffset + bufferView.ByteOffset + strideOffset);
-                    var posVector = new Vector3D<float>(x, y, z);
-
-                    var vertex = new Vertex3d(posVector, new Vector2D<float>(0, 0));
-                    _logger.LogDebug($"First vertex! {vertex}");
-                }
-            }
-            
-            _cubeGeometry = _geometrySystem.Acquire("Meshes/Sponza/glTF/Sponza.gltf");
+            _cubeGeometry = _geometrySystem.AcquireFromConfig(config, true);
+            //_cubeGeometry = _geometrySystem.Acquire("Meshes/Sponza/glTF/Sponza.gltf");
         }
     }
 }

@@ -41,6 +41,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragonFox.Loader.GltfModels
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragonFox.Assets", "DragonFox.Assets\DragonFox.Assets.csproj", "{178D2276-8FF1-4D5B-9686-B55A573E52AF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DragonFox.Abstractions", "DragonFox.Abstractions\DragonFox.Abstractions.csproj", "{32FAC4FF-DA2A-46F2-9A50-774CDBF6FABD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -91,6 +93,10 @@ Global
 		{178D2276-8FF1-4D5B-9686-B55A573E52AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{178D2276-8FF1-4D5B-9686-B55A573E52AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{178D2276-8FF1-4D5B-9686-B55A573E52AF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{32FAC4FF-DA2A-46F2-9A50-774CDBF6FABD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{32FAC4FF-DA2A-46F2-9A50-774CDBF6FABD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{32FAC4FF-DA2A-46F2-9A50-774CDBF6FABD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{32FAC4FF-DA2A-46F2-9A50-774CDBF6FABD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -111,5 +117,6 @@ Global
 		{B90702D2-4760-40D4-A40E-5C4B7118568C} = {F78EC36B-DA5B-4E63-BC78-F5F11EFFC17A}
 		{F5F08B7B-EEAB-41C2-A51D-6D7486732173} = {F78EC36B-DA5B-4E63-BC78-F5F11EFFC17A}
 		{178D2276-8FF1-4D5B-9686-B55A573E52AF} = {F78EC36B-DA5B-4E63-BC78-F5F11EFFC17A}
+		{32FAC4FF-DA2A-46F2-9A50-774CDBF6FABD} = {F78EC36B-DA5B-4E63-BC78-F5F11EFFC17A}
 	EndGlobalSection
 EndGlobal
