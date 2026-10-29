@@ -3,15 +3,13 @@ on:
   push:
     tags:
       - v*
-
-# https://github.com/marketplace/actions/butler-to-itch
     
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  build:
+  publish:
 
     runs-on: ubuntu-latest
       
@@ -44,3 +42,30 @@ jobs:
       
     - name: Test
       run: dotnet test --no-build --verbosity normal
+
+    - name: Publish Windows
+      run: dotnet publish DragonFoxGameEngine -c Release -r win-x64 --self-contained true -o "./build/win-x64/"
+      
+    - name: Publish Linux
+      run: dotnet publish DragonFoxGameEngine -c Release -r linux-x64 --self-contained true -o "./build/linux-x64/"
+      
+    - name: Zip Windows Build
+      uses: montudor/action-zip@v1
+      with:
+        args: "zip -qq -r build/release-win-x64-${{ github.ref_name }}.zip build/win-x64/"
+
+    - name: Zip Linux Build
+      uses: montudor/action-zip@v1
+      with:
+        args: "zip -qq -r build/release-linux-x64-${{ github.ref_name }}.zip build/linux-x64/"
+        
+      # https://github.com/marketplace/actions/butler-to-itch
+    - name: Publish on itch.io
+      uses: Ayowel/butler-to-itch@v2
+      with:
+        butler_key: ${{ secrets.BUTLER_CREDENTIALS }}
+        itch_user: ${{ secrets.ITCH_USER }}
+        itch_game: renpy-extensions-demo
+        version: ${{ github.ref_name }}
+        files: |
+          build/release-*
