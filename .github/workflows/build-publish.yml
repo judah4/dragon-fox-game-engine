@@ -48,7 +48,7 @@ jobs:
     - name: Publish Linux
       run: dotnet publish DragonFoxGameEngine -c Release -r linux-x64 --self-contained true -o "./build/linux-x64/"
       
-      # https://github.com/marketplace/actions/zip-release
+    # https://github.com/marketplace/actions/zip-release
     - name: Zip Windows Build
       uses: thedoctor0/zip-release@0.7.5
         with:
