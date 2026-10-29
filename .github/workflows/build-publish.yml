@@ -1,0 +1,46 @@
+name: Game Engine Pipeline
+on:
+  push:
+    tags:
+      - v*
+
+# https://github.com/marketplace/actions/butler-to-itch
+    
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+      
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v6
+      with:
+        dotnet-version: 10.0.x
+
+    - name: Install asset-importer
+      run: sudo apt-get update; sudo apt-get -y install --no-install-recommends libassimp-dev
+
+    - name: Prepare Vulkan SDK
+      uses: humbletim/setup-vulkan-sdk@v1.2.1
+      with:
+        vulkan-query-version: latest
+        vulkan-components: Vulkan-Headers Vulkan-Loader
+        vulkan-use-cache: true
+    - name: Test Vulkan SDK Install
+      run: |
+        echo "Vulkan SDK Version=='$VULKAN_SDK_VERSION'"
+        echo "VULKAN_SDK=='$VULKAN_SDK'"
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore
+      
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
