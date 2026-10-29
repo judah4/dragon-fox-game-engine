@@ -1,3 +1,4 @@
+using DragonFox.Assets;
 using DragonGameEngine.Core;
 using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Systems.Domain;
@@ -22,9 +23,11 @@ namespace GameEngine.Core.Tests
             var gameEntryMock = new Mock<IGameEntry>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
+            var assetFolder = new AssetFolder("Assets");
+
             var resourceSystem = new ResourceSystem(
                 loggerMock.Object,
-                new ResourceSystemConfig(32, "Assets"));
+                new ResourceSystemConfig(32, assetFolder.AsString()));
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
@@ -55,8 +58,17 @@ namespace GameEngine.Core.Tests
                 texture.UpdateTextureInternalData(new object());
             };
 
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object,
-                mockRenderer, textureSystem, materialSystem, geometrySystem, resourceSystem);
+            var gameApp = new GameApplication(
+                config,
+                gameEntryMock.Object,
+                windowMock.Object,
+                loggerMock.Object,
+                mockRenderer,
+                textureSystem,
+                materialSystem,
+                geometrySystem,
+                resourceSystem,
+                assetFolder);
 
             gameApp.Init();
 
@@ -74,9 +86,11 @@ namespace GameEngine.Core.Tests
             var gameEntryMock = new Mock<IGameEntry>();
             var config = ApplicationConfigTestProvider.CreateTestConfig();
 
+            var assetFolder = new AssetFolder("Assets");
+            
             var resourceSystem = new ResourceSystem(
                 loggerMock.Object,
-                new ResourceSystemConfig(32, "Assets"));
+                new ResourceSystemConfig(32, assetFolder.AsString()));
 
             var textureSystem = new TextureSystem(
                 loggerMock.Object,
@@ -102,7 +116,17 @@ namespace GameEngine.Core.Tests
                 shutdownCalls++;
             };
 
-            var gameApp = new GameApplication(config, gameEntryMock.Object, windowMock.Object, loggerMock.Object, mockRenderer, textureSystem, materialSystem, geometrySystem, resourceSystem);
+            var gameApp = new GameApplication(
+                config,
+                gameEntryMock.Object,
+                windowMock.Object,
+                loggerMock.Object,
+                mockRenderer,
+                textureSystem,
+                materialSystem,
+                geometrySystem,
+                resourceSystem,
+                assetFolder);
 
             gameApp.Shutdown();
 
