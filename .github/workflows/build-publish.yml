@@ -48,15 +48,22 @@ jobs:
     - name: Publish Linux
       run: dotnet publish DragonFoxGameEngine -c Release -r linux-x64 --self-contained true -o "./build/linux-x64/"
       
+      # https://github.com/marketplace/actions/zip-release
     - name: Zip Windows Build
-      uses: montudor/action-zip@v1
-      with:
-        args: "zip -qq -r build/release-win-x64-${{ github.ref_name }}.zip build/win-x64/"
+      uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          directory: './build/'
+          path: 'win-x64/'
+          filename: './release-win-x64-${{ github.ref_name }}.zip'
 
     - name: Zip Linux Build
-      uses: montudor/action-zip@v1
-      with:
-        args: "zip -qq -r build/release-linux-x64-${{ github.ref_name }}.zip build/linux-x64/"
+      uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          directory: './build/'
+          path: 'linux-x64/'
+          filename: './release-linux-x64-${{ github.ref_name }}.zip'
         
       # https://github.com/marketplace/actions/butler-to-itch
     - name: Publish on itch.io
