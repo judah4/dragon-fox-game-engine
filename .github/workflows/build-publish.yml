@@ -1,0 +1,77 @@
+name: Game Engine Publish
+on:
+  push:
+    tags:
+      - v*
+    
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+      
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Install asset-importer
+        run: sudo apt-get update; sudo apt-get -y install --no-install-recommends libassimp-dev
+
+      - name: Prepare Vulkan SDK
+        uses: humbletim/setup-vulkan-sdk@v1.2.1
+        with:
+          vulkan-query-version: latest
+          vulkan-components: Vulkan-Headers Vulkan-Loader
+          vulkan-use-cache: true
+      - name: Test Vulkan SDK Install
+        run: |
+          echo "Vulkan SDK Version=='$VULKAN_SDK_VERSION'"
+          echo "VULKAN_SDK=='$VULKAN_SDK'"
+          
+      - name: Restore dependencies
+        run: dotnet restore
+        
+      - name: Build
+        run: dotnet build --no-restore
+        
+      - name: Test
+        run: dotnet test --no-build --verbosity normal
+  
+      - name: Publish Windows
+        run: dotnet publish DragonFoxGameEngine -c Release -r win-x64 --self-contained true -o "./build/win-x64/"
+        
+      - name: Publish Linux
+        run: dotnet publish DragonFoxGameEngine -c Release -r linux-x64 --self-contained true -o "./build/linux-x64/"
+
+      # https://github.com/marketplace/actions/zip-release
+      - name: Zip Windows Build
+        uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          directory: './build/'
+          path: 'win-x64/'
+          filename: './release-win-x64-${{ github.ref_name }}.zip'
+          
+      - name: Zip Linux Build
+        uses: thedoctor0/zip-release@0.7.5
+        with:
+          type: 'zip'
+          directory: './build/'
+          path: 'linux-x64/'
+          filename: './release-linux-x64-${{ github.ref_name }}.zip'
+
+      # https://github.com/marketplace/actions/butler-to-itch
+      - name: Publish on itch.io
+        uses: Ayowel/butler-to-itch@v2
+        with:
+          butler_key: ${{ secrets.BUTLER_CREDENTIALS }}
+          itch_user: ${{ secrets.ITCH_USER }}
+          itch_game: ${{ vars.GAME }}
+          version: ${{ github.ref_name }}
+          files: |
+            build/release-*
