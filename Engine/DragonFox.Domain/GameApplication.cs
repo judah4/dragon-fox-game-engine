@@ -150,6 +150,11 @@ namespace DragonFox.Domain
 
         }
 
+        public void SetRendererCameraView(Matrix4X4<float> cameraView)
+        {
+            _renderer.SetView(cameraView);
+        }
+
         private void OnUpdate(double deltaTime)
         {
             _frameStats.AddSample(_frame, _window.Time, deltaTime);

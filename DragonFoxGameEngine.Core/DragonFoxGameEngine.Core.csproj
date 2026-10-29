@@ -11,16 +11,9 @@
 	  <PackageReference Include="NReco.Logging.File" Version="1.1.7" />
 	  <PackageReference Include="Silk.NET" Version="2.18.0" />
 	  <PackageReference Include="Silk.NET.Assimp" Version="2.18.0" />
-	  <PackageReference Include="Silk.NET.Vulkan.Extensions.EXT" Version="2.18.0" />
 	  <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
 	  <PackageReference Include="Svelto.Common" Version="3.4.3" />
 	  <PackageReference Include="Svelto.ECS" Version="3.4.6" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\DragonFox.Assets\DragonFox.Assets.csproj" />
-    <ProjectReference Include="..\DragonFox.Loader.GltfModels\DragonFox.Loader.GltfModels.csproj" />
-    <ProjectReference Include="..\DragonFox.Utilities\DragonFox.Utilities.csproj" />
   </ItemGroup>
 
 </Project>

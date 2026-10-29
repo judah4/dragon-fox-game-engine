@@ -160,7 +160,7 @@ namespace DragonFoxGameEngine.Game
             }
 
             RecalculateCameraViewMatrix();
-            _gameApp!.Renderer.SetView(_view);
+            _gameApp!.SetRendererCameraView(_view);
 
             //debug set camera position in title
             _gameApp.UpdateWindowTitle($"Pos:{_cameraPosition}");

@@ -6,6 +6,8 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\DragonFox.Abstractions\DragonFox.Abstractions.csproj" />
+      <ProjectReference Include="..\..\DragonFox.Assets\DragonFox.Assets.csproj" />
+      <ProjectReference Include="..\..\DragonFox.Loader.GltfModels\DragonFox.Loader.GltfModels.csproj" />
       <ProjectReference Include="..\..\DragonFox.Utilities\DragonFox.Utilities.csproj" />
       <ProjectReference Include="..\..\DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj" />
       <ProjectReference Include="..\Rendering\DragonFox.Rendering.Silk\DragonFox.Rendering.Silk.csproj" />
