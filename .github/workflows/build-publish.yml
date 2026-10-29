@@ -1,4 +1,4 @@
-name: Game Engine Pipeline
+name: Game Engine Publish
 on:
   push:
     tags:
@@ -10,8 +10,6 @@ env:
 
 jobs:
   publish:
-    name: Build and Publish
-
     runs-on: ubuntu-latest
       
     steps:
@@ -66,7 +64,7 @@ jobs:
       with:
         butler_key: ${{ secrets.BUTLER_CREDENTIALS }}
         itch_user: ${{ secrets.ITCH_USER }}
-        itch_game: ${{ env.GAME }}
+        itch_game: ${{ vars.GAME }}
         version: ${{ github.ref_name }}
         files: |
           build/release-*

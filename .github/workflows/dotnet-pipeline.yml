@@ -1,9 +1,7 @@
-name: Game Engine Pipeline
+name: Game Engine Build and Test
 on:
   push:
     branches: [ main ]
-    tags:
-      - v*
   pull_request:
     branches: [ main ]
     
@@ -12,8 +10,8 @@ env:
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
+  name: Build and Test
   build:
-    name: Build and Test
     
     runs-on: ubuntu-latest
       
