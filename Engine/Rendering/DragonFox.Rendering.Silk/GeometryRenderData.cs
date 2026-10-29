@@ -1,7 +1,7 @@
 ﻿using DragonGameEngine.Core.Resources;
 using Silk.NET.Maths;
 
-namespace DragonGameEngine.Core.Rendering
+namespace DragonFox.Rendering
 {
     /// <summary>
     /// Model info for rendering

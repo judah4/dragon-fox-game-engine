@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace DragonGameEngine.Core.Rendering
+namespace DragonFox.Rendering
 {
     public readonly record struct RenderpassId
     {

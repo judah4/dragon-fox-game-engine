@@ -1,7 +1,6 @@
 ﻿using DragonGameEngine.Core.Ecs;
 using DragonGameEngine.Core.Exceptions;
 using DragonGameEngine.Core.Maths;
-using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
 using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems.Domain;
@@ -9,6 +8,7 @@ using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using System;
 using System.Collections.Generic;
+using DragonFox.Rendering;
 
 namespace DragonGameEngine.Core.Systems
 {

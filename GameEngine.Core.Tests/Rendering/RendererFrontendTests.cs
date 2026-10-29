@@ -1,5 +1,4 @@
 using DragonFox.Rendering;
-using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Systems;
 using DragonGameEngine.Core.Systems.Domain;
 using GameEngine.Core.Tests.Mocks;

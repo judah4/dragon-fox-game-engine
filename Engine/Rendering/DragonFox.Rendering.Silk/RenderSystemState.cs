@@ -1,6 +1,6 @@
 ﻿using Silk.NET.Maths;
 
-namespace DragonGameEngine.Core.Rendering
+namespace DragonFox.Rendering
 {
     public readonly struct RenderSystemState
     {

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Drawing;
 using DragonGameEngine.Core.Maths;
-using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;

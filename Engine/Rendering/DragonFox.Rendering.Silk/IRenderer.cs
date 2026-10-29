@@ -1,10 +1,10 @@
-﻿using DragonGameEngine.Core.Maths;
+﻿using System;
+using System.Drawing;
+using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Resources;
 using Silk.NET.Maths;
-using System;
-using System.Drawing;
 
-namespace DragonGameEngine.Core.Rendering
+namespace DragonFox.Rendering
 {
     public interface IRenderer
     {

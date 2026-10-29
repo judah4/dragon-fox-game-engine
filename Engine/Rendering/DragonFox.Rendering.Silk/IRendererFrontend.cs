@@ -1,9 +1,9 @@
-﻿using DragonGameEngine.Core.Maths;
+﻿using System;
+using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Resources;
 using Silk.NET.Maths;
-using System;
 
-namespace DragonGameEngine.Core.Rendering
+namespace DragonFox.Rendering
 {
     /// <summary>
     /// TODO: Move interfaces to Rendering.Abstractions and drop the Silk.NET requirement

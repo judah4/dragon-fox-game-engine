@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace DragonGameEngine.Core.Rendering
+namespace DragonFox.Rendering
 {
     public readonly struct RenderPacket
     {
