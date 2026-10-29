@@ -1,3 +1,4 @@
+using DragonFox.Rendering;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Systems;
 using DragonGameEngine.Core.Systems.Domain;
@@ -33,7 +34,7 @@ namespace GameEngine.Core.Tests.Rendering
                 textureSystem,
                 resourceSystem);
 
-            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, materialSystem, loggerMock.Object, mockRenderer);
+            var frontend = new RendererFrontend(windowMock.Object, loggerMock.Object, mockRenderer);
 
             var initCalls = 0;
             mockRenderer.OnInit += () =>
@@ -69,7 +70,7 @@ namespace GameEngine.Core.Tests.Rendering
                 textureSystem,
                 resourceSystem);
 
-            var frontend = new RendererFrontend(config, windowMock.Object, textureSystem, materialSystem, loggerMock.Object, rendererMock.Object);
+            var frontend = new RendererFrontend(windowMock.Object, loggerMock.Object, rendererMock.Object);
 
             frontend.Shutdown();
 

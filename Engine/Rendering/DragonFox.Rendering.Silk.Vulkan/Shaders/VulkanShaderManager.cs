@@ -5,6 +5,7 @@ using DragonGameEngine.Core.Resources;
 using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
 using System.IO;
+using DragonGameEngine.Core.Systems;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 {

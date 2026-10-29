@@ -91,10 +91,7 @@ namespace DragonFoxGameEngine
             var backendRenderer = SetupRenderer(config, window, textureSystem, resourceSystem, engineLogger);
 
             var rendererFrontend = new RendererFrontend(
-                config, 
                 window, 
-                textureSystem, 
-                materialSystem, 
                 engineLogger,
                 backendRenderer);
             var application = new GameApplication(

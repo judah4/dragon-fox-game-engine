@@ -18,6 +18,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\DragonFox.Utilities\DragonFox.Utilities.csproj" />
+      <ProjectReference Include="..\..\DragonFox.Domain\DragonFox.Domain.csproj" />
       <ProjectReference Include="..\DragonFox.Rendering.Silk\DragonFox.Rendering.Silk.csproj" />
     </ItemGroup>
 </Project>
