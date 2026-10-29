@@ -65,7 +65,7 @@ jobs:
       with:
         butler_key: ${{ secrets.BUTLER_CREDENTIALS }}
         itch_user: ${{ secrets.ITCH_USER }}
-        itch_game: renpy-extensions-demo
+        itch_game: ${{ env.GAME }}
         version: ${{ github.ref_name }}
         files: |
           build/release-*
