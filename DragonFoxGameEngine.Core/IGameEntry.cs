@@ -7,7 +7,7 @@ namespace DragonGameEngine.Core
     /// </summary>
     public interface IGameEntry
     {
-        void Initialize(GameApplication gameApp);
+        void Initialize(IGameApplication gameApp);
         void Update(double deltaTime);
         void Render(double deltaTime);
         void OnResize(Vector2D<uint> size);

@@ -17,6 +17,8 @@
     <ProjectReference Include="..\DragonFox.Utilities\DragonFox.Utilities.csproj" />
     <ProjectReference Include="..\DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj" />
     <ProjectReference Include="..\DragonFoxGameEngine.Game\DragonFoxGameEngine.Game.csproj" />
+    <ProjectReference Include="..\Engine\DragonFox.Domain\DragonFox.Domain.csproj" />
+    <ProjectReference Include="..\Engine\Rendering\DragonFox.Rendering.Silk.Vulkan\DragonFox.Rendering.Silk.Vulkan.csproj" />
   </ItemGroup>
 
 	<ItemGroup>

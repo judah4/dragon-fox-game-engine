@@ -1,23 +1,21 @@
-﻿using DragonGameEngine.Core.Maths;
+﻿using System.Collections.Immutable;
+using DragonFox.Assets;
+using DragonFox.Loader.GltfModels;
+using DragonGameEngine.Core;
+using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Platforms;
 using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
+using DragonGameEngine.Core.Resources.ResourceDataTypes;
 using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Input;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
-using System;
-using System.Collections.Immutable;
-using System.IO;
-using System.Linq;
-using DragonFox.Assets;
-using DragonFox.Loader.GltfModels;
-using DragonGameEngine.Core.Resources.ResourceDataTypes;
 
-namespace DragonGameEngine.Core
+namespace DragonFox.Domain
 {
-    public sealed class GameApplication
+    public sealed class GameApplication: IGameApplication
     {
         public IWindow Window => _window;
         public IRendererFrontend Renderer => _renderer;

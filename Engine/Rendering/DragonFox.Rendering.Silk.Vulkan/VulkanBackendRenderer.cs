@@ -6,7 +6,6 @@ using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using DragonGameEngine.Core.Rendering.Vulkan.Shaders;
 using DragonGameEngine.Core.Resources;
-using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Core;
 using Silk.NET.Core.Native;

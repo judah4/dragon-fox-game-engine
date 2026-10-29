@@ -1,7 +1,6 @@
 ﻿using DragonGameEngine.Core.Maths;
 using DragonGameEngine.Core.Resources;
 using Silk.NET.Maths;
-using Silk.NET.Vulkan;
 using System;
 using System.Drawing;
 

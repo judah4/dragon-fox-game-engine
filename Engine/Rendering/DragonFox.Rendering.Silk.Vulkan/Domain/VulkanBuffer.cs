@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using DragonFox.Utilities;
 using Silk.NET.Vulkan;
+using Buffer = Silk.NET.Vulkan.Buffer;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Domain
 {

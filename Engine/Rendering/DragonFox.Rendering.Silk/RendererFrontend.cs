@@ -1,21 +1,17 @@
+using System;
+using System.Drawing;
 using DragonGameEngine.Core.Maths;
-using DragonGameEngine.Core.Platforms;
+using DragonGameEngine.Core.Rendering;
 using DragonGameEngine.Core.Resources;
-using DragonGameEngine.Core.Systems;
 using Microsoft.Extensions.Logging;
 using Silk.NET.Maths;
 using Silk.NET.Windowing;
-using System;
-using System.Drawing;
 
-namespace DragonGameEngine.Core.Rendering
+namespace DragonFox.Rendering
 {
     public sealed class RendererFrontend : IRendererFrontend
     {
-        private readonly ApplicationConfig _config;
         private readonly IWindow _window;
-        private readonly TextureSystem _textureSystem;
-        private readonly MaterialSystem _materialSystem;
 
         private readonly ILogger _logger;
 
@@ -24,17 +20,11 @@ namespace DragonGameEngine.Core.Rendering
         private RenderSystemState _systemState;
 
         public RendererFrontend(
-            ApplicationConfig config,
             IWindow window,
-            TextureSystem textureSystem,
-            MaterialSystem materialSystem,
             ILogger logger,
             IRenderer renderer)
         {
-            _config = config;
             _window = window;
-            _textureSystem = textureSystem;
-            _materialSystem = materialSystem;
             _logger = logger;
             _rendererBackend = renderer;
         }

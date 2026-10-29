@@ -2,14 +2,13 @@
 using DragonGameEngine.Core.Rendering.Vulkan.Domain;
 using DragonGameEngine.Core.Rendering.Vulkan.Domain.Shaders;
 using DragonGameEngine.Core.Resources;
-using DragonGameEngine.Core.Systems;
 using Silk.NET.Core.Native;
 using Silk.NET.Vulkan;
 using System.IO;
 
 namespace DragonGameEngine.Core.Rendering.Vulkan.Shaders
 {
-    public unsafe sealed class VulkanShaderManager
+    public sealed unsafe class VulkanShaderManager
     {
 
         private readonly ResourceSystem _resourceSystem;

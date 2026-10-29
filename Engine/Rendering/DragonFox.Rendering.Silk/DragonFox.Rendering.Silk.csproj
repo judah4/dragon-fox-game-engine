@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+      <RootNamespace>DragonFox.Rendering</RootNamespace>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Silk.NET" Version="2.18.0" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj" />
+    </ItemGroup>
+</Project>

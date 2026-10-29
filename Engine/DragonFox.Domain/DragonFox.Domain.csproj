@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\DragonFox.Abstractions\DragonFox.Abstractions.csproj" />
+      <ProjectReference Include="..\..\DragonFox.Utilities\DragonFox.Utilities.csproj" />
+      <ProjectReference Include="..\..\DragonFoxGameEngine.Core\DragonFoxGameEngine.Core.csproj" />
+      <ProjectReference Include="..\Rendering\DragonFox.Rendering.Silk\DragonFox.Rendering.Silk.csproj" />
+    </ItemGroup>
+
+</Project>

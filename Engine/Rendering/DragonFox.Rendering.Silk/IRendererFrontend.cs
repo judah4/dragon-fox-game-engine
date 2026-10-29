@@ -5,6 +5,9 @@ using System;
 
 namespace DragonGameEngine.Core.Rendering
 {
+    /// <summary>
+    /// TODO: Move interfaces to Rendering.Abstractions and drop the Silk.NET requirement
+    /// </summary>
     public interface IRendererFrontend
     {
         /// <summary>

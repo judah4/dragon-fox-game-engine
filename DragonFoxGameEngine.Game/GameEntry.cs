@@ -15,7 +15,7 @@ namespace DragonFoxGameEngine.Game
         public const string GAME_NAME = "";
         private readonly ILogger _logger;
 
-        private GameApplication? _gameApp;
+        private IGameApplication? _gameApp;
         IKeyboard? _keyboard;
         IGamepad? _gamepad;
 
@@ -35,7 +35,7 @@ namespace DragonFoxGameEngine.Game
             _logger = logger;
         }
 
-        public void Initialize(GameApplication gameApp)
+        public void Initialize(IGameApplication gameApp)
         {
             _gameApp = gameApp;
             IInputContext input = _gameApp.Window.CreateInput();
