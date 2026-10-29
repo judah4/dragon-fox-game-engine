@@ -56,14 +56,14 @@ jobs:
           directory: './build/'
           path: 'win-x64/'
           filename: './release-win-x64-${{ github.ref_name }}.zip'
-
+          
       - name: Zip Linux Build
         uses: thedoctor0/zip-release@0.7.5
-          with:
-            type: 'zip'
-            directory: './build/'
-            path: 'linux-x64/'
-            filename: './release-linux-x64-${{ github.ref_name }}.zip'
+        with:
+          type: 'zip'
+          directory: './build/'
+          path: 'linux-x64/'
+          filename: './release-linux-x64-${{ github.ref_name }}.zip'
 
       # https://github.com/marketplace/actions/butler-to-itch
       - name: Publish on itch.io
