@@ -26,7 +26,7 @@ public readonly struct Vector2 : IEquatable<Vector2>
     {
         if(ReferenceEquals(obj, null))
         {
-            return true;
+            return false;
         }
         
         return

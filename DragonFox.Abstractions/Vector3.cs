@@ -29,7 +29,7 @@ public readonly struct Vector3 : IEquatable<Vector3>
     {
         if(ReferenceEquals(obj, null))
         {
-            return true;
+            return false;
         }
         
         return

@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 using DragonFox.Abstractions;
 using DragonFox.Assets;
+using DragonFox.Assets.Meshes;
 using SharpGLTF.Schema2;
 
 namespace DragonFox.Loader.GltfModels;

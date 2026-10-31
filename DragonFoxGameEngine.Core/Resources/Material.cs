@@ -1,7 +1,6 @@
 ﻿using DragonGameEngine.Core.Ecs;
 using Silk.NET.Maths;
 using System;
-using System.Collections.Generic;
 
 namespace DragonGameEngine.Core.Resources
 {

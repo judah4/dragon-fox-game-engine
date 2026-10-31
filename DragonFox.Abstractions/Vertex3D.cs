@@ -2,12 +2,13 @@
 
 public readonly struct Vertex3D : IEquatable<Vertex3D>
 {
-    //Use fields for marshaling
     private readonly Vector3 _position;
     private readonly Vector2 _textureCoordinate;
-
+    
     public Vector3 Position => _position;
     public Vector2 TextureCoordinate => _textureCoordinate;
+    
+    // TODO: load more attributes like normals
 
     public Vertex3D(Vector3 position, Vector2 textureCoordinate)
     {
@@ -30,7 +31,7 @@ public readonly struct Vertex3D : IEquatable<Vertex3D>
     {
         if(ReferenceEquals(obj, null))
         {
-            return true;
+            return false;
         }
         
         return
