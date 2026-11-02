@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using DragonFox.Abstractions;
 
 namespace DragonFox.Assets.Meshes;
@@ -13,7 +14,7 @@ public sealed class SimpleMesh
     
     public SimpleMesh(ICollection<Vertex3D> vertices, ICollection<uint> indices)
     {
-        Vertices = vertices;
-        Indices = indices;
+        Vertices = [.. vertices];
+        Indices = [.. indices];
     }
 }

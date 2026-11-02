@@ -7,10 +7,10 @@ namespace DragonFox.Assets.Meshes;
 /// </summary>
 public sealed class Mesh
 {
-    public IReadOnlyDictionary<MaterialName, SimpleMesh> SubMeshes { get; }
+    public ICollection<MeshPrimitive> SubMeshes { get; }
     
-    public Mesh(IReadOnlyDictionary<MaterialName, SimpleMesh> subMeshes)
+    public Mesh(ICollection<MeshPrimitive> subMeshes)
     {
-        SubMeshes = subMeshes;
+        SubMeshes = [.. subMeshes];
     }
 }
