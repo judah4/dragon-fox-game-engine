@@ -21,7 +21,7 @@ public class GltfSceneResourceLoader
         _assetFolder = assetFolder;
     }
 
-    public List<ModelNode> Load(AssetIdentifier assetId)
+    public FullModelAsset Load(AssetIdentifier assetId)
     {
         var fullAssetPath = Path.Combine(_assetFolder.AsString(), assetId.AssetPath.AsString());
         if (!File.Exists(fullAssetPath))
@@ -35,27 +35,33 @@ public class GltfSceneResourceLoader
         
         foreach (var node in model.DefaultScene.VisualChildren)
         {
-            nodes.Add(LoadNode(node));
+            nodes.Add(LoadNode(assetId, node));
         }
 
-        return nodes;
+        var materials = model.LogicalMaterials.Select(material => new AssetMaterial(GetMaterialName(material, assetId)))
+            .ToImmutableList();
+
+        var textures = model.LogicalTextures.Select(texture => new AssetTexture())
+            .ToImmutableList();
+
+        return new FullModelAsset(nodes, materials, textures);
     }
 
     // TODO: prepend Asset on my types
-    private ModelNode LoadNode(SharpGLTF.Schema2.Node node)
+    private ModelNode LoadNode(AssetIdentifier assetId, SharpGLTF.Schema2.Node node)
     {
-        var mesh = LoadMesh(node.Mesh);
+        var mesh = LoadMesh(assetId, node.Mesh);
         var children = new List<ModelNode>();
 
         foreach (var childNode in node.VisualChildren)
         {
-            children.Add(LoadNode(childNode));
+            children.Add(LoadNode(assetId, childNode));
         }
 
         return new ModelNode(children, [mesh]);
     }
 
-    private Mesh LoadMesh(SharpGLTF.Schema2.Mesh mesh)
+    private Mesh LoadMesh(AssetIdentifier assetId, SharpGLTF.Schema2.Mesh mesh)
     {
         var subMeshes = new List<MeshPrimitive>();
         
@@ -97,11 +103,16 @@ public class GltfSceneResourceLoader
             }
 
             var simpleMesh = new SimpleMesh(vertices, indices);
-            var materialName = new MaterialName(meshPrimitive.Material.Name);
+            var materialName = GetMaterialName(meshPrimitive.Material, assetId);
             subMeshes.Add(new MeshPrimitive(simpleMesh, materialName));
         }
         
         return new Mesh(subMeshes);
+    }
+
+    private MaterialName GetMaterialName(Material material, AssetIdentifier assetId)
+    {
+        return new MaterialName($"{assetId.Id}#{material.LogicalIndex}");
     }
 }
 
@@ -116,4 +127,21 @@ public sealed class ModelNode
         Children = [.. children];
         Meshes = [.. meshes];
     }
+}
+
+public sealed class FullModelAsset
+{
+    public IEnumerable<ModelNode> Nodes { get; }
+    
+    public IEnumerable<AssetMaterial> Materials { get; }
+    
+    public IEnumerable<AssetTexture> Textures { get; }
+    
+    public FullModelAsset(IEnumerable<ModelNode> nodes, IEnumerable<AssetMaterial> materials, IEnumerable<AssetTexture> textures)
+    {
+        Nodes = nodes;
+        Materials = materials;
+        Textures = textures;
+    }
+
 }
