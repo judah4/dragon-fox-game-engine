@@ -41,7 +41,7 @@ public class GltfSceneResourceLoader
         var materials = model.LogicalMaterials.Select(material => new AssetMaterial(GetMaterialName(material, assetId)))
             .ToImmutableList();
 
-        var textures = model.LogicalTextures.Select(texture => new AssetTexture())
+        var textures = model.LogicalTextures.Select(texture => new AssetTexture(texture.PrimaryImage.Content.Content, texture.PrimaryImage))
             .ToImmutableList();
 
         return new FullModelAsset(nodes, materials, textures);

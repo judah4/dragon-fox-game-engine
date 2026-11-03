@@ -3,7 +3,7 @@ namespace DragonFox.Assets.Materials;
 /// <summary>
 /// In-Memory material data
 /// </summary>
-public class AssetMaterial
+public sealed class AssetMaterial
 {
     public MaterialName Name { get; }
     
