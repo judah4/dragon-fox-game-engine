@@ -288,18 +288,30 @@ namespace DragonFox.Domain
         private void InitLoadSponza()
         {
             var assetId = new AssetIdentifier(Guid.NewGuid(), new AssetPath("Meshes/Sponza/glTF/Sponza.gltf"));
-            var simpleMesh = new GltfSceneResourceLoader(_assetFolder).Load(assetId);
-            var config = new GeometryConfig(
-                "SponzaTest",
-                simpleMesh.Vertices.Select(v => new Vertex3d(
-                        new Vector3D<float>(v.Position.X, v.Position.Y, v.Position.Z),
-                        new Vector2D<float>(v.TextureCoordinate.X, v.TextureCoordinate.Y)))
-                    .ToArray(),
-                simpleMesh.Indicies.ToArray(),
-                "Meshes/Sponza/glTF/Sponza.gltf");
+            var nodes = new GltfSceneResourceLoader(_assetFolder).Load(assetId);
 
-            //_cubeGeometry = _geometrySystem.AcquireFromConfig(config, true);
-            _cubeGeometry = _geometrySystem.Acquire("Meshes/Sponza/glTF/Sponza.gltf");
+            foreach (var modelNode in nodes)
+            {
+                foreach (var mesh in modelNode.Meshes)
+                {
+                    foreach (var meshPrimitive in mesh.SubMeshes)
+                    {
+                        var config = new GeometryConfig(
+                            "SponzaTest",
+                            meshPrimitive.Mesh.Vertices.Select(v => new Vertex3d(
+                                    new Vector3D<float>(v.Position.X, v.Position.Y, v.Position.Z),
+                                    new Vector2D<float>(v.TextureCoordinate.X, v.TextureCoordinate.Y)))
+                                .ToArray(),
+                            meshPrimitive.Mesh.Indices.ToArray(),
+                            "Meshes/Sponza/glTF/Sponza.gltf");
+                        _cubeGeometry = _geometrySystem.AcquireFromConfig(config, true);
+                        break;
+                    }
+                    break;
+                }
+                break;
+            }
+            //_cubeGeometry = _geometrySystem.Acquire("Meshes/Sponza/glTF/Sponza.gltf");
         }
     }
 }

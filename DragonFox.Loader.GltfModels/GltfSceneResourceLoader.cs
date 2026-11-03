@@ -30,11 +30,15 @@ public class GltfSceneResourceLoader
         }
 
         var model = SharpGLTF.Schema2.ModelRoot.Load(fullAssetPath);
+
+        var nodes = new List<ModelNode>();
         
         foreach (var node in model.DefaultScene.VisualChildren)
         {
-            LoadNode(node);
+            nodes.Add(LoadNode(node));
         }
+
+        return nodes;
     }
 
     // TODO: prepend Asset on my types
