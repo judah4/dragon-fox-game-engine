@@ -13,6 +13,11 @@ jobs:
     runs-on: ubuntu-latest
       
     steps:
+        
+      - name: Docker meta tags
+        id: meta
+        uses: docker/metadata-action@v6
+      
       - uses: actions/checkout@v4
       - name: Setup .NET
         uses: actions/setup-dotnet@v6
@@ -37,16 +42,20 @@ jobs:
         run: dotnet restore
         
       - name: Build
-        run: dotnet build --no-restore
+        env:
+          Version: format('{0}.{1}', '${{ steps.meta.outputs.tags[0] }}', '${{ GITHUB_RUN_ID }}')
+        run: dotnet build --no-restore -p:Version=$Version
         
       - name: Test
         run: dotnet test --no-build --verbosity normal
   
       - name: Publish Windows
-        run: dotnet publish DragonFoxGameEngine -c Release -r win-x64 --self-contained true -o "./build/win-x64/"
+        env:
+          Version: format('{0}.{1}', '${{ steps.meta.outputs.tags[0] }}', '${{ GITHUB_RUN_ID }}')
+        run: dotnet publish DragonFoxGameEngine -c Release -r win-x64 --self-contained true -o "./build/win-x64/" -version=$Version
         
       - name: Publish Linux
-        run: dotnet publish DragonFoxGameEngine -c Release -r linux-x64 --self-contained true -o "./build/linux-x64/"
+        run: dotnet publish DragonFoxGameEngine -c Release -r linux-x64 --self-contained true -o "./build/linux-x64/" -version=$Version
 
       # https://github.com/marketplace/actions/zip-release
       - name: Zip Windows Build
