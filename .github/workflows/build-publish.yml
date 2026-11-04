@@ -17,9 +17,10 @@ jobs:
       - name: Docker meta tags
         id: meta
         uses: docker/metadata-action@v6
-        tags: |
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}.{{patch}}.{{$github.run_id}}
+        with:
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}.{{patch}}.{{$github.run_id}}
       
       - uses: actions/checkout@v4
       - name: Setup .NET
