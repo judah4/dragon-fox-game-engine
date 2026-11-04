@@ -43,7 +43,7 @@ jobs:
         
       - name: Build
         env:
-          Version: format('{0}.{1}', '${{ steps.meta.outputs.tags[0] }}', '${{ github.run_id }}')
+          Version: ${{ format('{0}.{1}', '${{ steps.meta.outputs.tags[0] }}', '${{ github.run_id }}') }}
         run: dotnet build --no-restore -p:Version=$Version
         
       - name: Test
