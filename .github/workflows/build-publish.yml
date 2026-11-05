@@ -21,6 +21,13 @@ jobs:
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}.{{patch}}.{{$github.run_id}}
+            
+      - name: Set Directory.Build.props version
+          id: update
+          uses: vers-one/dotnet-project-version-updater@v1.8
+          with:
+            file: "*.props"
+            version: ${{ steps.meta.outputs.tags[0] }}
       
       - uses: actions/checkout@v4
       - name: Setup .NET
@@ -46,16 +53,16 @@ jobs:
         run: dotnet restore
         
       - name: Build
-        run: dotnet build --no-restore -p:Version=${{ steps.meta.outputs.tags[1] }}
+        run: dotnet build --no-restore
         
       - name: Test
         run: dotnet test --no-build --verbosity normal
   
       - name: Publish Windows
-        run: dotnet publish DragonFoxGameEngine -c Release -r win-x64 --self-contained true -o "./build/win-x64/" -version=${{ steps.meta.outputs.tags[0] }}
+        run: dotnet publish DragonFoxGameEngine -c Release -r win-x64 --self-contained true -o "./build/win-x64/"
         
       - name: Publish Linux
-        run: dotnet publish DragonFoxGameEngine -c Release -r linux-x64 --self-contained true -o "./build/linux-x64/" -version=${{ steps.meta.outputs.tags[0] }}
+        run: dotnet publish DragonFoxGameEngine -c Release -r linux-x64 --self-contained true -o "./build/linux-x64/"
 
       # https://github.com/marketplace/actions/zip-release
       - name: Zip Windows Build
